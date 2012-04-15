@@ -39,15 +39,39 @@ are all the following key-value pairs, and the body is what remains."
   (when (keywordp (car form))
     (let ((tag (car form))
           (body (cdr form))
-          attrs)
+          attrs classes)
       (loop (if (keywordp (car body))
-                (setf attrs (nconc attrs
-                                   ;; Rather than subseq, in case of
-                                   ;; an empty attribute.
-                                   (list (nth 0 body)
-                                         (nth 1 body)))
-                      body (cddr body))
-                (return (values tag attrs body)))))))
+                (if (eql (car body) :class)
+                    (progn
+                      (push (nth 1 body) classes)
+                      (setf body (cddr body)))
+                    (setf attrs (nconc attrs
+                                       ;; Rather than subseq, in case of
+                                       ;; an empty attribute.
+                                       (list (nth 0 body)
+                                             (nth 1 body)))
+                          body (cddr body)))
+                (return
+                  (values
+                   tag
+                   (nconc
+                    (when classes
+                      `(:class
+                        ,(if (every #'stringp classes)
+                             (apply #'class-union (nreverse classes))
+                             `(class-union ,@(nreverse classes)))))
+                    attrs)
+                   body)))))))
+
+(defun class-union (&rest classes)
+  (with-output-to-string (s)
+    (let ((classes (remove-duplicates classes :test #'equal)))
+      (when classes
+        (write-string (car classes) s)
+        (when (cdr classes)
+          (dolist (c (cdr classes))
+            (write-char #\Space s)
+            (write-string c s)))))))
 
 (defmacro with-tag ((name &rest attributes) &body body)
   (let ((empty? (not body))
