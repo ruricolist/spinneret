@@ -108,23 +108,32 @@
     ;; Ensure that the leftmost keyword has priority,
     ;; as in function lambda lists.
     (labels ((seen? (name)
-               (shiftf (gethash name seen nil) t)))
+               (shiftf (gethash name seen nil) t))
+             (format-attr (attr value)
+               (unless (or (seen? attr) (null value))
+                 (if (boolean? attr)
+                     (format *html* "~( ~A~)~:_" attr)
+                     (format *html* "~( ~A~)~:_=~:_~A~:_"
+                             attr
+                             (if (equal value "")
+                                 "\"\""
+                                 value))))))
       (declare (inline seen?))
-      (pprint-logical-block (*html* attrs :suffix ">")
+      (pprint-logical-block (*html* nil :suffix ">")
         (declare (optimize speed))
-        (loop (pprint-exit-if-list-exhausted)
+        (loop (unless attrs (return))
               (pprint-indent :block 1 *html*)
-              (let ((attr (pprint-pop))
-                    (value (pprint-pop)))
+              (let ((attr (pop attrs))
+                    (value (pop attrs)))
                 (declare (symbol attr))
-                (unless (or (seen? attr) (null value))
-                  (if (boolean? attr)
-                      (format *html* "~( ~A~)~:_" attr)
-                      (format *html* "~( ~A~)~:_=~:_~A~:_"
-                              attr
-                              (if (equal value "")
-                                  "\"\""
-                                  value))))))))))
+                (if (eql attr :dataset)
+                    (loop for (key . val) in value
+                          do (format-attr (make-keyword "data-" key)
+                                          (escape-value val)))
+                    (format-attr attr value))))))))
+
+(defun make-keyword (&rest parts)
+  (intern (string-upcase (format nil "~{~A~}" parts)) :keyword))
 
 (defun escape-value (value)
   (if (member value '(t nil) :test #'eq)

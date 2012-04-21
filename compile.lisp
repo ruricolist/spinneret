@@ -115,10 +115,12 @@ are all the following key-value pairs, and the body is what remains."
 
 (defun escape-attrs (attrs)
   (loop for (attr val . rest) on attrs by #'cddr
-        if (or (stringp val)
-               (numberp val)
-               (characterp val))
-          collect attr and collect (escape-value val)
+        if (eql attr :dataset)
+          collect attr and collect val
+        else if (or (stringp val)
+                    (numberp val)
+                    (characterp val))
+               collect attr and collect (escape-value val)
         else
           collect attr and collect `(escape-value ,val)))
 

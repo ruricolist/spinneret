@@ -107,6 +107,9 @@ The rules for WITH-HTML are these:
   exception is the class attribute: the class of a tag is the union of
   all its :CLASS arguments.
 
+  The argument :DATASET is shorthand for extending the element's
+  dataset with an alist. Conses are expanded into "data-car=cdr".
+
 - Forms after the attributes are treated as arguments. Each non-nil
   (primary) value returned by an argument to a tag is written out
   using PRINC.
