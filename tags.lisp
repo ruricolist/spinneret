@@ -94,3 +94,13 @@
 
 (defun embedded? (element)
   (in? element '*embedded-content*))
+
+(defparameter *boolean-attributes*
+  '(async autofocus autoplay checked controls
+    default defer disabled formnovalidate hidden
+    ismap itemscope loop multiple muted novalidate
+    open readonly required reversed scoped
+    seamless selected typemustmatch))
+
+(defun boolean? (attr)
+  (in? attr '*boolean-attributes*))

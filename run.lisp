@@ -117,18 +117,14 @@
               (let ((attr (pprint-pop))
                     (value (pprint-pop)))
                 (declare (symbol attr))
-                ;; If the value is nil or an empty string, print nothing.
-                ;; If the value is t, print a minimized attribute (just
-                ;; the attribute). If the value is anything else, print
-                ;; the attribute and the value.
-                (unless (or (null value)
-                            (equal value "")
-                            (seen? attr))
-                  (if (eq value t)
+                (unless (or (seen? attr) (null value))
+                  (if (boolean? attr)
                       (format *html* "~( ~A~)~:_" attr)
                       (format *html* "~( ~A~)~:_=~:_~A~:_"
                               attr
-                              value)))))))))
+                              (if (equal value "")
+                                  "\"\""
+                                  value))))))))))
 
 (defun escape-value (value)
   (if (member value '(t nil) :test #'eq)
