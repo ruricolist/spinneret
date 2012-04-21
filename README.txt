@@ -98,8 +98,9 @@ The rules for WITH-HTML are these:
   by *HTML-CHARSET*.
 
 - Keyword-value pairs following a tag are interpreted as attributes.
-  HTML syntax may not be used in attribute values. Boolean attributes
-  with non-nil values are minimized.
+  HTML syntax may not be used in attribute values. Attributes with nil
+  values are omitted. Boolean attributes with non-nil values are
+  minimized.
 
 - Forms after the attributes are treated as arguments. Each non-nil
   (primary) value returned by an argument to a tag is written out
