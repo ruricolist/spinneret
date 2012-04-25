@@ -1,7 +1,7 @@
 ;;;; package.lisp
 
 (defpackage #:spinneret
-  (:use #:cl)
+  (:use #:cl #:parenscript)
   (:export #:with-html #:with-html-string
            #:*html* #:*html-fill-column* #:*html-min-room*
-           #:*tag-checking* #:*html-lang* #:*html-charset*))
+           #:*check-tags* #:*html-lang* #:*html-charset*))

@@ -2,16 +2,18 @@
 
 (asdf:defsystem #:spinneret
   :description "Common Lisp HTML5 generator."
-  :version "1"
+  :version "1.2"
   :author "Paul M. Rodriguez <pmr@ruricolist.com>"
   :license "MIT"
   :serial t
   :depends-on (#:trivial-garbage
-               #:cl-markdown)
+               #:cl-markdown
+               #:parenscript)
   :components ((:file "package")
                (:file "memo")
                (:file "syntax")
                (:file "tags")
                (:file "spinneret")
                (:file "run")
-               (:file "compile")))
+               (:file "compile")
+               (:file "ps")))

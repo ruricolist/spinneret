@@ -19,6 +19,8 @@ occupies the following coordinates:
   the trade-off between 90% convenience and 10% correctness SPINNERET
   is on the side of convenience.
 
+- Bilingual. Spinneret has the same semantics in Lisp and Parenscript.
+
 HTML generation with SPINNERET looks like this:
 
      (in-package #:spinneret)
@@ -129,15 +131,19 @@ The rules for WITH-HTML are these:
 WITH-HTML-STRING is like WITH-HTML, but intercepts the generated HTML
 at run time and returns a string.
 
-SPINNERET is tolerant by design; it does not check whether keywords
-designate valid tags. Given the inevitability of typos, however,
-warnings about invalid tags are available at run time by binding
-*CHECK-TAGS* to a non-nil value. (MathML and SVG tags are never
-checked.)
+SPINNERET is tolerant by design; it doesn't care if keywords designate
+valid tags. Given the inevitability of typos, however, warnings about
+invalid tags are available at run time by binding *CHECK-TAGS* to a
+non-nil value. (MathML and SVG tags are never checked.)
 
 So far integration with CL-MARKDOWN is crude, because SPINNERET is not
 aware of the structure of the generated HTML and treats it as a run
 of text. This may change in the future.
 
-Depends on TRIVIAL-GARBAGE and CL-MARKDOWN, which are
+The semantics of SPINNERET in Parenscript are almost the same. There
+is no WITH-HTML-STRING, and WITH-HTML returns a DocumentFragment.
+Strings in function position are still parsed as Markdown, but
+supplying arguments triggers an error.
+
+Depends on TRIVIAL-GARBAGE, CL-MARKDOWN, and PARENSCRIPT, which are
 Quicklisp-installable.
