@@ -127,7 +127,7 @@
                     (value (pop attrs)))
                 (declare (symbol attr))
                 (if (eql attr :dataset)
-                    (loop for (key . val) in value
+                    (loop for (key val . rest) on value by #'cddr
                           do (format-attr (make-keyword "data-" key)
                                           (escape-value val)))
                     (format-attr attr value))))))))

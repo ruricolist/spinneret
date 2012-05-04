@@ -108,7 +108,8 @@ The rules for WITH-HTML are these:
   all its :CLASS arguments.
 
   The argument :DATASET is shorthand for extending the element's
-  dataset with an alist. Conses are expanded into "data-car=cdr".
+  dataset with an plist. Keys and values are expanded into
+  "data-key=value".
 
 - Forms after the attributes are treated as arguments. Each non-nil
   (primary) value returned by an argument to a tag is written out
