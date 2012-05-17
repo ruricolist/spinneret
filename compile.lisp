@@ -116,7 +116,10 @@ are all the following key-value pairs, and the body is what remains."
 (defun escape-attrs (attrs)
   (loop for (attr val . rest) on attrs by #'cddr
         if (eql attr :dataset)
-          collect attr and collect val
+          append (escape-attrs
+                  (loop for (attr val . rest) on attrs by #'cddr
+                        collect (make-keyword "data-" attr)
+                        collect val))
         else if (or (stringp val)
                     (numberp val)
                     (characterp val))

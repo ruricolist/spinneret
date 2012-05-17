@@ -126,11 +126,7 @@
               (let ((attr (pop attrs))
                     (value (pop attrs)))
                 (declare (symbol attr))
-                (if (eql attr :dataset)
-                    (loop for (key val . rest) on value by #'cddr
-                          do (format-attr (make-keyword "data-" key)
-                                          (escape-value val)))
-                    (format-attr attr value))))))))
+                (format-attr attr value)))))))
 
 (defun make-keyword (&rest parts)
   (intern (string-upcase (format nil "~{~A~}" parts)) :keyword))

@@ -107,9 +107,12 @@ The rules for WITH-HTML are these:
   exception is the class attribute: the class of a tag is the union of
   all its :CLASS arguments.
 
-  The argument :DATASET is shorthand for extending the element's
-  dataset with an plist. Keys and values are expanded into
-  "data-key=value".
+  The argument :DATASET introduces a list of :DATA-FOO arguments:
+
+     (:p :dataset (:duck (dolomphious) :fish 'fizzgigious
+                         :spoon "runcible"))
+     ≡ (:p :data-duck (dolomphious) :data-fish 'fizzgigious
+           :data-spoon "runcible")
 
 - Forms after the attributes are treated as arguments. Each non-nil
   (primary) value returned by an argument to a tag is written out
