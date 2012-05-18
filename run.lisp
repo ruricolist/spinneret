@@ -126,7 +126,10 @@
               (let ((attr (pop attrs))
                     (value (pop attrs)))
                 (declare (symbol attr))
-                (format-attr attr value)))))))
+                (if (eql attr :attrs)
+                    (loop for (a v . rest) in value by #'cddr
+                          do (format-attr a (escape-value v)))
+                    (format-attr attr value))))))))
 
 (defun make-keyword (&rest parts)
   (intern (string-upcase (format nil "~{~A~}" parts)) :keyword))

@@ -114,6 +114,10 @@ The rules for WITH-HTML are these:
      ≡ (:p :data-duck (dolomphious) :data-fish 'fizzgigious
            :data-spoon "runcible")
 
+  For flexibility, even at the cost of efficiency, the argument :ATTRS
+  introduces a form to evaluate at run time for a plist of extra
+  attributes and values.
+
 - Forms after the attributes are treated as arguments. Each non-nil
   (primary) value returned by an argument to a tag is written out
   using PRINC.

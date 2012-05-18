@@ -120,6 +120,8 @@ are all the following key-value pairs, and the body is what remains."
                   (loop for (attr val . rest) on attrs by #'cddr
                         collect (make-keyword "data-" attr)
                         collect val))
+        else if (eql attr :attrs)
+               collect attr and collect val
         else if (or (stringp val)
                     (numberp val)
                     (characterp val))
