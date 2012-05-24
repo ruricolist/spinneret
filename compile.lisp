@@ -64,9 +64,10 @@ are all the following key-value pairs, and the body is what remains."
                    body)))))))
 
 (defun class-union (&rest classes)
-  (with-output-to-string (s)
-    (let ((classes (remove-duplicates classes :test #'equal)))
-      (when classes
+  (let ((classes (remove-duplicates (remove nil classes)
+                                    :test #'equal)))
+    (when classes
+      (with-output-to-string (s)
         (write-string (car classes) s)
         (when (cdr classes)
           (dolist (c (cdr classes))

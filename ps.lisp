@@ -126,7 +126,8 @@
   `(stringify
     ,(ps::concat-constant-strings
       (intersperse " "
-                   (remove-duplicates classes :test #'equal)))))
+                   (remove-duplicates (remove nil classes)
+                                      :test #'equal)))))
 
 (defun intersperse (new-elt list)
   (cons (car list)
