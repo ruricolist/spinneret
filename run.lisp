@@ -2,35 +2,30 @@
 
 (in-package #:spinneret)
 
-(declaim (type (integer -1 #.most-positive-fixnum) *depth*)
-         (fixnum *html-fill-column* *html-min-room*))
+(declaim (type (integer -1 #.most-positive-fixnum) *depth*))
 
 (defvar *depth* -1
   "Depth of the tag being output.")
 
-(defparameter *html-fill-column* 80
-  "Width of HTML output.")
-
-(defparameter *html-min-room* 30
-  "Room (in columns) required to justify text. With less room than
-  this, move back to column 0 before justifying.")
+(defvar *pre* nil)
 
 (defun indent ()
-  (let (*print-pretty*)
-    (format *html* "~V,0T" *depth*)))
+  (when *print-pretty*
+   (format *html* "~V,0T" *depth*)))
 
 (defun newline-and-indent ()
   "Fresh line and indent according to *DEPTH*."
-  (let (*print-pretty*)
-    (format *html* "~&~V,0T" *depth*)))
+  (when *print-pretty*
+   (format *html* "~&~V,0T" *depth*)))
 
-(defun justify-end-tag (tag)
-  (let (*print-pretty*)
-    (format *html*
-            "~V,0T~:*~<~%~V,0T~1,V:;~A~>"
-            *depth*
-            *html-fill-column*
-            tag)))
+(defun emit-end-tag (tag)
+  (if *print-pretty*
+      (format *html*
+              "~V,0T~:*~<~%~V,0T~1,V:;~A~>"
+              *depth*
+              *print-right-margin*
+              tag)
+      (write-string tag *html*)))
 
 (defmacro without-trailing-space (&body body)
   `(let ((*pending-space* nil))
@@ -49,23 +44,23 @@
 
 (declaim (inline buffer-space flush-space))
 
-(defun catch-string (arg pre?)
+(defmacro catch-output (arg)
+  (typecase arg
+    (string `(fill-text ,(escape-string arg) t))
+    ((or character number)
+     `(fill-text ,(escape-string (princ-to-string arg)) t))
+    (t `(catch-string ,arg))))
+
+(defun catch-string (arg)
   (when arg
     (cond ((stringp arg)
-           (fill-text arg pre?))
+           (fill-text (escape-string arg)))
           ((or (characterp arg)
                (numberp arg)
                (symbolp arg))
-           (fill-text (princ-to-string arg) pre?)))))
+           (fill-text (escape-string (princ-to-string arg)))))))
 
-(defun fill-text (text &optional pre?)
-  (declare (string text) (boolean pre?))
-  (cond ((every #'whitespace text)
-         (write-string text *html*))
-        (pre?
-         (let (*print-pretty*)
-           (format *html* "~&~A~%" text)))
-        (t (justify text))))
+(defun mklist (x) (if (listp x) x (list x)))
 
 (defmacro do-words ((var string) &body body)
   (let ((stream (gensym)) (word (gensym)))
@@ -73,26 +68,30 @@
            (,word (make-string-output-stream)))
        (declare (stream ,stream ,word))
        (loop (let ((,var (pop-word ,stream ,word)))
-               (if (string= ,var "")
+               (if (equal ,var "")
                    (return)
                    (progn ,@body)))))))
 
-(defun justify (text)
-  (declare (string text))
-  (let ((room? (when (< *depth* *html-fill-column*)
-                 (let ((space (- *html-fill-column* *depth*)))
-                   (> space *html-min-room*)))))
-    (unless room? (fresh-line *html*))
-    (let ((*depth* (if room? *depth* 0))
-          *print-pretty*)
-      (format *html* "~V,0T" *depth*)
-      (do-words (word text)
-        (flush-space)
-        (format *html* "~<~%~V,0T~1,V:;~A~>"
-                *depth*
-                *html-fill-column*
-                word)
-        (buffer-space)))))
+(declaim (inline pop-word))
+
+(defun fill-text (string &optional safe?)
+  (declare (string string))
+  (if (and *print-pretty* (not *pre*))
+      (progn
+        (format *html* "~V,0T" *depth*)
+        (do-words (word string)
+          (flush-space)
+          (format *html* "~<~%~V,0T~1,V:;~A~>"
+                  *depth*
+                  *print-right-margin*
+                  (if safe? word (escape-string word)))
+          (buffer-space)))
+      (if *pre*
+          (format *html* "~&~A~%" string)
+          (progn
+            (flush-space)
+            (write-string string *html*)
+            (buffer-space)))))
 
 (defun pop-word (stream-in stream-out)
   (declare (optimize speed)
@@ -103,7 +102,7 @@
         do (write-char c stream-out)
         finally (return (get-output-stream-string stream-out))))
 
-(defun format-attributes (&rest attrs)
+(defun format-attributes (attrs)
   (let ((seen (make-hash-table)))
     ;; Ensure that the leftmost keyword has priority,
     ;; as in function lambda lists.
@@ -117,22 +116,24 @@
                              attr
                              (if (equal value "")
                                  "\"\""
-                                 value))))))
-      (declare (inline seen?))
-      (pprint-logical-block (*html* nil :suffix ">")
-        (declare (optimize speed))
-        (loop (unless attrs (return))
-              (pprint-indent :block 1 *html*)
-              (let ((attr (pop attrs))
-                    (value (pop attrs)))
-                (declare (symbol attr))
-                (if (eql attr :attrs)
-                    (loop for (a v . rest) in value by #'cddr
-                          do (format-attr a (escape-value v)))
-                    (format-attr attr value))))))))
-
-(defun make-keyword (&rest parts)
-  (intern (string-upcase (format nil "~{~A~}" parts)) :keyword))
+                                 value)))))
+             (inner (attrs)
+               (declare (optimize speed))
+               (loop (unless attrs (return))
+                     (pprint-indent :block 1 *html*)
+                     (let ((attr (pop attrs))
+                           (value (pop attrs)))
+                       (declare (symbol attr))
+                       (if (eql attr :attrs)
+                           (loop for (a v . rest) on value by #'cddr
+                                 do (format-attr a (escape-value v)))
+                           (format-attr attr value))))))
+      (declare (inline seen? inner))
+      (if *print-pretty*
+          (pprint-logical-block (*html* nil :suffix ">")
+            (inner attrs))
+          (progn (inner attrs)
+                 (write-char #\> *html*))))))
 
 (defun escape-value (value)
   (if (member value '(t nil) :test #'eq)
@@ -146,12 +147,17 @@
             string))))
 
 (defun format-text (control-string &rest args)
-  (fresh-line *html*)
-  (let (*print-pretty*
-        (*depth* (+ *depth* 1)))
-    (justify
-     (apply #'format nil control-string args)))
-  (terpri *html*))
+  (when *print-pretty*
+    (fresh-line *html*))
+  (let ((*depth* (1+ *depth*)))
+    (fill-text (apply #'format nil control-string args) t))
+  (when *print-pretty*
+    (terpri *html*)))
+
+(defun escape-if-string (arg)
+  (if (stringp arg)
+      (escape-to-string arg)
+      arg))
 
 (defun make-doctype (&rest args)
   (declare (ignore args))
@@ -160,7 +166,8 @@
 (defun doctype (&rest args)
   (declare (ignore args))
   (write-string "<!DOCTYPE html>" *html*)
-  (terpri *html*))
+  (when *print-pretty*
+    (terpri *html*)))
 
 (defun make-comment (text)
   `(comment ,(if (stringp text)
@@ -169,13 +176,22 @@
             ,(stringp text)))
 
 (defun comment (text safe?)
-  (let (*print-pretty*
-        (*depth* (+ *depth* 1)))
-    (format *html* "~&~v,0T<!-- " *depth*)
-    (justify (if safe?
-                 text
-                 (escape-comment text)))
-    (format *html* " -->~%")))
+  (if *print-pretty*
+      (let ((*depth* (+ *depth* 1)))
+        (format *html* "~&~v,0T<!-- " *depth*)
+        (fill-text (if safe?
+                       text
+                       (escape-comment text))
+                   t)
+        (format *html* " -->~%"))
+      (progn
+        (write-string "<!-- " *html*)
+        (write-string
+         (if safe?
+             text
+             (escape-comment text))
+         *html*)
+        (write-string " -->" *html*))))
 
 (defun make-cdata (text)
   `(cdata ,(if (stringp text)
@@ -206,24 +222,6 @@
     (:meta :charset *html-charset*)
     ,@args))
 
-(defvar *invalid* nil)
-
-(defparameter *check-tags* nil
-  "Whether to print warnings at runtime for invalid HTML tags. Not to
-  be confused with HTML validation.")
-
-(defun note-invalid (element)
-  (when *check-tags*
-    (push (cons *depth* element) *invalid*)))
-
-(defun maybe-report-invalid-elements ()
-  (when *check-tags*
-    (let ((stack (nreverse (shiftf *invalid* nil))))
-      (loop
-        (unless stack (return))
-        (destructuring-bind (depth . element)
-            (pop stack)
-          (if (embedded? element)
-              (loop while (and stack (< depth (caar stack)))
-                    do (pop stack))
-              (warn "~&~S is not a valid element in HTML5." element)))))))
+(defun write-raw (&rest args)
+  `(prog1 nil ,@(loop for arg in args
+                      collect `(fill-text ,arg t))))

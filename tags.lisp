@@ -27,7 +27,6 @@
     ins del col meter output))
 
 (defun inline? (element)
-  ;; TODO
   (values (in? element '*inline-elements*)))
 
 (defparameter *paragraph-elements*
@@ -58,7 +57,8 @@
     (!-- . make-comment)
     (comment . make-comment)
     (html . make-html)
-    (head . make-head)))
+    (head . make-head)
+    (raw . write-raw)))
 
 (memoize
  (defun pseudotag-expander (element)
@@ -104,3 +104,99 @@
 
 (defun boolean? (attr)
   (in? attr '*boolean-attributes*))
+
+(memoize
+ (defun valid-attribute? (tag name)
+   (or (begins (string-downcase name) "data-")
+       (eql name :attrs)
+       (global-attribute? name)
+       (let ((permitted (assoc tag *permitted-attributes*
+                               :test #'string=)))
+         (or (find name permitted :test #'string=)
+             (find * permitted))))))
+
+(defun global-attribute? (name)
+  (find name *global-attributes* :test #'string=))
+
+(defparameter *core-attributes*
+  '(accesskey class contenteditable contextmenu dir draggable
+    dropzone hidden id lang spellcheck style tabindex title))
+
+(defparameter *event-handler-attributes*
+  '(onabort onblur oncanplay oncanplaythrough onchange onclick
+    oncontextmenu ondblclick ondrag ondragend ondragenter
+    ondragleave ondragover ondragstart ondrop ondurationchange
+    onemptied onended onerror onfocus oninput oninvalid onkeydown
+    onkeypress onkeyup onload onloadeddata onloadedmetadata
+    onloadstart onmousedown onmousemove onmouseout onmouseover
+    onmouseup onmousewheel onpause onplay onplaying onprogress
+    onratechange onreadystatechange onreset onscroll onseeked
+    onseeking onselect onshow onstalled onsubmit onsuspend
+    ontimeupdate onvolumechange onwaiting))
+
+(defparameter *global-attributes*
+  (append *core-attributes* *event-handler-attributes*))
+
+(defparameter *permitted-attributes*
+  '((a href target rel hreflang media type)
+    (area alt href target rel media hreflang type shape coords)
+    (base href target)
+    (blockquote cite)
+    (body onafterprint onbeforeprint onbeforeunload onblur onerror
+     onfocus onhashchange onload onmessage onoffline ononline
+     onpopstate onresize onstorage onunload)
+    (button name disabled form type value
+     autofocus formaction formenctype formmethod formtarget
+     formnovalidate)
+    (canvas height width)
+    (col span)
+    (colgroup span)
+    (command type label icon disabled
+     radiogroup checked)
+    (del cite datetime)
+    (details open)
+    (embed src type height width *)
+    (fieldset name disabled form)
+    (form action method enctype name accept-charset
+     novalidate target autocomplete)
+    (html manifest)
+    (iframe src srcdoc name width height sandbox seamless)
+    (img src alt height width usemap ismap border)
+    (input name disabled form type maxlength readonly size value
+     autocomplete autofocus list pattern required placeholder
+     dirname checked multiple src height width
+     min max step dirname
+     autofocus formaction formenctype formmethod formtarget
+     formnovalidate)
+    (ins cite datetime)
+    (keygen challenge keytype autofocus name disabled form)
+    (label for form)
+    (link href rel hreflang media type sizes)
+    (map name)
+    (menu type label)
+    (meta name content http-equiv charset)
+    (meter value min low high max optimum)
+    (object data type height width usemap name form)
+    (ol start reversed type)
+    (optgroup label disabled)
+    (option disabled selected label value)
+    (output name form for)
+    (param name value)
+    (progress value max)
+    (q cite)
+    (script type language src defer async charset language)
+    (select name disabled form size multiple autofocus required)
+    (source src type media)
+    (style type media scoped)
+    (table border)
+    (td colspan rowspan
+     headers)
+    (textarea name disabled form readonly maxlength autofocus required
+     placeholder dirname rows wrap cols)
+    (th scope colspan rowspan headers)
+    (time datetime)
+    (track kind src srclang label default)
+    (video autoplay preload controls loop poster height width
+     mediagroup muted src))
+  "Alist of (tag . attributes). These are the element-specific
+attributes, beyond the global attributes.")

@@ -8,7 +8,8 @@
   :serial t
   :depends-on (#:trivial-garbage
                #:cl-markdown
-               #:parenscript)
+               #:parenscript
+               #:alexandria)
   :components ((:file "package")
                (:file "memo")
                (:file "syntax")
@@ -16,4 +17,5 @@
                (:file "spinneret")
                (:file "run")
                (:file "compile")
+               (:file "templates")
                (:file "ps")))

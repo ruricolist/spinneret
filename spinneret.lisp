@@ -11,8 +11,9 @@
 
 (defmacro with-html (&body body &environment env)
   "Interpret BODY as HTML. Consult README.txt for the syntax."
-  `(progn ,@(parse-html body env)
-          (maybe-report-invalid-elements)))
+  (if (and (null (cdr body)) (atom (car body)))
+      (car body)
+      `(progn ,@(parse-html body env))))
 
 (defmacro with-html-string (&body body)
   "Like WITH-HTML, but capture the output as a string."

@@ -7,6 +7,8 @@
 (declaim (hash-table *whitespace* *unsafe*
                      *string-escapes* *attribute-value-escapes*))
 
+(deftype index () '(integer 0 #.array-total-size-limit))
+
 ;; See 2.5.1.
 ;; http://www.w3.org/TR/html5/common-microsyntaxes.html#space-character
 
@@ -52,6 +54,11 @@
 (defun escape-string (string)
   (escape-with-table string *string-escapes*))
 
+(defun escape-to-string (object)
+  (if (stringp object)
+      (escape-string object)
+      (escape-string (princ-to-string object))))
+
 (defparameter *attribute-value-escapes*
   (let ((ht (make-hash-table)))
     (setf (gethash #\& ht) "&amp;"
@@ -62,17 +69,33 @@
 (defun escape-attribute-value (string)
   (escape-with-table string *attribute-value-escapes*))
 
-(defun escape-with-table (string table)
-  (declare (simple-string string) (hash-table table)
+(defun escape-to-stream (string table stream)
+  (declare ((simple-array character) string)
+           (hash-table table)
+           (string-stream stream)
            (optimize speed))
+  (let ((start-pointer 0)
+        (end-pointer 0))
+    (declare (index start-pointer)
+             ((or null index) end-pointer))
+    (loop (setf end-pointer
+                (position-if (lambda (c) (gethash c table)) string :start start-pointer))
+          (if end-pointer
+              (progn
+                (write-string string stream
+                              :start start-pointer
+                              :end end-pointer)
+                (write-string
+                 (gethash (schar string end-pointer) table)
+                 stream)
+                (setf start-pointer (1+ end-pointer)))
+              (progn
+                (write-string string stream :start start-pointer)
+                (return))))))
+
+(defun escape-with-table (string table)
   (with-output-to-string (s)
-    (map nil
-         (lambda (c)
-           (let ((esc (values (gethash c table))))
-             (if esc
-                 (write-string esc s)
-                 (write-char c s))))
-         string)))
+    (escape-to-stream string table s)))
 
 ;; See 8.1.5
 ;; http://www.w3.org/TR/html5/syntax.html#cdata-sections

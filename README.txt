@@ -11,8 +11,8 @@ occupies the following coordinates:
   functions and macros.
 
 - Pretty. Treats HTML as a document format, not a serialization.
-  Output is idiomatic and readable (follows the coding style of the
-  HTML5 specification).
+  Output is idiomatic and readable, following the coding style of the
+  HTML5 specification.
 
 - Aggressive. If something can be interpreted as HTML, then it will
   be, meaning that some Lisp forms can't be mixed with HTML syntax. In
@@ -84,6 +84,9 @@ Which produces:
       </body>
      </html>
 
+(Pretty-printing is pretty fast, but SPINNERET obeys *print-pretty*
+should you want to turn it off.)
+
 The rules for WITH-HTML are these:
 
 - All generated forms write to *HTML*.
@@ -93,7 +96,7 @@ The rules for WITH-HTML are these:
   Certain keywords are recognized as pseudo-tags and given special
   treatment:
 
-  :DOCTYPE :!DOCTYPE :CDATA :!-- :COMMENT :HTML :HEAD
+  :RAW :DOCTYPE :!DOCTYPE :CDATA :!-- :COMMENT :HTML :HEAD
 
   The value of the LANG attribute of HTML is controlled by
   *HTML-LANG*; the value of the meta charset attribute is controlled
@@ -131,19 +134,74 @@ The rules for WITH-HTML are these:
 WITH-HTML-STRING is like WITH-HTML, but intercepts the generated HTML
 at run time and returns a string.
 
-SPINNERET is tolerant by design; it doesn't care if keywords designate
-valid tags. Given the inevitability of typos, however, warnings about
-invalid tags are available at run time by binding *CHECK-TAGS* to a
-non-nil value. (MathML and SVG tags are never checked.)
+
+The stumbling block for all sexp-based HTML generators is order of
+evaluation. It's tempting to write something like this:
+
+     ;; Doesn't work
+     (defun field (control)
+       (with-html (:p control)))
+
+     (defun input (name label &key (type "text"))
+       (with-html
+         (:label :for name label)
+         (:input :name name :id name :type type)))
+
+But it won't work: in (field (input "why" "Reason")), (input) gets
+evaluated before (field), and the HTML is printed inside-out. Macros
+do work:
+
+     (defmacro field (control)
+       `(with-html (:p ,control)))
+
+     (defmacro input (name label &key (type "text"))
+       `(with-html
+          (:label :for ,name ,label)
+          (:input :name ,name :id ,name :type ,type))),
+
+But macros are clumsy instruments for refactoring. Whenever they
+change, all their callers have to be recompiled, which hobbles
+incremental development.
+
+For these reasons, SPINNERET provides templates. With templates, you
+can approximate the obvious solution.
+
+     (deftemplate field (control)
+       (:p control))
+
+     (deftemplate input (name label &key (type "text"))
+       (:label :for name label)
+       (:input :name name :id name :type type))
+
+Templates do not need backquoting and do not require safeguards
+against multiple evaluation. Changes to the definition of a template
+are immediately visible to its callers. Templates are still, however,
+macros, not functions.
+
+By default, templates treat the &rest parameter like any other and
+splice it in place. To iterate over it instead, use DO-ELEMENTS. The
+syntax is the same as DOLIST.
+
+     (deftemplate ul (&rest items)
+       (:ul (do-elements (item items)
+              (:li item))))
+
 
 So far integration with CL-MARKDOWN is crude, because SPINNERET is not
-aware of the structure of the generated HTML and treats it as a run
-of text. This may change in the future.
+aware of the structure of the generated HTML and treats it as a run of
+text. This may change in the future.
+
 
 The semantics of SPINNERET in Parenscript are almost the same. There
 is no WITH-HTML-STRING, and WITH-HTML returns a DocumentFragment.
 Strings in function position are still parsed as Markdown, but
-supplying arguments triggers an error.
+supplying arguments triggers an error (since Parenscript does not have
+FORMAT). Templates are not implemented for Parenscript.
 
-Depends on TRIVIAL-GARBAGE, CL-MARKDOWN, and PARENSCRIPT, which are
-Quicklisp-installable.
+
+SPINNERET does not do document validation, but it does warn, at
+compile time, about invalid tags and attributes.
+
+
+Depends on TRIVIAL-GARBAGE, CL-MARKDOWN, PARENSCRIPT and ALEXANDRIA,
+which are Quicklisp-installable.

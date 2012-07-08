@@ -13,6 +13,8 @@
                       (if (keywordp (car form))
                           (multiple-value-bind (name attrs body)
                               (tag-parts form)
+                            (unless (valid? name)
+                              (warn "<~A> is not a valid tag" name))
                             `(with-tag (,name ,@attrs)
                                ,@(mapcar #'rec body)))
                           form)))
@@ -21,9 +23,19 @@
                         form
                       (let ((cs (parse-as-markdown control-string)))
                         `(format-text
-                          ,@(if (and args (every #'constantp args))
-                                (list (apply #'format nil cs args))
-                                `((formatter ,cs) ,@args))))))
+                          ,@(if (and args (every (lambda (arg) (constantp arg env)) args))
+                                (list (apply #'format nil cs
+                                             (mapcar #'escape-to-string args)))
+                                `((formatter ,cs)
+                                  ,@(loop for arg in args
+                                          ;; Only escape strings,
+                                          ;; since format directives
+                                          ;; may require other types,
+                                          ;; and strings are the most
+                                          ;; plausible vector for XSS.
+                                          if (typep arg 'string env)
+                                            collect (escape-to-string arg)
+                                          else collect `(escape-if-string ,arg))))))))
                    (t (cons (rec (car form))
                             (mapcar #'rec (cdr form)))))))
     (rec form)))
@@ -78,57 +90,77 @@ are all the following key-value pairs, and the body is what remains."
   (let ((empty? (not body))
         (pre? (not (null (preformatted? name)))))
     `(prog1 nil
-       (let ((*depth* (+ *depth* 1)))
-         ,@(start-tag-forms name attributes empty?)
+       (let ((*depth* (+ *depth* 1))
+             (*pre* ,pre?))
+         (funcall (make-start-printer ,name)
+                  ,empty?
+                  (list ,@(escape-attrs name attributes)))
          (without-trailing-space
            ,@(loop for form in body
-                   collect `(catch-string ,form ,pre?)))
-         ,@(unless empty?
-             (end-tag-forms name))))))
+                   collect `(catch-output ,form)))
+         (funcall (make-close-printer ,name) ,empty?)))))
 
-(defun start-tag-forms (element attrs empty?)
-  (let (forms)
-    (when (invalid? element)
-      (push `(note-invalid ,element) forms))
-    (unless (inline? element)
-      (push '(newline-and-indent) forms))
-    (push `(write-string ,(format nil "<~(~A~)" element) *html*) forms)
-    (if attrs
-        (let ((attrs (escape-attrs attrs)))
-          (push `(format-attributes ,@attrs) forms))
-        (push '(write-char #\> *html*) forms))
-    (when (and empty? (not (void? element)))
-      (push `(write-string ,(format nil "</~(~A~)>" element) *html*) forms))
-    (unless (or (inline? element)
-                (paragraph? element))
-      (push '(terpri *html*) forms))
-    (nreverse forms)))
+(defun emit-space ()
+  (write-char #\Space *html*))
 
-(defun end-tag-forms (element)
-  (unless (or (void? element)
-              (unmatched? element))
-    (let (forms)
-      (unless (or (inline? element)
-                  (paragraph? element))
-        (push '(fresh-line *html*) forms))
-      (push `(justify-end-tag ,(format nil "</~(~A~)>" element)) forms)
-      (nreverse forms))))
+(memoize
+ (defun make-start-printer (name)
+   (let ((newline-before-start
+           (if (inline? name)
+               (constantly nil)
+               #'newline-and-indent))
+         (tag (format nil "<~(~A~)" name))
+         (newline-after-start
+           (if (or (inline? name)
+                   (paragraph? name))
+               (constantly nil)
+               (lambda ()
+                 (when *print-pretty* (terpri *html*))))))
+     (compile nil (lambda (empty? attrs)
+                    (funcall newline-before-start)
+                    (write-string tag *html*)
+                    (format-attributes attrs)
+                    (unless empty?
+                      (funcall newline-after-start)))))))
 
-(defun escape-attrs (attrs)
-  (loop for (attr val . rest) on attrs by #'cddr
-        if (eql attr :dataset)
-          append (escape-attrs
-                  (loop for (attr val . rest) on attrs by #'cddr
-                        collect (make-keyword "data-" attr)
-                        collect val))
-        else if (eql attr :attrs)
-               collect attr and collect val
-        else if (or (stringp val)
-                    (numberp val)
-                    (characterp val))
-               collect attr and collect (escape-value val)
-        else
-          collect attr and collect `(escape-value ,val)))
+(memoize
+ (defun make-close-printer (name)
+   (if (or (void? name)
+           (unmatched? name))
+       (constantly nil)
+       (let ((close (format nil "</~(~A~)>" name))
+             (newline-before-close
+               (if (or (inline? name)
+                       (paragraph? name))
+                   (constantly nil)
+                   #'newline-and-indent)))
+         (compile nil (lambda (empty?)
+                        (unless empty?
+                          (funcall newline-before-close))
+                        (emit-end-tag close)))))))
+
+(defun escape-attrs (tag attrs)
+  (let ((attrs
+          (loop for (attr val . rest) on attrs by #'cddr
+                if (eql attr :dataset)
+                  append (escape-attrs
+                          tag
+                          (loop for (attr val . rest) on val by #'cddr
+                                collect (make-keyword (format nil "~:@(data-~A~)" attr))
+                                collect val))
+                else if (eql attr :attrs)
+                       collect attr and collect val
+                else if (or (stringp val)
+                            (numberp val)
+                            (characterp val))
+                       collect attr and collect (escape-value val)
+                else
+                  collect attr and collect `(escape-value ,val))))
+    (loop for (attr val . rest) on attrs by #'cddr
+          unless (valid-attribute? tag attr )
+            do (warn "~A is not a valid attribute for <~A>"
+                     attr tag))
+    attrs))
 
 (defun parse-as-markdown (string)
   "Expand STRING as markdown only if it contains markdown."
