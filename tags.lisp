@@ -140,6 +140,7 @@
 (defparameter *permitted-attributes*
   '((a href target rel hreflang media type)
     (area alt href target rel media hreflang type shape coords)
+    (audio autoplay preload controls loop mediagroup muted src)
     (base href target)
     (blockquote cite)
     (body onafterprint onbeforeprint onbeforeunload onblur onerror
