@@ -4,9 +4,6 @@ occupies the following coordinates:
 - Modern. Targets HTML5. Does not treat XML and HTML as the same
   problem. Assumes you will be serving your documents as UTF-8.
 
-- Flexible. Does not restrict tags: HTML5 is meant to be a living
-  standard.
-
 - Composable. Makes it easy to refactor HTML generation into separate
   functions and macros.
 
@@ -91,7 +88,8 @@ The rules for WITH-HTML are these:
 
 - All generated forms write to *HTML*.
 
-- A keyword in function position is interpreted as a tag name.
+- A keyword in function position is interpreted as a tag name. If the
+  name is not valid as a tag, it is ignored.
 
   Certain keywords are recognized as pseudo-tags and given special
   treatment:
