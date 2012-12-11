@@ -70,7 +70,7 @@
   (escape-with-table string *attribute-value-escapes*))
 
 (defun escape-to-stream (string table stream)
-  (declare ((simple-array character) string)
+  (declare (simple-string string)
            (hash-table table)
            (string-stream stream)
            (optimize speed))
