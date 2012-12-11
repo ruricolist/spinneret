@@ -46,19 +46,32 @@
 
 (defmacro catch-output (arg)
   (typecase arg
+    (null nil)
     (string `(fill-text ,(escape-string arg) t))
-    ((or character number)
+    ((or character number)              ;not symbol, because not evaluated.
      `(fill-text ,(escape-string (princ-to-string arg)) t))
-    (t `(catch-string ,arg))))
+    (t `(html ,arg))))
 
-(defun catch-string (arg)
-  (when arg
-    (cond ((stringp arg)
-           (fill-text (escape-string arg)))
-          ((or (characterp arg)
-               (numberp arg)
-               (symbolp arg))
-           (fill-text (escape-string (princ-to-string arg)))))))
+(defgeneric html (object)
+  (:method (object) nil)
+  (:method ((nada null)) nil)
+  (:documentation "Return an unescaped, unfilled string representing OBJECT."))
+
+(defmethod html :around (object)
+  (when-let (object (call-next-method))
+    (fill-text (escape-string object))))
+
+(defmethod html ((string string))
+  string)
+
+(defmethod html ((char character))
+  (princ-to-string char))
+
+(defmethod html ((n number))
+  (princ-to-string n))
+
+(defmethod html ((sym symbol))
+  (princ-to-string sym))
 
 (defun mklist (x) (if (listp x) x (list x)))
 
@@ -139,9 +152,7 @@
   (if (member value '(t nil) :test #'eq)
       value
       (let ((string (escape-attribute-value
-                     (if (stringp value)
-                         value
-                         (princ-to-string value)))))
+                     (princ-to-string value))))
         (if (needs-quotes? string)
             (format nil "\"~A\"" string)
             string))))

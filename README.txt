@@ -124,8 +124,10 @@ The rules for WITH-HTML are these:
   attributes and values.
 
 - Forms after the attributes are treated as arguments. Each non-nil
-  (primary) value returned by an argument to a tag is written out
-  using PRINC.
+  (primary) value returned by an argument to a tag is printed using
+  HTML, a generic function on which you can define your own methods.
+  By default only literal arguments are printed. Literal arguments are
+  strings, characters, numbers and symbols beside NIL.
 
 - A string in function position is first compiled as Markdown (using
   CL-MARKDOWN), then passed to FORMAT as a control string and applied
