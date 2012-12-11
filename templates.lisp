@@ -35,7 +35,9 @@
          (or ,value (setf ,value ,exp))))))
 
 (defun force (thunk)
-  (funcall thunk))
+  (if (functionp thunk)
+      (funcall thunk)
+      thunk))
 
 (defvar *quote* nil)
 
