@@ -41,7 +41,7 @@
 
 (defvar *quote* nil)
 
-(defun call (x)
+(defun fcall (x)
   (if *quote*
       x
       (typecase x
@@ -52,7 +52,7 @@
 (defmacro do-elements ((var arg) &body body)
   (with-gensyms (temp)
     `(dolist (,temp (let ((*quote* t)) ,arg))
-       (symbol-macrolet ((,var (call ,temp)))
+       (symbol-macrolet ((,var (fcall ,temp)))
          ,@body))))
 
 (defun escape-arglist (arglist)
