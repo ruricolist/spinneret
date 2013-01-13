@@ -14,7 +14,7 @@
                      (compile nil
                               (lambda ,new-arglist
                                 (symbol-macrolet ,(loop for (v . g) in gensym-pairs
-                                                        collect `(,v (call ,g)))
+                                                        collect `(,v (fcall ,g)))
                                   (with-html ,@body)))))
                (defmacro ,name (&whole ,whole ,@args)
                  (declare (ignore ,@vars))
