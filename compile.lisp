@@ -91,15 +91,42 @@ are all the following key-value pairs, and the body is what remains."
   (let ((empty? (not body))
         (pre? (not (null (preformatted? name)))))
     `(prog1 nil
-       (let ((*depth* (+ *depth* 1))
-             (*pre* ,pre?))
-         (funcall (make-start-printer ,name)
-                  ,empty?
-                  (list ,@(escape-attrs name attributes)))
-         (without-trailing-space
-           ,@(loop for form in body
-                   collect `(catch-output ,form)))
-         (funcall (make-close-printer ,name) ,empty?)))))
+       (call/tag ,name
+                 (list ,@(escape-attrs name attributes))
+                 (lambda ()
+                   ,@(loop for form in body
+                           collect `(catch-output ,form)))
+                 ,pre?
+                 ,empty?))
+    #+ () `(prog1 nil
+             (let ((*depth* (+ *depth* 1))
+                   (*pre* ,pre?))
+               (funcall (make-start-printer ,name)
+                        ,empty?
+                        (list ,@(escape-attrs name attributes)))
+               (without-trailing-space
+                 ,@(loop for form in body
+                         collect `(catch-output ,form)))
+               (funcall (make-close-printer ,name) ,empty?)))))
+
+(defun call/tag (name attrs body *pre* empty?)
+  (declare (function body))
+  (labels ((call/tag-1 (start end empty? attrs body)
+             (declare (function start end body)
+                      (optimize speed))
+             (funcall start empty? attrs)
+             (unless empty?
+               (without-trailing-space
+                 (funcall body)))
+             (funcall end empty?)))
+    (declare (inline call/tag-1))
+    (let ((*depth* (1+ *depth*)))
+      (call/tag-1
+       (make-start-printer name)
+       (make-close-printer name)
+       empty?
+       attrs
+       body))))
 
 (defun emit-space ()
   (write-char #\Space *html*))
