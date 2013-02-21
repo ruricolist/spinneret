@@ -105,19 +105,6 @@
 (defun boolean? (attr)
   (in? attr '*boolean-attributes*))
 
-(memoize
- (defun valid-attribute? (tag name)
-   (or (begins (string-downcase name) "data-")
-       (eql name :attrs)
-       (global-attribute? name)
-       (let ((permitted (assoc tag *permitted-attributes*
-                               :test #'string=)))
-         (or (find name permitted :test #'string=)
-             (find * permitted))))))
-
-(defun global-attribute? (name)
-  (find name *global-attributes* :test #'string=))
-
 (defparameter *core-attributes*
   '(accesskey class contenteditable contextmenu dir draggable
     dropzone hidden id lang spellcheck style tabindex title))
@@ -201,3 +188,16 @@
      mediagroup muted src))
   "Alist of (tag . attributes). These are the element-specific
 attributes, beyond the global attributes.")
+
+(memoize
+ (defun valid-attribute? (tag name)
+   (or (begins (string-downcase name) "data-")
+       (eql name :attrs)
+       (global-attribute? name)
+       (let ((permitted (assoc tag *permitted-attributes*
+                               :test #'string=)))
+         (or (find name permitted :test #'string=)
+             (find * permitted))))))
+
+(defun global-attribute? (name)
+  (find name *global-attributes* :test #'string=))
