@@ -135,6 +135,28 @@ WITH-HTML-STRING is like WITH-HTML, but intercepts the generated HTML
 at run time and returns a string.
 
 
+Sometimes it is useful for a piece of HTML-generating code to know
+where in the document it appears. You might, for example, want to
+define a `tabulate' that prints list-of-lists as rows of cells, but
+only prints the surrounding <table></table> if it is not already
+within a table. The symbol *HTML-PATH* holds a list of open tags, from
+latest to earliest. Usually it will look something like
+
+      *html-path* ;-> '(:table :section :body :html)
+
+Thus `tabulate' could be written
+
+     (defun tabulate (&rest rows)
+       (with-html
+         (flet ((tabulate ()
+                  (loop for row in rows do
+                    (:tr (loop for cell in row do
+                      (:td cell))))))
+           (if (find :table *html-path*)
+               (tabulate)
+               (:table (:tbody (tabulate)))))))
+
+
 The stumbling block for all sexp-based HTML generators is order of
 evaluation. It's tempting to write something like this:
 
@@ -196,7 +218,8 @@ The semantics of SPINNERET in Parenscript are almost the same. There
 is no WITH-HTML-STRING, and WITH-HTML returns a DocumentFragment.
 Strings in function position are still parsed as Markdown, but
 supplying arguments triggers an error (since Parenscript does not have
-FORMAT). Templates are not implemented for Parenscript.
+FORMAT). Templates and *HTML-PATH* are not implemented for
+Parenscript.
 
 
 SPINNERET does not do document validation, but it does warn, at

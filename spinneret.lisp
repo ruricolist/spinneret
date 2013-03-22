@@ -9,6 +9,9 @@
 (defparameter *html* *standard-output*
   "Output stream for HTML generation.")
 
+(defvar *html-path* nil
+  "List (in ascending order) of parent nodes.")
+
 (defmacro with-html (&body body &environment env)
   "Interpret BODY as HTML. Consult README.txt for the syntax."
   (if (and (null (cdr body)) (atom (car body)))

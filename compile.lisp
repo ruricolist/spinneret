@@ -120,7 +120,8 @@ are all the following key-value pairs, and the body is what remains."
                  (funcall body)))
              (funcall end empty?)))
     (declare (inline call/tag-1))
-    (let ((*depth* (1+ *depth*)))
+    (let ((*depth* (1+ *depth*))
+          (*html-path* (cons name *html-path*)))
       (call/tag-1
        (make-start-printer name)
        (make-close-printer name)
