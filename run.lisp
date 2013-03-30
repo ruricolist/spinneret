@@ -59,7 +59,7 @@
 
 (defmethod html :around (object)
   (when-let (object (call-next-method))
-    (fill-text (escape-string object))))
+    (fill-text (escape-string object) t)))
 
 (defmethod html ((string string))
   string)
