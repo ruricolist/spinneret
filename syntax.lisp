@@ -70,8 +70,7 @@
   (escape-with-table string *attribute-value-escapes*))
 
 (defun escape-to-stream (string table stream)
-  (declare (simple-string string)
-           (hash-table table)
+  (declare (hash-table table)
            (string-stream stream)
            (optimize speed))
   (let ((start-pointer 0)
@@ -86,7 +85,7 @@
                               :start start-pointer
                               :end end-pointer)
                 (write-string
-                 (gethash (schar string end-pointer) table)
+                 (gethash (char string end-pointer) table)
                  stream)
                 (setf start-pointer (1+ end-pointer)))
               (progn
