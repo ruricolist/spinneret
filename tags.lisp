@@ -97,7 +97,7 @@
 
 (defparameter *boolean-attributes*
   '(async autofocus autoplay checked controls
-    default defer disabled formnovalidate hidden
+    default defer disabled download formnovalidate hidden
     ismap itemscope loop multiple muted novalidate
     open readonly required reversed scoped
     seamless selected typemustmatch))
@@ -125,7 +125,7 @@
   (append *core-attributes* *event-handler-attributes*))
 
 (defparameter *permitted-attributes*
-  '((a href target rel hreflang media type)
+  '((a href target rel hreflang media type download ping)
     (area alt href target rel media hreflang type shape coords)
     (audio autoplay preload controls loop mediagroup muted src)
     (base href target)
