@@ -33,12 +33,14 @@
 
 (defun needs-quotes? (string)
   (declare (string string))
-  (some #'must-quote? string))
+  (or (some #'must-quote? string)
+      (ends-with #\/ string)))
 
 (defun must-quote? (char)
   (declare (character char))
   (or (nth-value 1 (gethash char *whitespace*))
-      (nth-value 1 (gethash char *unsafe*))))
+      (nth-value 1 (gethash char *unsafe*))
+      (ends-with #\/  )))
 
 ;; See 8.3.
 ;; http://www.w3.org/TR/html5/the-end.html#serializing-html-fragments
