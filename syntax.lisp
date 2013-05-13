@@ -39,8 +39,7 @@
 (defun must-quote? (char)
   (declare (character char))
   (or (nth-value 1 (gethash char *whitespace*))
-      (nth-value 1 (gethash char *unsafe*))
-      (ends-with #\/  )))
+      (nth-value 1 (gethash char *unsafe*))))
 
 ;; See 8.3.
 ;; http://www.w3.org/TR/html5/the-end.html#serializing-html-fragments
