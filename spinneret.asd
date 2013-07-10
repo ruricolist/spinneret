@@ -9,7 +9,9 @@
   :depends-on (#:trivial-garbage
                #:cl-markdown
                #:parenscript
-               #:alexandria)
+               #:alexandria
+               #:optima
+               #:cl-ppcre)
   :components ((:file "package")
                (:file "memo")
                (:file "syntax")

@@ -53,6 +53,19 @@ are all the following key-value pairs, and the body is what remains."
     (let ((tag (car form))
           (body (cdr form))
           attrs classes)
+      ;; Expand inline classes and ids.
+      (let ((parts (ppcre:split "([.#])" (string-downcase tag) :with-registers-p t)))
+        (setf tag (make-keyword (string-upcase (first parts))))
+        (labels ((rec (parts)
+                   (optima:match parts
+                     ((list))
+                     ((list* "." class rest)
+                      (setf body (list* :class class body))
+                      (rec rest))
+                     ((list* "#" id rest)
+                      (setf body (list* :id id body))
+                      (rec rest)))))
+          (rec (rest parts))))
       (loop (if (keywordp (car body))
                 (if (eql (car body) :class)
                     (progn

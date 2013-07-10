@@ -100,6 +100,12 @@ The rules for WITH-HTML are these:
   *HTML-LANG*; the value of the meta charset attribute is controlled
   by *HTML-CHARSET*.
 
+  Constant classes and ids can be specified with a selector-like
+  syntax. E.g.:
+
+     (:div#wrapper (:div.section ...))
+     ≡ (:div :id "wrapper" (:div :class "section" ...))
+
 - Keyword-value pairs following a tag are interpreted as attributes.
   HTML syntax may not be used in attribute values. Attributes with nil
   values are omitted. Boolean attributes with non-nil values are
