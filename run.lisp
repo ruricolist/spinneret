@@ -116,12 +116,16 @@
         finally (return (get-output-stream-string stream-out))))
 
 (defun format-attributes (attrs)
-  (let ((seen (make-hash-table)))
+  (let ((seen '()))
     ;; Ensure that the leftmost keyword has priority,
     ;; as in function lambda lists.
     (labels ((seen? (name)
-               (shiftf (gethash name seen nil) t))
+               (declare (optimize speed)
+                        (symbol name))
+               (prog1 (member name seen)
+                 (push name seen)))
              (format-attr (attr value)
+               (declare (optimize speed))
                (unless (or (seen? attr) (null value))
                  (if (boolean? attr)
                      (format *html* "~( ~A~)~:_" attr)
