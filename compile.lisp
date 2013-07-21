@@ -29,14 +29,11 @@
                                              (mapcar #'escape-to-string args)))
                                 `((formatter ,cs)
                                   ,@(loop for arg in args
-                                          ;; Only escape strings,
-                                          ;; since format directives
-                                          ;; may require other types,
-                                          ;; and strings are the most
-                                          ;; plausible vector for XSS.
+                                          ;; Escape literal strings at
+                                          ;; compile time.
                                           if (typep arg 'string env)
                                             collect (escape-to-string arg)
-                                          else collect `(escape-if-string ,arg))))))))
+                                          else collect `(xss-escape ,arg))))))))
                    (t (cons (rec (car form))
                             (mapcar #'rec (cdr form)))))))
     (rec form)))

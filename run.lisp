@@ -169,10 +169,18 @@
   (when *print-pretty*
     (terpri *html*)))
 
-(defun escape-if-string (arg)
-  (if (stringp arg)
-      (escape-to-string arg)
-      arg))
+(defun xss-escape (arg)
+  "Possibly escape ARG for use with FORMAT.
+
+We don't want to leave ourselves open to XSS, but we also want to be
+able to use directives like ~c, ~d, ~{~} &c."
+  (typecase arg
+    ((or number character symbol)
+     arg)
+    (list
+     (mapcar #'escape-unsafe arg))
+    (t
+     (escape-to-string arg))))
 
 (defun make-doctype (&rest args)
   (declare (ignore args))
