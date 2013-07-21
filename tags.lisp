@@ -109,6 +109,45 @@
   '(accesskey class contenteditable contextmenu dir draggable
     dropzone hidden id lang spellcheck style tabindex title))
 
+;; http://www.w3.org/TR/wai-aria/states_and_properties
+(defparameter *aria-attributes*
+  '(role
+    aria-activedescendant
+    aria-atomic
+    aria-autocomplete
+    aria-busy
+    aria-checked
+    aria-controls
+    aria-describedby
+    aria-disabled
+    aria-dropeffect
+    aria-expanded
+    aria-flowto
+    aria-grabbed
+    aria-haspopup
+    aria-hidden
+    aria-invalid
+    aria-label
+    aria-labelledby
+    aria-level
+    aria-live
+    aria-multiline
+    aria-multiselectable
+    aria-orientation
+    aria-owns
+    aria-posinset
+    aria-pressed
+    aria-readonly
+    aria-relevant
+    aria-required
+    aria-selected
+    aria-setsize
+    aria-sort
+    aria-valuemax
+    aria-valuemin
+    aria-valuenow
+    aria-valuetext))
+
 (defparameter *event-handler-attributes*
   '(onabort onblur oncanplay oncanplaythrough onchange onclick
     oncontextmenu ondblclick ondrag ondragend ondragenter
@@ -192,9 +231,11 @@ attributes, beyond the global attributes.")
 
 (memoize
  (defun valid-attribute? (tag name)
-   (or (begins (string-downcase name) "data-")
+   (or (begins name "data-")
+       (begins name "DATA-")
        (eql name :attrs)
        (global-attribute? name)
+       (aria-attribute? name)
        (let ((permitted (assoc tag *permitted-attributes*
                                :test #'string=)))
          (or (find name permitted :test #'string=)
@@ -202,3 +243,6 @@ attributes, beyond the global attributes.")
 
 (defun global-attribute? (name)
   (find name *global-attributes* :test #'string=))
+
+(defun aria-attribute? (name)
+  (find name *aria-attributes* :test #'string=))
