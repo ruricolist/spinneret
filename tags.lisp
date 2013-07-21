@@ -239,7 +239,7 @@ attributes, beyond the global attributes.")
        (let ((permitted (assoc tag *permitted-attributes*
                                :test #'string=)))
          (or (find name permitted :test #'string=)
-             (find * permitted))))))
+             (find '* permitted))))))
 
 (defun global-attribute? (name)
   (find name *global-attributes* :test #'string=))
