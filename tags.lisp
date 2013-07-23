@@ -231,8 +231,7 @@ attributes, beyond the global attributes.")
 
 (memoize
  (defun valid-attribute? (tag name)
-   (or (begins name "data-")
-       (begins name "DATA-")
+   (or (begins (string-downcase name) "data-")
        (eql name :attrs)
        (global-attribute? name)
        (aria-attribute? name)
