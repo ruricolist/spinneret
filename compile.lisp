@@ -107,17 +107,7 @@ are all the following key-value pairs, and the body is what remains."
                    ,@(loop for form in body
                            collect `(catch-output ,form)))
                  ,pre?
-                 ,empty?))
-    #+ () `(prog1 nil
-             (let ((*depth* (+ *depth* 1))
-                   (*pre* ,pre?))
-               (funcall (make-start-printer ,name)
-                        ,empty?
-                        (list ,@(escape-attrs name attributes)))
-               (without-trailing-space
-                 ,@(loop for form in body
-                         collect `(catch-output ,form)))
-               (funcall (make-close-printer ,name) ,empty?)))))
+                 ,empty?))))
 
 (defun call/tag (name attrs body *pre* empty?)
   (declare (function body))
