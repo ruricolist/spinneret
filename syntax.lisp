@@ -4,32 +4,18 @@
                  escape-string escape-attribute-value
                  escape-cdata escape-comment))
 
-(declaim (hash-table *whitespace* *unsafe*
-                     *string-escapes* *attribute-value-escapes*))
-
 (deftype index () '(integer 0 #.array-total-size-limit))
 
 ;; See 2.5.1.
 ;; http://www.w3.org/TR/html5/common-microsyntaxes.html#space-character
 
-(defparameter *whitespace*
-  (let ((ht (make-hash-table)))
-    (dolist (c '(#\Space #\Tab #\Newline #\Page #\Return))
-      (setf (gethash c ht) t))
-    ht))
-
 (defun whitespace (char)
   (declare (character char))
-  (nth-value 1 (gethash char *whitespace*)))
+  (case char
+    ((#\Space #\Tab #\Newline #\Page #\Return) t)))
 
 ;; See 8.1.2.3.
 ;; http://www.w3.org/TR/html5/syntax.html#syntax-attribute-value
-
-(defparameter *unsafe*
-  (let ((ht (make-hash-table)))
-    (dolist (c '(#\" #\' #\` #\= #\< #\>))
-      (setf (gethash c ht) t))
-    ht))
 
 (defun needs-quotes? (string)
   (declare (string string))
@@ -38,55 +24,57 @@
 
 (defun must-quote? (char)
   (declare (character char))
-  (or (nth-value 1 (gethash char *whitespace*))
-      (nth-value 1 (gethash char *unsafe*))))
+  (or (whitespace char)
+      (case char
+        ((#\" #\' #\` #\= #\< #\>) t))))
 
 ;; See 8.3.
 ;; http://www.w3.org/TR/html5/the-end.html#serializing-html-fragments
 
-(defparameter *string-escapes*
-  (let ((ht (make-hash-table)))
-    (setf (gethash #\& ht) "&amp;"
-          (gethash #\No-break_space ht) "&nbsp;"
-          (gethash #\< ht) "&lt;"
-          (gethash #\> ht) "&gt;")
-    ht))
+(defun escape-string-char (c)
+  (case c
+    (#\& "&amp;")
+    (#\No-break_space "&nbsp;")
+    (#\< "&lt;")
+    (#\> "&gt")))
 
 (defun escape-string (string)
-  (escape-with-table string *string-escapes*))
+  (escape-with-table string #'escape-string-char))
 
 (defun escape-to-string (object)
   (if (stringp object)
       (escape-string object)
       (escape-string (princ-to-string object))))
 
-(defparameter *attribute-value-escapes*
-  (let ((ht (make-hash-table)))
-    (setf (gethash #\& ht) "&amp;"
-          (gethash #\No-break_space ht) "&nsbp;"
-          (gethash #\" ht) "&quot;")
-    ht))
-
 (defun escape-attribute-value (string)
-  (escape-with-table string *attribute-value-escapes*))
+  (escape-with-table string
+                     (lambda (c)
+                       (case c
+                         (#\& "&amp;")
+                         (#\No-break_space "&nbsp;")
+                         (#\" "&quot;")))))
 
 (defun escape-to-stream (string table stream)
-  (declare (hash-table table)
-           (string-stream stream)
+  (declare (string-stream stream)
            (optimize speed))
   (let ((start-pointer 0)
-        (end-pointer 0))
+        (end-pointer 0)
+        (rep (ensure-function
+              (etypecase table
+                (function table)
+                (hash-table (lambda (c)
+                              (gethash c table)))))))
     (declare (index start-pointer)
              ((or null index) end-pointer))
     (loop (setf end-pointer
-                (position-if (lambda (c) (gethash c table)) string :start start-pointer))
+                (position-if rep string :start start-pointer))
           (if end-pointer
               (progn
                 (write-string string stream
                               :start start-pointer
                               :end end-pointer)
                 (write-string
-                 (gethash (char string end-pointer) table)
+                 (funcall rep (char string end-pointer))
                  stream)
                 (setf start-pointer (1+ end-pointer)))
               (progn
