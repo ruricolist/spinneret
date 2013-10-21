@@ -31,6 +31,12 @@
   `(let ((*pending-space* nil))
      ,@body))
 
+(defmacro with-space (&body body)
+  `(progn
+     (flush-space)
+     ,@body
+     (buffer-space)))
+
 (declaim (boolean *pending-space*))
 
 (defvar *pending-space* nil)
@@ -39,7 +45,8 @@
   (setf *pending-space* t))
 
 (defun flush-space ()
-  (when (shiftf *pending-space* nil)
+  (when *pending-space*
+    (setf *pending-space* nil)
     (write-char #\Space *html*)))
 
 (declaim (inline buffer-space flush-space))
@@ -58,20 +65,25 @@
   (:documentation "Return an unescaped, unfilled string representing OBJECT."))
 
 (defmethod html :around (object)
-  (when-let (object (call-next-method))
-    (fill-text (escape-string object) t)))
+  (with-space
+    (call-next-method))
+  (values))
 
 (defmethod html ((string string))
-  string)
+  (if *print-pretty*
+      (fill-text (escape-string string) t)
+      (escape-to-stream string #'escape-string-char *html*)))
 
 (defmethod html ((char character))
-  (princ-to-string char))
+  (if-let (escape (escape-string-char char))
+    (write-string escape *html*)
+    (write-char char *html*)))
 
 (defmethod html ((n number))
-  (princ-to-string n))
+  (format *html* "~d" n))
 
 (defmethod html ((sym symbol))
-  (princ-to-string sym))
+  (format *html* "~a" sym))
 
 (defun mklist (x) (if (listp x) x (list x)))
 
@@ -93,18 +105,18 @@
       (progn
         (format *html* "~V,0T" *depth*)
         (do-words (word string)
-          (flush-space)
-          (format *html* "~<~%~V,0T~1,V:;~A~>"
-                  *depth*
-                  *print-right-margin*
-                  (if safe? word (escape-string word)))
-          (buffer-space)))
+          (with-space
+            (format *html* "~<~%~V,0T~1,V:;~A~>"
+                    *depth*
+                    *print-right-margin*
+                    (if safe? word (escape-string word))))))
       (if *pre*
           (format *html* "~&~A~%" string)
-          (progn
-            (flush-space)
-            (write-string string *html*)
-            (buffer-space)))))
+          (with-space
+            (if safe?
+                (write-string string *html*)
+                (escape-to-stream string #'escape-string-char *html*)))))
+  (values))
 
 (defun pop-word (stream-in stream-out)
   (declare (optimize speed)
@@ -166,8 +178,7 @@
     (fresh-line *html*))
   (let ((*depth* (1+ *depth*)))
     (fill-text (apply #'format nil control-string args) t))
-  (when *print-pretty*
-    (terpri *html*)))
+  (values))
 
 (defun xss-escape (arg)
   "Possibly escape ARG for use with FORMAT.
@@ -178,7 +189,7 @@ able to use directives like ~c, ~d, ~{~} &c."
     ((or number character symbol)
      arg)
     (list
-     (mapcar #'escape-unsafe arg))
+     (mapcar #'xss-escape arg))
     (t
      (escape-to-string arg))))
 
