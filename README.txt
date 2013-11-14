@@ -203,8 +203,8 @@ can approximate the obvious solution.
 
 Templates do not need backquoting and do not require safeguards
 against multiple evaluation. Changes to the definition of a template
-are immediately visible to its callers. Templates are still, however,
-macros, not functions.
+are immediately visible to its callers. (Templates are still, however,
+macros, not functions.)
 
 By default, templates treat the &rest parameter like any other and
 splice it in place. To iterate over it instead, use DO-ELEMENTS. The
@@ -213,6 +213,36 @@ syntax is the same as DOLIST.
      (deftemplate ul (&rest items)
        (:ul (do-elements (item items)
               (:li item))))
+
+For such simple uses, templates are overkill. There are two prominent
+drawbacks to templates: they are not first-class (cannot be used with
+FUNCALL or APPLY), and optional and keyword arguments only allow
+constant initforms.
+
+Their intended purpose is to abstract the boilerplate required by CSS
+frameworks. For example, using Bootstrap, you could define an
+abstraction over alerts like so:
+
+   (deftemplate alert (body &key (type :info) (dismissable t))
+     (with-html
+       (:div.alert
+        :class (ecase type
+                 (:info "alert-info")
+                 (:success "alert-success")
+                 (:warning "alert-warning")
+                 (:danger "alert-danger"))
+        :class (when dismissable
+                 "alert-dismissable")
+        (when dismissable
+          (:button.close :type :button :data-dismiss t :aria-hidden t))
+        body)))
+
+To use it:
+
+     (alert
+       (:p (:strong "Well done!")
+         ("You successfully read [this important alert message](~a)."
+           "http://example.com")))
 
 
 So far integration with CL-MARKDOWN is crude, because SPINNERET is not
