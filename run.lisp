@@ -143,9 +143,10 @@
                      (format *html* "~( ~A~)~:_" attr)
                      (format *html* "~( ~A~)~:_=~:_~A~:_"
                              attr
-                             (if (equal value "")
-                                 "\"\""
-                                 value)))))
+                             (cond ((equal value "") "\"\"")
+                                   ((keywordp value) (string-downcase value))
+                                   ((eql value t) "true")
+                                   (t value))))))
              (inner (attrs)
                (declare (optimize speed))
                (loop (unless attrs (return))
@@ -165,7 +166,9 @@
                  (write-char #\> *html*))))))
 
 (defun escape-value (value)
-  (if (member value '(t nil) :test #'eq)
+  (if (or (eq value t)
+          (eq value nil)
+          (keywordp value))
       value
       (let ((string (escape-attribute-value
                      (princ-to-string value))))
