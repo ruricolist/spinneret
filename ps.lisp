@@ -11,7 +11,7 @@
   '(("for"   . "htmlfor")
     ("class" . "classname")))
 
-(define-ps-symbol-macro *html* (@ document spinneret))
+(define-ps-symbol-macro *html* (@ window spinneret))
 
 (define-ps-symbol-macro *html-charset* (lisp *html-charset*))
 
@@ -21,14 +21,17 @@
   `(chain ,@args))
 
 (defpsmacro with-html (&rest html-forms)
-  `(progn
-     (unless *html*
-       (setf *html* (ch document (create-document-fragment))))
-     ,@(with-standard-io-syntax
-         (parse-html html-forms nil))
-     (unless (@ *html* parent-node)
-       (prog1 *html*
-         (setf *html* nil)))))
+  (with-ps-gensyms (node d)
+    `(let ((,node (or *html*
+                     (setf *html* (ch document (create-document-fragment)))))
+           (,d document))
+       (symbol-macrolet ((*html* ,node)
+                         (document ,d))
+         ,@(with-standard-io-syntax
+             (parse-html html-forms nil)))
+       (unless (@ ,node parent-node)
+         (prog1 ,node
+           (setf *html* nil))))))
 
 (defpsmacro with-tag ((name &rest attributes) &body body)
   `(progn
