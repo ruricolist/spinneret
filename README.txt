@@ -214,30 +214,30 @@ syntax is the same as DOLIST.
        (:ul (do-elements (item items)
               (:li item))))
 
-For such simple uses, templates are overkill. There are two prominent
-drawbacks to templates: they are not first-class (cannot be used with
-FUNCALL or APPLY), and optional and keyword arguments only allow
-constant initforms.
+But, for such simple uses, templates are overkill. There are two
+prominent drawbacks to templates: they are not first-class (cannot be
+used with FUNCALL or APPLY), and their optional and keyword arguments
+only allow constant initforms.
 
-Their intended purpose is to abstract the boilerplate required by CSS
-frameworks. For example, using Bootstrap, you could define an
-abstraction over alerts like so:
+They serve to abstract the boilerplate required by CSS frameworks. For
+example, using Bootstrap, you could define an abstraction over alerts
+like so:
 
    (deftemplate alert (body &key (type :info) (dismissable t))
      (with-html
        (:div.alert
         :class (ecase type
-                 (:info "alert-info")
+                 (:info    "alert-info")
                  (:success "alert-success")
                  (:warning "alert-warning")
-                 (:danger "alert-danger"))
+                 (:danger  "alert-danger"))
         :class (when dismissable
                  "alert-dismissable")
         (when dismissable
           (:button.close :type :button :data-dismiss t :aria-hidden t))
         body)))
 
-To use it:
+And to use it:
 
      (alert
        (:p (:strong "Well done!")
