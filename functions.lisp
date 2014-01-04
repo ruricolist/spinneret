@@ -1,18 +1,19 @@
 (in-package #:spinneret)
 
-(defpackage #:spinneret.tag)
+(defpackage #:spinneret.tag
+  #+ccl (:use))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defparameter *tags-pkg* (find-package :spinneret.tag))
 
   (defun unsplice (x)
-    (if x (list x) x)))
+    (if x (list x) x))
 
-(defun tag-fn (tag &key intern)
-  (let ((tag (string tag)))
-    (if intern
-        (intern tag *tags-pkg*)
-        (find-symbol tag *tags-pkg*))))
+  (defun tag-fn (tag &key intern)
+    (let ((tag (string tag)))
+      (if intern
+          (intern tag *tags-pkg*)
+          (find-symbol tag *tags-pkg*)))))
 
 (defmacro define-tag (tag)
   (let* ((name
