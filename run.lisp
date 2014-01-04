@@ -13,19 +13,16 @@
   (when *print-pretty*
    (format *html* "~V,0T" *depth*)))
 
-(defun newline-and-indent ()
+(defun newline-and-indent (&optional (stream *html*))
   "Fresh line and indent according to *DEPTH*."
-  (when *print-pretty*
-   (format *html* "~&~V,0T" *depth*)))
+  (format stream "~&~V,0T" *depth*))
 
-(defun emit-end-tag (tag)
-  (if *print-pretty*
-      (format *html*
-              "~V,0T~:*~<~%~V,0T~1,V:;~A~>"
-              *depth*
-              *print-right-margin*
-              tag)
-      (write-string tag *html*)))
+(defun emit-pretty-end-tag (tag &optional (stream *html*))
+  (format stream
+          "~V,0T~:*~<~%~V,0T~1,V:;~A~>"
+          *depth*
+          *print-right-margin*
+          tag))
 
 (defmacro without-trailing-space (&body body)
   `(let ((*pending-space* nil))
@@ -127,7 +124,8 @@
         do (write-char c stream-out)
         finally (return (get-output-stream-string stream-out))))
 
-(defun format-attributes (attrs)
+(defun format-attributes (attrs &optional (stream *html*))
+  (declare (stream stream))
   (let ((seen '()))
     ;; Ensure that the leftmost keyword has priority,
     ;; as in function lambda lists.
@@ -140,8 +138,8 @@
                (declare (optimize speed))
                (unless (or (seen? attr) (null value))
                  (if (boolean? attr)
-                     (format *html* "~( ~A~)~:_" attr)
-                     (format *html* "~( ~A~)~:_=~:_~A~:_"
+                     (format stream "~( ~A~)~:_" attr)
+                     (format stream "~( ~A~)~:_=~:_~A~:_"
                              attr
                              (cond ((equal value "") "\"\"")
                                    ((keywordp value) (string-downcase value))
@@ -150,7 +148,7 @@
              (inner (attrs)
                (declare (optimize speed))
                (loop (unless attrs (return))
-                     (pprint-indent :block 1 *html*)
+                     (pprint-indent :block 1 stream)
                      (let ((attr (pop attrs))
                            (value (pop attrs)))
                        (declare (symbol attr))
@@ -160,10 +158,10 @@
                            (format-attr attr value))))))
       (declare (inline seen? inner))
       (if *print-pretty*
-          (pprint-logical-block (*html* nil :suffix ">")
+          (pprint-logical-block (stream nil :suffix ">")
             (inner attrs))
           (progn (inner attrs)
-                 (write-char #\> *html*))))))
+                 (write-char #\> stream))))))
 
 (defun escape-value (value)
   (if (or (eq value t)

@@ -99,74 +99,15 @@ are all the following key-value pairs, and the body is what remains."
 
 (defmacro with-tag ((name &rest attributes) &body body)
   (let ((empty? (not body))
-        (pre? (not (null (preformatted? name)))))
+        (pre? (not (null (preformatted? name))))
+        (tag-fn (or (tag-fn name) (error "No such tag: ~a" name))))
     `(prog1 nil
-       (call/tag ,name
-                 (list ,@(escape-attrs name attributes))
-                 (lambda ()
-                   ,@(loop for form in body
-                           collect `(catch-output ,form)))
-                 ,pre?
-                 ,empty?))))
-
-(defun call/tag (name attrs body *pre* empty?)
-  (declare (function body))
-  (labels ((call/tag-1 (start end empty? attrs body)
-             (declare (function start end body)
-                      (optimize speed))
-             (funcall start empty? attrs)
-             (unless empty?
-               (without-trailing-space
-                 (funcall body)))
-             (funcall end empty?)))
-    (declare (inline call/tag-1))
-    (let ((*depth* (1+ *depth*))
-          (*html-path* (cons name *html-path*)))
-      (call/tag-1
-       (make-start-printer name)
-       (make-close-printer name)
-       empty?
-       attrs
-       body))))
-
-(defun emit-space ()
-  (write-char #\Space *html*))
-
-(memoize
- (defun make-start-printer (name)
-   (let ((newline-before-start
-           (if (inline? name)
-               (constantly nil)
-               #'newline-and-indent))
-         (tag (format nil "<~(~A~)" name))
-         (newline-after-start
-           (if (or (inline? name)
-                   (paragraph? name))
-               (constantly nil)
-               (lambda ()
-                 (when *print-pretty* (terpri *html*))))))
-     (compile nil (lambda (empty? attrs)
-                    (funcall newline-before-start)
-                    (write-string tag *html*)
-                    (format-attributes attrs)
-                    (unless empty?
-                      (funcall newline-after-start)))))))
-
-(memoize
- (defun make-close-printer (name)
-   (if (or (void? name)
-           (unmatched? name))
-       (constantly nil)
-       (let ((close (format nil "</~(~A~)>" name))
-             (newline-before-close
-               (if (or (inline? name)
-                       (paragraph? name))
-                   (constantly nil)
-                   #'newline-and-indent)))
-         (compile nil (lambda (empty?)
-                        (unless empty?
-                          (funcall newline-before-close))
-                        (emit-end-tag close)))))))
+       (,tag-fn (list ,@(escape-attrs name attributes))
+                (lambda ()
+                  ,@(loop for expr in body
+                          collect `(catch-output ,expr)))
+                ,pre?
+                ,empty?))))
 
 (defun escape-attrs (tag attrs)
   (let ((attrs

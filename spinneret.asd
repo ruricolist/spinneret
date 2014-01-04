@@ -18,6 +18,7 @@
                (:file "tags")
                (:file "spinneret")
                (:file "run")
+               (:file "functions")
                (:file "compile")
                (:file "templates")
                (:file "ps")))
