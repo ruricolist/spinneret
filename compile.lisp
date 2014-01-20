@@ -101,13 +101,16 @@ are all the following key-value pairs, and the body is what remains."
   (let ((empty? (not body))
         (pre? (not (null (preformatted? name))))
         (tag-fn (or (tag-fn name) (error "No such tag: ~a" name))))
-    `(prog1 nil
-       (,tag-fn (list ,@(escape-attrs name attributes))
-                (lambda ()
+    (with-gensyms (thunk)
+      `(prog1 nil
+         (flet ((,thunk ()
                   ,@(loop for expr in body
-                          collect `(catch-output ,expr)))
-                ,pre?
-                ,empty?))))
+                          collect `(catch-output ,expr))))
+           (declare (dynamic-extent (function ,thunk)))
+           (,tag-fn (list ,@(escape-attrs name attributes))
+                    #',thunk
+                    ,pre?
+                    ,empty?))))))
 
 (defun escape-attrs (tag attrs)
   (let ((attrs
