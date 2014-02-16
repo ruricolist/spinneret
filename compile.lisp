@@ -6,7 +6,7 @@
   (labels ((rec (form)
              (cond ((atom form) form)
                    ((dotted-list? form) form)
-                   ((constantp form env) form)
+                   ((ignore-errors (constantp form env)) form)
                    ((eql (car form) 'with-tag) form)
                    ((keywordp (car form))
                     (let ((form (pseudotag-expand (car form) (cdr form))))
