@@ -55,7 +55,7 @@
                          (#\" "&quot;")))))
 
 (defun escape-to-stream (string table stream)
-  (declare (string-stream stream)
+  (declare (stream stream)
            (optimize speed))
   (let ((start-pointer 0)
         (end-pointer 0)
