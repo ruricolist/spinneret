@@ -97,7 +97,7 @@
 (declaim (inline pop-word))
 
 (defun fill-text (string &optional safe?)
-  (declare (string string))
+  (check-type string string)
   (if (and *print-pretty* (not *pre*))
       (progn
         (format *html* "~V,0T" *depth*)
