@@ -21,5 +21,4 @@
                (:file "functions")
                (:file "compile")
                (:file "deftag")
-               (:file "templates")
                (:file "ps")))
