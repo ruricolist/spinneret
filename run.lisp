@@ -57,11 +57,14 @@
     (t `(html ,arg))))
 
 (defgeneric html (object)
-  (:method (object) nil)
+  (:method (object)
+    (declare (ignore object))
+    nil)
   (:method ((nada null)) nil)
   (:documentation "Return an unescaped, unfilled string representing OBJECT."))
 
 (defmethod html :around (object)
+  (declare (ignore object))
   (with-space
     (call-next-method))
   (values))
@@ -153,7 +156,7 @@
                            (value (pop attrs)))
                        (declare (symbol attr))
                        (if (eql attr :attrs)
-                           (loop for (a v . rest) on value by #'cddr
+                           (loop for (a v . nil) on value by #'cddr
                                  do (format-attr a (escape-value v)))
                            (format-attr attr value))))))
       (declare (inline seen? inner))

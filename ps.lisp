@@ -39,7 +39,7 @@
            (ch *html*
                (append-child
                 (ch document (create-element ,(string-downcase name))))))
-     ,@(loop for (attr val . rest) on attributes by #'cddr
+     ,@(loop for (attr val . nil) on attributes by #'cddr
              collect (make-attr-setter (string-downcase attr) val))
      ,@(when body
          (loop for form in body

@@ -114,11 +114,11 @@ are all the following key-value pairs, and the body is what remains."
 
 (defun escape-attrs (tag attrs)
   (let ((attrs
-          (loop for (attr val . rest) on attrs by #'cddr
+          (loop for (attr val . nil) on attrs by #'cddr
                 if (eql attr :dataset)
                   append (escape-attrs
                           tag
-                          (loop for (attr val . rest) on val by #'cddr
+                          (loop for (attr val . nil) on val by #'cddr
                                 collect (make-keyword (format nil "~:@(data-~A~)" attr))
                                 collect val))
                 else if (eql attr :attrs)
@@ -129,8 +129,8 @@ are all the following key-value pairs, and the body is what remains."
                        collect attr and collect (escape-value val)
                 else
                   collect attr and collect `(escape-value ,val))))
-    (loop for (attr val . rest) on attrs by #'cddr
-          unless (valid-attribute? tag attr )
+    (loop for (attr nil . nil) on attrs by #'cddr
+          unless (valid-attribute? tag attr)
             do (warn "~A is not a valid attribute for <~A>"
                      attr tag))
     attrs))
