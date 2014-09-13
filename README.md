@@ -81,12 +81,12 @@ Which produces:
       </body>
      </html>
 
-(Pretty-printing is pretty fast, but SPINNERET obeys *print-pretty*
+(Pretty-printing is pretty fast, but SPINNERET obeys `*print-pretty*`
 should you want to turn it off.)
 
 The rules for WITH-HTML are these:
 
-- All generated forms write to *HTML*.
+- All generated forms write to `*html*`.
 
 - A keyword in function position is interpreted as a tag name. If the
   name is not valid as a tag, it is ignored.
@@ -97,8 +97,8 @@ The rules for WITH-HTML are these:
   :RAW :DOCTYPE :!DOCTYPE :CDATA :!-- :COMMENT :HTML :HEAD
 
   The value of the LANG attribute of HTML is controlled by
-  *HTML-LANG*; the value of the meta charset attribute is controlled
-  by *HTML-CHARSET*.
+  `*html-lang*`; the value of the meta charset attribute is controlled
+  by `*html-charset*`.
 
   Constant classes and ids can be specified with a selector-like
   syntax. E.g.:
@@ -143,9 +143,9 @@ at run time and returns a string.
 
 Sometimes it is useful for a piece of HTML-generating code to know
 where in the document it appears. You might, for example, want to
-define a `tabulate' that prints list-of-lists as rows of cells, but
-only prints the surrounding <table></table> if it is not already
-within a table. The symbol *HTML-PATH* holds a list of open tags, from
+define a `tabulate` that prints list-of-lists as rows of cells, but
+only prints the surrounding `<table></table>` if it is not already
+within a table. The symbol `*HTML-PATH*` holds a list of open tags, from
 latest to earliest. Usually it will look something like
 
       *html-path* ;-> '(:table :section :body :html)
@@ -170,13 +170,14 @@ evaluation. It's tempting to write something like this:
      (defun field (control)
        (with-html (:p control)))
 
-     (defun input (name label &key (type "text"))
+     (defun input (default &key name label (type "text"))
        (with-html
          (:label :for name label)
-         (:input :name name :id name :type type)))
+         (:input :name name :id name :type type :value default)))
 
-But it won't work: in (field (input "why" "Reason")), (input) gets
-evaluated before (field), and the HTML is printed inside-out.
+But it won't work: in `(field (input "Default" :name "why" :label
+"Reason"))`, `(input)` gets evaluated before `(field)`, and the HTML
+is printed inside-out.
 
 Macros do work:
 
@@ -186,64 +187,52 @@ Macros do work:
      (defmacro input (name label &key (type "text"))
        `(with-html
           (:label :for ,name ,label)
-          (:input :name ,name :id ,name :type ,type))),
+          (:input :name ,name :id ,name :type ,type)))
 
-But macros are clumsy instruments for refactoring. Whenever they
-change, all their callers have to be recompiled, which hobbles
-incremental development.
+But we can do better than this. Spinneret provides a macro-writing
+macro, `deftag`, which lets you *refactor* HTML without *hiding* it.
 
-For these reasons, SPINNERET provides templates. With templates, you
-can approximate the obvious solution.
+     (deftag field (control attrs)
+      `(:p ,@attrs ,@control))
 
-     (deftemplate field (control)
-       (:p control))
+     (deftag input (default attrs &key name label (type "text"))
+       (once-only (name)
+         `(progn
+            (:label :for ,name ,label)
+            (:input :name ,name :id ,name :type ,type
+              ,@attrs
+              :value (progn ,@default)))))
 
-     (deftemplate input (name label &key (type "text"))
-       (:label :for name label)
-       (:input :name name :id name :type type))
+A macro defined using `deftag` takes its arguments just like an HTML
+element. Instead of
 
-Templates do not need backquoting and do not require safeguards
-against multiple evaluation. Changes to the definition of a template
-are immediately visible to its callers. (Templates are still, however,
-macros, not functions.)
+    (input "Default" :name "why" :label "Reason") ; defmacro
 
-By default, templates treat the &rest parameter like any other and
-splice it in place. To iterate over it instead, use DO-ELEMENTS. The
-syntax is the same as DOLIST.
+You write
 
-     (deftemplate ul (&rest items)
-       (:ul (do-elements (item items)
-              (:li item))))
+    (input :name "why" :label "Reason" "Default") ; deftag
 
-But, for such simple uses, templates are overkill. There are two
-prominent drawbacks to templates: they are not first-class (cannot be
-used with FUNCALL or APPLY), and their optional and keyword arguments
-only allow constant initforms.
+The arguments are then re-arranged by the macro so they can be bound
+to an ordinary lambda list, like the one above. Multiple `:class`
+arguments, `:dataset`, and other shorthands are handled exactly as in
+the usual HTML syntax.
 
-They serve to abstract the boilerplate required by CSS frameworks. For
-example, using Bootstrap, you could define an abstraction over alerts
-like so:
+But the great advantage of `deftag` is how it handles attributes which
+are *not* bound to keywords. In the definition of `input` using
+`deftag`, you see that the `attrs` catch-all argument is spliced into
+the call to `:input`. This means that any unhandled attributes pass
+through to the actual input element.
 
-   (deftemplate alert (body &key (type :info) (dismissable t))
-     (with-html
-       (:div.alert
-        :class (ecase type
-                 (:info    "alert-info")
-                 (:success "alert-success")
-                 (:warning "alert-warning")
-                 (:danger  "alert-danger"))
-        :class (when dismissable
-                 "alert-dismissable")
-        (when dismissable
-          (:button.close :type :button :data-dismiss t :aria-hidden t))
-        body)))
+    (input :name "why" :label "Reason" :required t :class "special" "Default")
+    => <label for=why>Reason</label>
+       <input class=special name=why id=why type=text required value=Default>
 
-And to use it:
+In effect, `input` *extends* the `:input` tag, almost like a subclass.
+This is a very idiomatic and expressive way of building abstractions
+over HTML.
 
-     (alert
-       (:p (:strong "Well done!")
-         ("You successfully read [this important alert message](~a)."
-           "http://example.com")))
+(SPINNERET used to provide a different way of building HTML
+abstractions, `deftemplate`, but `deftag` is simpler and more useful.)
 
 
 So far integration with CL-MARKDOWN is crude, because SPINNERET is not
@@ -252,10 +241,10 @@ text. This may change in the future.
 
 
 The semantics of SPINNERET in Parenscript are almost the same. There
-is no WITH-HTML-STRING, and WITH-HTML returns a DocumentFragment.
+is no `with-html-string`, and `with-html` returns a `DocumentFragment`.
 Strings in function position are still parsed as Markdown, but
 supplying arguments triggers an error (since Parenscript does not have
-FORMAT). Templates and *HTML-PATH* are not implemented for
+`format`). Templates and `*html-path*` are not implemented for
 Parenscript.
 
 

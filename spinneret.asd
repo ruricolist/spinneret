@@ -2,7 +2,7 @@
 
 (asdf:defsystem #:spinneret
   :description "Common Lisp HTML5 generator."
-  :version "1.3"
+  :version "2.0"
   :author "Paul M. Rodriguez <pmr@ruricolist.com>"
   :license "MIT"
   :serial t
