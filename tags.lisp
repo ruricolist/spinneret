@@ -39,7 +39,8 @@
 (defparameter *end-tag-optional*
   ;; html head body
   '(li dt dd p rt rp optgroup
-    option colgroup thead tbody tfoot tr td th))
+    option colgroup thead tbody tfoot tr td th
+    meta))
 
 (defun unmatched? (element)
   (in? element '*end-tag-optional*))
