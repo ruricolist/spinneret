@@ -176,8 +176,9 @@ evaluation. It's tempting to write something like this:
          (:input :name name :id name :type type)))
 
 But it won't work: in (field (input "why" "Reason")), (input) gets
-evaluated before (field), and the HTML is printed inside-out. Macros
-do work:
+evaluated before (field), and the HTML is printed inside-out.
+
+Macros do work:
 
      (defmacro field (control)
        `(with-html (:p ,control)))
