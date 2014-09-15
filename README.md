@@ -212,10 +212,11 @@ You write
 
     (input :name "why" :label "Reason" "Default") ; deftag
 
-The arguments are then re-arranged by the macro so they can be bound
-to an ordinary lambda list, like the one above. Multiple `:class`
-arguments, `:dataset`, and other shorthands are handled exactly as in
-the usual HTML syntax.
+The macro re-arranges the arguments so they can be bound to an
+ordinary lambda list, like the one above: the body of the tag is bound
+to the first argument, and matching attributes are bound to keywords.
+Multiple `:class` arguments, `:dataset`, and other shorthands are
+handled exactly as in the usual HTML syntax.
 
 But the great advantage of `deftag` is how it handles attributes which
 are *not* bound to keywords. In the definition of `input` using
@@ -231,7 +232,7 @@ In effect, `input` *extends* the `:input` tag, almost like a subclass.
 This is a very idiomatic and expressive way of building abstractions
 over HTML.
 
-(SPINNERET used to provide a different way of building HTML
+(SPINNERET used to provide a more elaborate way of building HTML
 abstractions, `deftemplate`, but `deftag` is simpler and more useful.)
 
 
