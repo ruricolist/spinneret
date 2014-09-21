@@ -1,3 +1,5 @@
+# Spinneret
+
 In the crowded space of Common Lisp HTML generators, SPINNERET
 occupies the following coordinates:
 
@@ -84,6 +86,8 @@ Which produces:
 (Pretty-printing is pretty fast, but SPINNERET obeys `*print-pretty*`
 should you want to turn it off.)
 
+## Syntax
+
 The rules for WITH-HTML are these:
 
 - All generated forms write to `*html*`.
@@ -140,6 +144,8 @@ The rules for WITH-HTML are these:
 WITH-HTML-STRING is like WITH-HTML, but intercepts the generated HTML
 at run time and returns a string.
 
+## `*html-path*`
+
 
 Sometimes it is useful for a piece of HTML-generating code to know
 where in the document it appears. You might, for example, want to
@@ -162,6 +168,7 @@ Thus `tabulate' could be written
                (tabulate)
                (:table (:tbody (tabulate)))))))
 
+## `deftag`
 
 The stumbling block for all sexp-based HTML generators is order of
 evaluation. It's tempting to write something like this:
@@ -235,11 +242,7 @@ over HTML.
 (SPINNERET used to provide a more elaborate way of building HTML
 abstractions, `deftemplate`, but `deftag` is simpler and more useful.)
 
-
-So far integration with CL-MARKDOWN is crude, because SPINNERET is not
-aware of the structure of the generated HTML and treats it as a run of
-text. This may change in the future.
-
+## Parenscript
 
 The semantics of SPINNERET in Parenscript are almost the same. There
 is no `with-html-string`, and `with-html` returns a `DocumentFragment`.
@@ -248,10 +251,12 @@ supplying arguments triggers an error (since Parenscript does not have
 `format`). Templates and `*html-path*` are not implemented for
 Parenscript.
 
+## Validation
 
 SPINNERET does not do document validation, but it does warn, at
 compile time, about invalid tags and attributes.
 
+## Dependencies
 
 Depends on TRIVIAL-GARBAGE, CL-MARKDOWN, PARENSCRIPT and ALEXANDRIA,
 which are Quicklisp-installable.
