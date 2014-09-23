@@ -28,7 +28,7 @@
          lambda-list)
         (t (splice-allow-other-keys lambda-list))))
 
-(defun lambda-list-keywords (lambda-list)
+(defun extract-lambda-list-keywords (lambda-list)
   "Get the actual keywords from the lambda list."
   (mapcar #'caar (nth-value 3 (parse-ordinary-lambda-list lambda-list))))
 
@@ -55,5 +55,5 @@
          (destructuring-bind ,(allow-other-keys ll)
              ,attrs-var
            ;; Remove the keywords from the attributes.
-           (let ((,attrs-var (remove-from-plist ,attrs-var ,@(lambda-list-keywords ll))))
+           (let ((,attrs-var (remove-from-plist ,attrs-var ,@(extract-lambda-list-keywords ll))))
              (list 'with-html ,@tag)))))))
