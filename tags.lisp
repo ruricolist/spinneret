@@ -79,7 +79,7 @@
     figcaption figure footer form head h1 h2 h3 h4 h5 h6 header
     hgroup hr html i iframe img input ins kbd keygen label legend li
     link main map mark menu meta meter nav noscript object ol
-    optgroup option output p param pre progress q rp rt ruby s samp
+    optgroup option output p param picture pre progress q rp rt ruby s samp
     script section select small source span strong style sub summary
     sup table tbody td textarea tfoot th thead time title tr
     track u ul var video wbr))
@@ -164,7 +164,8 @@
      novalidate target autocomplete)
     (html manifest)
     (iframe src srcdoc name width height sandbox seamless)
-    (img src alt height width usemap ismap border)
+    (img src alt height width usemap ismap border crossorigin
+     srcset sizes)
     (input name disabled form type maxlength readonly size value
      autocomplete autofocus list pattern required placeholder
      dirname checked multiple src height width
@@ -190,7 +191,7 @@
     (q cite)
     (script type language src defer async charset language)
     (select name disabled form size multiple autofocus required)
-    (source src type media)
+    (source src srcset sizes type media)
     (style type media scoped)
     (table border)
     (td colspan rowspan
