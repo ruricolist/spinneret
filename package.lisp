@@ -7,5 +7,6 @@
            #:*html-lang* #:*html-charset*
            #:*html-path*
            #:deftemplate #:do-elements
-           #:deftag)
+           #:deftag
+           #:*unvalidated-attribute-prefixes*)
   (:shadowing-import-from :alexandria :switch))

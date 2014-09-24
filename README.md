@@ -256,6 +256,13 @@ Parenscript.
 SPINNERET does not do document validation, but it does warn, at
 compile time, about invalid tags and attributes.
 
+Although HTML5 does include a mechanism for application-specific
+attributes (the `data-` prefix), some client-side frameworks choose to
+employ their own prefixes instead. You can disable validation for a
+given prefix by adding it to `*unvalidated-attribute-prefixes*`.
+
+    (pushnew "ng-" *unvalidated-attribute-prefixes* :test #’equal)
+
 ## Dependencies
 
 Depends on TRIVIAL-GARBAGE, CL-MARKDOWN, PARENSCRIPT and ALEXANDRIA,
