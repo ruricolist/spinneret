@@ -86,20 +86,13 @@
       (t `(ch *html* (set-attribute ,attr ,sval))))))
 
 (defun event? (attr)
-  (begins (string attr) "on"))
+  (starts-with-subseq "on" (string attr)))
 
 (defun data-attr? (attr)
-  (begins (string attr) "data-"))
+  (starts-with-subseq "data-" (string attr)))
 
 (defun data-attr-prop (attr)
   (subseq (string-downcase attr) 5))
-
-(defun begins (seq pat &optional (start 0))
-  (let ((mm (mismatch seq pat :start1 start
-                              :test #'char-equal)))
-    (if mm
-        (= mm (length pat))
-        t)))
 
 (defpsmacro comment (text safe?)
   (declare (ignore safe?))
