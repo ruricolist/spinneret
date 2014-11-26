@@ -12,7 +12,6 @@
                #:optima
                #:cl-ppcre)
   :components ((:file "package")
-               (:file "memo")
                (:file "syntax")
                (:file "tags")
                (:file "spinneret")
