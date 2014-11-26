@@ -92,16 +92,14 @@
 
 (defparameter *cdata-end* "]]>")
 
-(memoize-weakly
- (defun escape-cdata (text)
-   (remove-substring text *cdata-end*)))
+(defun escape-cdata (text)
+  (remove-substring text *cdata-end*))
 
 ;; See 8.1.6
 ;; http://www.w3.org/TR/html5/syntax.html#comments
 
-(memoize-weakly
- (defun escape-comment (text)
-   (remove-substring (string-trim ">-" text) "--")))
+(defun escape-comment (text)
+  (remove-substring (string-trim ">-" text) "--"))
 
 (defun remove-substring (string substring)
   (declare (string string substring))

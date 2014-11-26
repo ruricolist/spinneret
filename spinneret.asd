@@ -6,8 +6,7 @@
   :author "Paul M. Rodriguez <pmr@ruricolist.com>"
   :license "MIT"
   :serial t
-  :depends-on (#:trivial-garbage
-               #:cl-markdown
+  :depends-on (#:cl-markdown
                #:parenscript
                #:alexandria
                #:optima
