@@ -77,12 +77,13 @@ are all the following key-value pairs, and the body is what remains."
                 (return
                   (values
                    tag
-                   (nconc
+                   (append
                     (when classes
-                      `(:class
-                        ,(if (every #'stringp classes)
-                             (apply #'class-union (nreverse classes))
-                             `(class-union ,@(nreverse classes)))))
+                      (let ((classes (reverse classes)))
+                        `(:class
+                          ,(if (every (disjoin #'stringp #'null) classes)
+                               (apply #'class-union classes)
+                               `(class-union ,@classes)))))
                     attrs)
                    body)))))))
 
