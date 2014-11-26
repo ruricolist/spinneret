@@ -102,13 +102,9 @@
   (remove-substring (string-trim ">-" text) "--"))
 
 (defun remove-substring (string substring)
-  (declare (string string substring))
   (with-output-to-string (s)
     (let ((len (length substring)))
-      (labels ((rec (string start)
-                 (let ((end (search substring string :start2 start)))
-                   (write-string string s :start start :end end)
-                   (when end
-                     (rec string (+ end len))
-                     string))))
-        (rec string 0)))))
+      (loop for start = 0 then (+ end len)
+            for end = (search substring string :start2 start)
+            do (write-string string s :start start :end end)
+            while end))))
