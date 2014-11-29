@@ -130,6 +130,12 @@
 (defparameter *global-attributes*
   (append *core-attributes* *event-handler-attributes*))
 
+(defparameter *space-separated-attributes*
+  '(:accesskey :class :for :headers :rel :sandbox :sizes))
+
+(defun tokenized-attribute? (attr)
+  (find attr *space-separated-attributes*))
+
 (defparameter *permitted-attributes*
   '((:a :href :target :rel :hreflang :media :type :download :ping)
     (:area :alt :href :target :rel :media :hreflang :type :shape :coords)
