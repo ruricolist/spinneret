@@ -10,15 +10,14 @@
                    ((eql (car form) 'with-tag) form)
                    ((keywordp (car form))
                     (let ((form (pseudotag-expand (car form) (cdr form))))
-                      (if (keywordp (car form))
+                      (if (not (keywordp (car form))) form
                           (multiple-value-bind (name attrs body)
                               (tag-parts form)
                             (if (valid? name)
                                 `(with-tag (,name ,@attrs)
                                    ,@(mapcar #'rec body))
                                 (cons (car form)
-                                      (mapcar #'rec (cdr form)))))
-                          form)))
+                                      (mapcar #'rec (cdr form))))))))
                    ((stringp (car form))
                     (destructuring-bind (control-string . args)
                         form
@@ -42,61 +41,62 @@
   (declare (cons list))
   (not (null (cdr (last list)))))
 
+(defun dissect-tag (tag)
+  "Dissect a tag like `:div.class#id' into the tag itself and a plist
+of attributes."
+  (destructuring-bind (tag . parts)
+      (ppcre:split "([.#])" (string-downcase tag) :with-registers-p t)
+    (values (make-keyword (string-upcase tag))
+            (sublis '(("." . :class)
+                      ("#" . :id))
+                    parts
+                    :test #'equal))))
+
+(defun tag-body-parts (form)
+  "Pull the attributes off the front of BODY and return the attributes
+and the body."
+  (let ((body (loop for rest on form by #'cddr
+                    unless (keywordp (car rest))
+                      return rest)))
+    (values (ldiff form body) body)))
+
+(defun simplify-tokenized-attributes (attrs)
+  "Return an alist of the tokenized attributes (like :class) and a
+plist of the regular attributes."
+  (let ((tokenized ()))
+    (loop for (k v . nil) on attrs by #'cddr
+          if (tokenized-attribute? k)
+            do (push v (assoc-value tokenized k))
+          else append (list k v) into regular
+          finally (return
+                    (append (tokenized-attributes-plist tokenized)
+                            regular)))))
+
+(defun tokenized-attributes-plist (alist)
+  "When possible, join tokenized attributes at compile time."
+  (loop for (tag . tokens) in alist
+        append (let ((tokens (reverse tokens)))
+                 `(,tag
+                   ,(if (every (disjoin #'stringp #'null) tokens)
+                        (apply #'join-tokens tokens)
+                        `(join-tokens ,@tokens))))))
+
+(defun join-tokens (&rest tokens)
+  (when-let (tokens (remove-duplicates (remove nil tokens) :test #'equal))
+    (with-output-to-string (s)
+      (loop for (token . rest) on tokens do
+        (write-string token s)
+        (when rest (write-char #\Space s))))))
+
 (defun tag-parts (form)
   "Divide a form into an element, attributes, and a body. Provided
 the form qualifies as a tag, the element is the car, the attributes
 are all the following key-value pairs, and the body is what remains."
   (when (keywordp (car form))
-    (let ((tag (car form))
-          (body (cdr form))
-          attrs classes)
-      ;; Expand inline classes and ids.
-      (let ((parts (ppcre:split "([.#])" (string-downcase tag) :with-registers-p t)))
-        (setf tag (make-keyword (string-upcase (first parts))))
-        (labels ((rec (parts)
-                   (optima:match parts
-                     ((list))
-                     ((list* "." class rest)
-                      (setf body (list* :class class body))
-                      (rec rest))
-                     ((list* "#" id rest)
-                      (setf body (list* :id id body))
-                      (rec rest)))))
-          (rec (rest parts))))
-      (loop (if (keywordp (car body))
-                (if (eql (car body) :class)
-                    (progn
-                      (push (nth 1 body) classes)
-                      (setf body (cddr body)))
-                    (setf attrs (nconc attrs
-                                       ;; Rather than subseq, in case of
-                                       ;; an empty attribute.
-                                       (list (nth 0 body)
-                                             (nth 1 body)))
-                          body (cddr body)))
-                (return
-                  (values
-                   tag
-                   (append
-                    (when classes
-                      (let ((classes (reverse classes)))
-                        `(:class
-                          ,(if (every (disjoin #'stringp #'null) classes)
-                               (apply #'class-union classes)
-                               `(class-union ,@classes)))))
-                    attrs)
-                   body)))))))
-
-(defun class-union (&rest classes)
-  (let ((classes (remove-duplicates (remove nil classes)
-                                    :test #'equal)))
-    (when classes
-      (with-output-to-string (s)
-        (write-string (car classes) s)
-        (when (cdr classes)
-          (dolist (c (cdr classes))
-            (write-char #\Space s)
-            (write-string c s)))))))
+    (destructuring-bind (tag-name . body) form
+      (multiple-value-bind (tag tag-attrs) (dissect-tag tag-name)
+        (multiple-value-bind (attrs body) (tag-body-parts (append tag-attrs body))
+          (values tag (simplify-tokenized-attributes attrs) body))))))
 
 (defmacro with-tag ((name &rest attributes) &body body)
   (let ((empty? (not body))
