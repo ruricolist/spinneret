@@ -118,7 +118,7 @@
          "Parenscript doesn't have FORMAT."
          control-string)))))
 
-(defpsmacro class-union (&rest classes)
+(defpsmacro join-tokens (&rest classes)
   `(stringify
     ,(ps::concat-constant-strings
       (intersperse " "
