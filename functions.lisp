@@ -16,22 +16,22 @@
           (find-symbol tag *tags-pkg*)))))
 
 (defmacro define-tag (tag)
-  (let* ((name
+  (let* ((fn-name
            (tag-fn tag :intern t))
          (newline-before-start
-           (not (inline? name)))
+           (not (inline? tag)))
          (newline-after-start
-           (not (or (inline? name) (paragraph? name))))
+           (not (or (inline? tag) (paragraph? tag))))
          (newline-before-close
            newline-after-start)
-         (open (format nil "<~(~A~)" name))
-         (needs-close (not (or (void? name) (unmatched? name))))
+         (open (format nil "<~(~A~)" tag))
+         (needs-close (not (or (void? tag) (unmatched? tag))))
          (close
            (when needs-close
-             (format nil "</~(~A~)>" name))))
+             (format nil "</~(~A~)>" tag))))
     `(progn
-       (declaim (notinline ,name))
-       (defun ,name (attrs body pre? empty?)
+       (declaim (notinline ,fn-name))
+       (defun ,fn-name (attrs body pre? empty?)
          (declare (optimize
                    (speed 3) (safety 0) (debug 0)
                    (compilation-speed 0))
