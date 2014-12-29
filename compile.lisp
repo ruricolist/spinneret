@@ -77,7 +77,7 @@ plist of the regular attributes."
   (loop for (tag . tokens) in alist
         append (let ((tokens (reverse tokens)))
                  `(,tag
-                   ,(if (every (disjoin #'stringp #'null) tokens)
+                   ,(if (every (disjoin #'stringp #'null #'keywordp) tokens)
                         (apply #'join-tokens tokens)
                         `(join-tokens ,@tokens))))))
 
@@ -85,7 +85,7 @@ plist of the regular attributes."
   (when-let (tokens (remove-duplicates (remove nil tokens) :test #'equal))
     (with-output-to-string (s)
       (loop for (token . rest) on tokens do
-        (write-string token s)
+        (princ token s)
         (when rest (write-char #\Space s))))))
 
 (defun tag-parts (form)
