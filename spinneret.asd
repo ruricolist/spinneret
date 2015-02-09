@@ -9,7 +9,6 @@
   :depends-on (#:cl-markdown
                #:parenscript
                #:alexandria
-               #:optima
                #:cl-ppcre)
   :components ((:file "package")
                (:file "syntax")
