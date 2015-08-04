@@ -137,12 +137,25 @@ The rules for WITH-HTML are these:
   methods. By default only literal arguments are printed. Literal
   arguments are strings, characters, numbers and symbols beside NIL.
 
-- A string in function position is first compiled as Markdown (using
-  CL-MARKDOWN), then passed to FORMAT as a control string and applied
-  to its arguments.
-
 WITH-HTML-STRING is like WITH-HTML, but intercepts the generated HTML
 at run time and returns a string.
+
+## Markdown
+
+If the additional system `spinneret/cl-markdown` is loaded, then a
+string in function position is first compiled as Markdown (using
+CL-MARKDOWN), then passed to `format` as a control string and applied
+to its arguments.
+
+This is useful for inline formatting, like links, where sexps would be
+clumsy:
+
+    (with-html
+     ("Here is some copy, with [a link](~a)" link))
+
+    (with-html
+      (:span "Here is some copy, with "
+        (:a :href link "a link.")))
 
 ## `*html-path*`
 
@@ -245,11 +258,14 @@ abstractions, `deftemplate`, but `deftag` is simpler and more useful.)
 ## Parenscript
 
 The semantics of SPINNERET in Parenscript are almost the same. There
-is no `with-html-string`, and `with-html` returns a `DocumentFragment`.
-Strings in function position are still parsed as Markdown, but
-supplying arguments triggers an error (since Parenscript does not have
-`format`). Templates and `*html-path*` are not implemented for
-Parenscript.
+is no `with-html-string`, and `with-html` returns a
+`DocumentFragment`.
+
+If Markdown support is enabled, strings in function position are still
+parsed as Markdown, but supplying arguments triggers an error (since
+Parenscript does not have `format`).
+
+Templates and `*html-path*` are not implemented for Parenscript.
 
 ## Validation
 
@@ -262,8 +278,3 @@ employ their own prefixes instead. You can disable validation for a
 given prefix by adding it to `*unvalidated-attribute-prefixes*`.
 
     (pushnew "ng-" *unvalidated-attribute-prefixes* :test #’equal)
-
-## Dependencies
-
-Depends on TRIVIAL-GARBAGE, CL-MARKDOWN, PARENSCRIPT and ALEXANDRIA,
-which are Quicklisp-installable.
