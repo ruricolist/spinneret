@@ -136,21 +136,11 @@ are all the following key-value pairs, and the body is what remains."
                      attr tag))
     attrs))
 
+(declaim (notinline parse-as-markdown))
 (defun parse-as-markdown (string)
-  "Expand STRING as markdown only if it contains markdown."
-  (declare (string string))
-  (let ((expansion
-          (with-output-to-string (s)
-            (let (markdown:*parse-active-functions*
-                  markdown:*render-active-functions*)
-              (markdown:markdown string
-                                 :stream s
-                                 :format :html)))))
-    (if (search string expansion)
-        string
-        (if (find #\Newline string)
-            expansion
-            (trim-ends "<p>" expansion "</p>")))))
+  "Placeholder, load spinneret.cl-markdown system if you want to expand
+  markdown."
+  string)
 
 (defun trim-ends (prefix string suffix)
   (declare (string prefix string suffix))

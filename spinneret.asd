@@ -7,8 +7,7 @@
   :license "MIT"
   :in-order-to ((asdf:test-op (asdf:test-op #:spinneret-tests)))
   :serial t
-  :depends-on (#:cl-markdown
-               #:parenscript
+  :depends-on (#:parenscript
                #:alexandria
                #:cl-ppcre)
   :components ((:file "package")
