@@ -173,7 +173,7 @@
     (:ins :cite :datetime)
     (:keygen :challenge :keytype :autofocus :name :disabled :form)
     (:label :for :form)
-    (:link :href :rel :hreflang :media :type :sizes :integrity)
+    (:link :href :rel :hreflang :media :type :sizes :integrity :crossorigin)
     (:map :name)
     (:menu :type :label)
     (:meta :name :content :http-equiv :charset)
