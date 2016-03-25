@@ -162,7 +162,7 @@
     (:html :manifest)
     (:iframe :src :srcdoc :name :width :height :sandbox :seamless)
     (:img :src :alt :height :width :usemap :ismap :border :crossorigin
-     :srcset :sizes)
+     :srcset :sizes :crossorigin)
     (:input :name :disabled :form :type :maxlength :readonly :size :value
      :autocomplete :autofocus :list :pattern :required :placeholder
      :dirname :checked :multiple :src :height :width
@@ -186,7 +186,8 @@
     (:param :name :value)
     (:progress :value :max)
     (:q :cite)
-    (:script :type :language :src :defer :async :charset :language :integrity)
+    (:script :type :language :src :defer :async :charset :language :integrity
+     :crossorigin)
     (:select :name :disabled :form :size :multiple :autofocus :required)
     (:source :src :srcset :sizes :type :media)
     (:style :type :media :scoped)
@@ -199,7 +200,7 @@
     (:time :datetime)
     (:track :kind :src :srclang :label :default)
     (:video :autoplay :preload :controls :loop :poster :height :width
-     :mediagroup :muted :src))
+     :mediagroup :muted :src :crossorigin))
   "Alist of (tag . attributes). These are the element-specific
 attributes, beyond the global attributes.")
 
