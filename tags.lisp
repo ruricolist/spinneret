@@ -168,7 +168,7 @@
      :dirname :checked :multiple :src :height :width
      :inputmode
      :min :max :step :dirname
-     :autofocus :formaction :formenctype :formmethod :formtarget
+     :formaction :formenctype :formmethod :formtarget
      :formnovalidate)
     (:ins :cite :datetime)
     (:keygen :challenge :keytype :autofocus :name :disabled :form)
