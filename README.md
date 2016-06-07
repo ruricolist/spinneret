@@ -265,7 +265,7 @@ If Markdown support is enabled, strings in function position are still
 parsed as Markdown, but supplying arguments triggers an error (since
 Parenscript does not have `format`).
 
-Templates and `*html-path*` are not implemented for Parenscript.
+`*html-path*` is not implemented for Parenscript.
 
 ## Validation
 
