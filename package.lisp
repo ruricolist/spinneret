@@ -6,7 +6,7 @@
            #:*html* #:*html-fill-column* #:*html-min-room*
            #:*html-lang* #:*html-charset*
            #:*html-path*
-           #:deftemplate #:do-elements
+           #:do-elements
            #:deftag
            #:*unvalidated-attribute-prefixes*)
   (:shadowing-import-from :alexandria :switch))
