@@ -88,6 +88,12 @@ plist of the regular attributes."
         (princ token s)
         (when rest (write-char #\Space s))))))
 
+(define-compiler-macro join-tokens (&whole call &rest tokens)
+  (cond ((null tokens) "")
+        ((null (rest tokens))
+         `(princ-to-string ,(car tokens)))
+        (t call)))
+
 (defun tag-parts (form)
   "Divide a form into an element, attributes, and a body. Provided
 the form qualifies as a tag, the element is the car, the attributes
