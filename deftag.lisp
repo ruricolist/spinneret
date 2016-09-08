@@ -44,6 +44,8 @@
                     (mapcar #'car aux)))))
 
 (defmacro deftag (name (body attrs-var &rest ll) &body tag)
+  (when (eql attrs-var '&key)
+    (error "Missing attributes variable."))
   (multiple-value-bind (tag decls docstring)
       (parse-body tag :documentation t)
     (with-gensyms (tmp-body)
