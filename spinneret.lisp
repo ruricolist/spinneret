@@ -6,7 +6,7 @@
 
 (declaim (stream *html*))
 
-(defparameter *html* *standard-output*
+(defparameter *html* (make-synonym-stream '*standard-output*)
   "Output stream for HTML generation.")
 
 (defvar *html-path* nil
