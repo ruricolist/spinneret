@@ -1,7 +1,7 @@
 (in-package #:spinneret)
 
 (defpackage #:spinneret.tag
-  #+ccl (:use))
+ (:use))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defparameter *tags-pkg* (find-package :spinneret.tag))
