@@ -1,7 +1,8 @@
 (in-package #:spinneret)
 
 (defpackage #:spinneret.tag
-  #+ccl (:use))
+  ;; This package should not import any symbols.
+  (:use))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defparameter *tags-pkg* (find-package :spinneret.tag))
