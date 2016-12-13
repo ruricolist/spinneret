@@ -117,8 +117,8 @@ The rules for WITH-HTML are these:
 
   Duplicate attributes are handled like duplicate keyword arguments:
   all values are evaluated, but only the leftmost value is used. The
-  exception is the class attribute: the class of a tag is the union of
-  all its :CLASS arguments.
+  exception is the handling of tokenized attributes, such as :CLASS or
+  :REL. The class of a tag is the union of all its :CLASS arguments.
 
   The argument :DATASET introduces a list of :DATA-FOO arguments:
 
