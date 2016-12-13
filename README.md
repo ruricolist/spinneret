@@ -157,17 +157,17 @@ clumsy:
       (:span "Here is some copy, with "
         (:a :href link "a link.")))
 
-## `*html-path*`
+## `get-html-path`
 
 
 Sometimes it is useful for a piece of HTML-generating code to know
 where in the document it appears. You might, for example, want to
 define a `tabulate` that prints list-of-lists as rows of cells, but
 only prints the surrounding `<table></table>` if it is not already
-within a table. The symbol `*HTML-PATH*` holds a list of open tags, from
+within a table. The function `get-html-path` returns a list of open tags, from
 latest to earliest. Usually it will look something like
 
-      *html-path* ;-> '(:table :section :body :html)
+      (get-html-path) ;-> '(:table :section :body :html)
 
 Thus `tabulate' could be written
 
@@ -177,9 +177,12 @@ Thus `tabulate' could be written
                   (loop for row in rows do
                     (:tr (loop for cell in row do
                       (:td cell))))))
-           (if (find :table *html-path*)
+           (if (find :table (get-html-path))
                (tabulate)
                (:table (:tbody (tabulate)))))))
+
+Note that `get-html-path` returns a freshly-consed list each time it
+is called.
 
 ## `deftag`
 
@@ -265,7 +268,7 @@ If Markdown support is enabled, strings in function position are still
 parsed as Markdown, but supplying arguments triggers an error (since
 Parenscript does not have `format`).
 
-`*html-path*` is not implemented for Parenscript.
+`get-html-path` is not implemented for Parenscript.
 
 ## Validation
 

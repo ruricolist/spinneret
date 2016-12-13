@@ -5,7 +5,7 @@
   (:export #:with-html #:with-html-string #:html
            #:*html* #:*html-fill-column* #:*html-min-room*
            #:*html-lang* #:*html-charset*
-           #:*html-path*
+           #:get-html-path
            #:do-elements
            #:deftag
            #:*unvalidated-attribute-prefixes*)

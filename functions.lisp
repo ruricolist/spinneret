@@ -42,7 +42,8 @@
                (*pre* pre?)
                (*depth* (1+ *depth*))
                (*html-path* (cons ,(make-keyword tag) *html-path*)))
-           (declare (ignorable pretty))
+           (declare (ignorable pretty)
+                    (dynamic-extent *html-path*))
            ,@(when newline-before-start
                (unsplice
                 `(when pretty
@@ -58,7 +59,7 @@
                   `(when pretty
                      (terpri html))))
              (without-trailing-space
-               (funcall body))
+                 (funcall body))
              ,@(when newline-before-close
                  (unsplice
                   `(when pretty
