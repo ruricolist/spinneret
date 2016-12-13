@@ -112,8 +112,8 @@ The rules for WITH-HTML are these:
 
 - Keyword-value pairs following a tag are interpreted as attributes.
   HTML syntax may not be used in attribute values. Attributes with nil
-  values are omitted. Boolean attributes with non-nil values are
-  minimized.
+  values are omitted from the output. Boolean attributes with non-nil
+  values are minimized.
 
   Duplicate attributes are handled like duplicate keyword arguments:
   all values are evaluated, but only the leftmost value is used. The
