@@ -176,7 +176,7 @@
     (:link :href :rel :hreflang :media :type :sizes :integrity :crossorigin)
     (:map :name)
     (:menu :type :label)
-    (:meta :name :content :http-equiv :charset)
+    (:meta :name :content :http-equiv :charset :property)
     (:meter :value :min :low :high :max :optimum)
     (:object :data :type :height :width :usemap :name :form)
     (:ol :start :reversed :type)
