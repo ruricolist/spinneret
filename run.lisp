@@ -38,6 +38,8 @@
 
 (defvar *pending-space* nil)
 
+(declaim (inline buffer-space flush-space))
+
 (defun buffer-space ()
   (setf *pending-space* t))
 
@@ -45,8 +47,6 @@
   (when *pending-space*
     (setf *pending-space* nil)
     (write-char #\Space *html*)))
-
-(declaim (inline buffer-space flush-space))
 
 (defmacro catch-output (arg)
   (typecase arg
@@ -99,6 +99,15 @@
 
 (declaim (inline pop-word))
 
+(defun pop-word (stream-in stream-out)
+  (declare (optimize speed)
+           (stream stream-in stream-out))
+  (loop initially (peek-char t stream-in nil)
+        for c = (read-char stream-in nil)
+        while (and c (not (whitespace c)))
+        do (write-char c stream-out)
+        finally (return (get-output-stream-string stream-out))))
+
 (defun fill-text (string &optional safe?)
   (check-type string string)
   (if (and *print-pretty* (not *pre*))
@@ -117,15 +126,6 @@
                 (write-string string *html*)
                 (escape-to-stream string #'escape-string-char *html*)))))
   (values))
-
-(defun pop-word (stream-in stream-out)
-  (declare (optimize speed)
-           (stream stream-in stream-out))
-  (loop initially (peek-char t stream-in nil)
-        for c = (read-char stream-in nil)
-        while (and c (not (whitespace c)))
-        do (write-char c stream-out)
-        finally (return (get-output-stream-string stream-out))))
 
 (defun format-attributes (attrs &optional (stream *html*))
   (declare (stream stream))

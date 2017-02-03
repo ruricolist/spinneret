@@ -17,16 +17,16 @@
 ;; See 8.1.2.3.
 ;; http://www.w3.org/TR/html5/syntax.html#syntax-attribute-value
 
-(defun needs-quotes? (string)
-  (declare (string string))
-  (or (some #'must-quote? string)
-      (ends-with #\/ string)))
-
 (defun must-quote? (char)
   (declare (character char))
   (or (whitespace char)
       (case char
         ((#\" #\' #\` #\= #\< #\>) t))))
+
+(defun needs-quotes? (string)
+  (declare (string string))
+  (or (some #'must-quote? string)
+      (ends-with #\/ string)))
 
 ;; See 8.3.
 ;; http://www.w3.org/TR/html5/the-end.html#serializing-html-fragments
