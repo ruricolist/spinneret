@@ -110,21 +110,21 @@
 
 (defun fill-text (string &optional safe?)
   (check-type string string)
-  (if (and *print-pretty* (not *pre*))
-      (progn
-        (format *html* "~V,0T" *depth*)
-        (do-words (word string)
-          (with-space
-            (format *html* "~<~%~V,0T~1,V:;~A~>"
-                    *depth*
-                    *print-right-margin*
-                    (if safe? word (escape-string word))))))
-      (if *pre*
-          (format *html* "~&~A~%" string)
-          (with-space
-            (if safe?
-                (write-string string *html*)
-                (escape-to-stream string #'escape-string-char *html*)))))
+  (cond (*pre*
+         (format *html* "~&~A~%" string))
+        (*print-pretty*
+         (format *html* "~V,0T" *depth*)
+         (do-words (word string)
+           (with-space
+             (format *html* "~<~%~V,0T~1,V:;~A~>"
+                     *depth*
+                     *print-right-margin*
+                     (if safe? word (escape-string word))))))
+        (t
+         (with-space
+           (if safe?
+               (write-string string *html*)
+               (escape-to-stream string #'escape-string-char *html*)))))
   (values))
 
 (defun format-attributes (attrs &optional (stream *html*))
