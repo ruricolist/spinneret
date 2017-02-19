@@ -139,7 +139,7 @@
                  (push name seen)))
              (format-attr (attr value)
                (declare (optimize speed))
-               (unless (or (seen? attr) (null value))
+               (unless (or (null value) (seen? attr))
                  (if (boolean? attr)
                      (format stream "~( ~A~)~:_" attr)
                      (format stream "~( ~A~)~:_=~:_~A~:_"
