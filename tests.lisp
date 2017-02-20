@@ -104,6 +104,30 @@
                  (:footer ("Last login: ~A" last-login)))))))
     (is (equalp generated-string expected-string))))
 
+(test indent-problem
+  (let ((*print-pretty* t))
+    (is (equal
+         (with-html-string
+           (:ul (:li (:a "hai"))))
+         (format nil "~
+<ul>
+ <li><a>hai</a>
+</ul>")))
+
+    (is (equal
+         (with-html-string
+           (:html (:head)
+             (:body (:a "hai"))))
+         (format nil "~
+<html lang=en>
+ <head>
+  <meta charset=UTF-8>
+ </head>
+ <body>
+  <a>hai</a>
+ </body>
+</html>")))))
+
 ;; Local Variables:
 ;; whitespace-style: nil
 ;; End:
