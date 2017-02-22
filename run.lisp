@@ -9,6 +9,20 @@
 
 (defvar *pre* nil)
 
+(defun fast-format (stream control-string &rest args)
+  "Like `format', but bind `*print-pretty*' to nil."
+  (declare (dynamic-extent args))
+  (let ((*print-pretty* nil))
+    (format stream "~?" control-string args)))
+
+(define-compiler-macro fast-format (&whole call stream control-string &rest args)
+  (if (stringp control-string)
+      (if (equalp control-string "~a")
+          (destructuring-bind (arg) args
+            `(princ ,arg ,stream))
+          `(fast-format ,stream (formatter ,control-string) ,@args))
+      call))
+
 (defun indent (&optional (stream *html*))
   (format stream "~V,0T" *depth*))
 
@@ -82,10 +96,10 @@
     (write-char char *html*)))
 
 (defmethod html ((n number))
-  (format *html* "~d" n))
+  (fast-format *html* "~d" n))
 
 (defmethod html ((sym symbol))
-  (format *html* "~a" sym))
+  (fast-format *html* "~a" sym))
 
 (defun mklist (x) (if (listp x) x (list x)))
 
@@ -111,7 +125,7 @@
 (defun fill-text (string &optional safe?)
   (check-type string string)
   (cond (*pre*
-         (format *html* "~&~A~%" string))
+         (fast-format *html* "~&~A~%" string))
         (*print-pretty*
          (let ((html *html*)
                (depth *depth*)
