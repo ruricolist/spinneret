@@ -115,13 +115,16 @@
   (cond (*pre*
          (format *html* "~&~A~%" string))
         (*print-pretty*
-         (format *html* "~V,0T" *depth*)
-         (do-words (word string)
-           (with-space
-             (format *html* "~<~%~V,0T~1,V:;~A~>"
-                     *depth*
-                     *print-right-margin*
-                     (if safe? word (escape-string word))))))
+         (let ((html *html*)
+               (depth *depth*)
+               (margin *print-right-margin*))
+           (format html "~V,0T" depth)
+           (do-words (word string)
+             (with-space
+               (format html "~<~%~V,0T~1,V:;~A~>"
+                       depth
+                       margin
+                       (if safe? word (escape-string word)))))))
         (t
          (with-space
            (if safe?
