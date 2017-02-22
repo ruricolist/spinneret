@@ -9,4 +9,5 @@
            #:do-elements
            #:deftag
            #:*unvalidated-attribute-prefixes*)
-  (:shadowing-import-from :alexandria :switch))
+  (:shadowing-import-from :alexandria :switch)
+  (:import-from :global-vars :define-global-parameter))

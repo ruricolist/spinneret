@@ -10,7 +10,8 @@
   :serial t
   :depends-on (#:parenscript
                #:alexandria
-               #:cl-ppcre)
+               #:cl-ppcre
+               #:global-vars)
   :components ((:file "package")
                (:file "syntax")
                (:file "tags")

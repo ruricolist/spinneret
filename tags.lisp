@@ -1,19 +1,19 @@
 (in-package #:spinneret)
 
-(defparameter *void-elements*
+(define-global-parameter *void-elements*
   '(:!doctype :area :base :br :col :command :embed :hr :img
     :input :keygen :link :meta :param :source :track :wbr))
 
 (defun void? (element)
   (find element *void-elements*))
 
-(defparameter *literal-elements*
+(define-global-parameter *literal-elements*
   '(:pre :script :style))
 
 (defun literal? (element)
   (find element *literal-elements*))
 
-(defparameter *inline-elements*
+(define-global-parameter *inline-elements*
   '(:a :abbr :address :bdo :small :code :samp :kbd
     :cite :strong :dfn :br :em :q :data :time :var
     :sub :sup :i :b :s :u :mark :ruby :rt :rp :bdi :span :wbr
@@ -22,14 +22,14 @@
 (defun inline? (element)
   (find element *inline-elements*))
 
-(defparameter *paragraph-elements*
+(define-global-parameter *paragraph-elements*
   '(:meta :title :button :label :li :h1 :h2 :h3 :h4 :h5 :h6 :p :legend :option
     :dt :dd :figcaption :iframe :colgroup :td :th :output :summary :command))
 
 (defun paragraph? (element)
   (find element *paragraph-elements*))
 
-(defparameter *end-tag-optional*
+(define-global-parameter *end-tag-optional*
   ;; html head body
   '(:li :dt :dd :p :rt :rp :optgroup
     :option :colgroup :thead :tbody :tfoot :tr :td :th
@@ -38,13 +38,13 @@
 (defun unmatched? (element)
   (find element *end-tag-optional*))
 
-(defparameter *preformatted*
+(define-global-parameter *preformatted*
   '(:pre :textarea :script :style))
 
 (defun preformatted? (element)
   (find element *preformatted*))
 
-(defparameter *pseudotags*
+(define-global-parameter *pseudotags*
   '((:doctype . make-doctype)
     (:!doctype . make-doctype)
     (:cdata . make-cdata)
@@ -63,7 +63,7 @@
         (apply expander args)
         (cons element args))))
 
-(defparameter *html5-elements*
+(define-global-parameter *html5-elements*
   '(:a :abbr :address :area :article :aside :audio :b :base :bdi :bdo :blockquote
     :body :br :button :canvas :caption :cite :code :col :colgroup :command :data
     :datalist :dd :del :details :dfn :div :dl :dt :em :embed :fieldset
@@ -81,13 +81,13 @@
 (defun invalid? (element)
   (not (valid? element)))
 
-(defparameter *embedded-content*
+(define-global-parameter *embedded-content*
   '(:math :svg))
 
 (defun embedded? (element)
   (find element *embedded-content*))
 
-(defparameter *boolean-attributes*
+(define-global-parameter *boolean-attributes*
   '(:async :autofocus :autoplay :checked :controls
     :default :defer :disabled :download :formnovalidate :hidden
     :ismap :itemscope :loop :multiple :muted :novalidate
@@ -97,11 +97,11 @@
 (defun boolean? (attr)
   (find attr *boolean-attributes*))
 
-(defparameter *core-attributes*
+(define-global-parameter *core-attributes*
   '(:accesskey :class :contenteditable :contextmenu :dir :draggable
     :dropzone :hidden :id :lang :spellcheck :style :tabindex :title))
 
-(defparameter *unvalidated-attribute-prefixes*
+(define-global-parameter *unvalidated-attribute-prefixes*
   '("data-" "aria-")
   "A list of prefixes for attributes that should not be validated.")
 
@@ -112,10 +112,10 @@
                                     :test #'char-equal)))
 
 ;; http://www.w3.org/TR/wai-aria/states_and_properties
-(defparameter *aria-attributes*
+(define-global-parameter *aria-attributes*
   '(:role))
 
-(defparameter *event-handler-attributes*
+(define-global-parameter *event-handler-attributes*
   '(:onabort :onblur :oncanplay :oncanplaythrough :onchange :onclick
     :oncontextmenu :ondblclick :ondrag :ondragend :ondragenter
     :ondragleave :ondragover :ondragstart :ondrop :ondurationchange
@@ -127,16 +127,16 @@
     :onseeking :onselect :onshow :onstalled :onsubmit :onsuspend
     :ontimeupdate :onvolumechange :onwaiting))
 
-(defparameter *global-attributes*
+(define-global-parameter *global-attributes*
   (append *core-attributes* *event-handler-attributes*))
 
-(defparameter *space-separated-attributes*
+(define-global-parameter *space-separated-attributes*
   '(:accesskey :class :for :headers :rel :sandbox :sizes))
 
 (defun tokenized-attribute? (attr)
   (find attr *space-separated-attributes*))
 
-(defparameter *permitted-attributes*
+(define-global-parameter *permitted-attributes*
   '((:a :href :target :rel :hreflang :media :type :download :ping)
     (:area :alt :href :target :rel :media :hreflang :type :shape :coords)
     (:audio :autoplay :preload :controls :loop :mediagroup :muted :src)
