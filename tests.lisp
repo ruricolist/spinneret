@@ -73,14 +73,14 @@
 <html lang=en>
  <head>
   <meta charset=UTF-8>
-  <title>Home page</title> 
+  <title>Home page</title>
  </head>
  <body>
   <header>
    <h1>Home page</h1>
   </header>
   <section>
-   John Q. Lisper, here is <em>your</em> shopping list: 
+   John Q. Lisper, here is <em>your</em> shopping list:
    <ol>
     <li>10 Atmospheric ponds
     <li>6 Electric gumption socks
@@ -88,12 +88,12 @@
     <li>9 Savage gymnatic aggressors
     <li>6 Pharmaceutical pianos
     <li>9 Intravenous retribution champions
-   </ol> 
-  </section> 
+   </ol>
+  </section>
   <footer>
-   Last login: 12th Never 
-  </footer> 
- </body> 
+   Last login: 12th Never
+  </footer>
+ </body>
 </html>"))
          (amounts '(10 6 4 9 6 9))
          (*print-pretty* t)
@@ -138,6 +138,11 @@
  </body>
 </html>")))))
 
-;; Local Variables:
-;; whitespace-style: nil
-;; End:
+(test space-problem
+  (is
+   (equal
+    "<div>hello<a href=#></a> there world</div>"
+    (spinneret:with-html-string
+      (:div "hello"
+        (:a :href "#")
+        "there world")))))

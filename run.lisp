@@ -58,8 +58,11 @@
 (defgeneric html (object)
   (:method (object)
     (declare (ignore object))
-    nil)
-  (:method ((nada null)) nil)
+    (values))
+  (:method ((nada null))
+    (values))
+  (:method :around ((nada null))
+    (values))
   (:documentation "Return an unescaped, unfilled string representing OBJECT."))
 
 (defmethod html :around (object)
