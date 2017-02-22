@@ -94,6 +94,8 @@
     :open :readonly :required :reversed :scoped
     :seamless :selected :typemustmatch))
 
+;;; This is the only function here that is called at run time.
+(declaim (inline boolean?))
 (defun boolean? (attr)
   (find attr *boolean-attributes*))
 
