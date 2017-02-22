@@ -9,6 +9,7 @@
 ;; See 2.5.1.
 ;; http://www.w3.org/TR/html5/common-microsyntaxes.html#space-character
 
+(declaim (inline whitespace))
 (defun whitespace (char)
   (declare (character char))
   (case char
