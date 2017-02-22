@@ -89,26 +89,24 @@
 
 (defun mklist (x) (if (listp x) x (list x)))
 
+(defun call/words (thunk string)
+  (let ((window (make-array 0
+                            :adjustable t
+                            :displaced-to string
+                            :displaced-index-offset 0)))
+    (loop with len = (length string)
+          for left = 0 then (+ right 1)
+          for right = (or (position-if #'whitespace string :start left) len)
+          unless (= left right)
+            do (adjust-array window (- right left)
+                             :displaced-to string
+                             :displaced-index-offset left)
+               (funcall thunk window)
+          until (>= right len))))
+
 (defmacro do-words ((var string) &body body)
-  (let ((stream (gensym)) (word (gensym)))
-    `(let ((,stream (make-string-input-stream ,string))
-           (,word (make-string-output-stream)))
-       (declare (stream ,stream ,word))
-       (loop (let ((,var (pop-word ,stream ,word)))
-               (if (equal ,var "")
-                   (return)
-                   (progn ,@body)))))))
-
-(declaim (inline pop-word))
-
-(defun pop-word (stream-in stream-out)
-  (declare (optimize speed)
-           (stream stream-in stream-out))
-  (loop initially (peek-char t stream-in nil)
-        for c = (read-char stream-in nil)
-        while (and c (not (whitespace c)))
-        do (write-char c stream-out)
-        finally (return (get-output-stream-string stream-out))))
+  `(call/words (lambda (,var) ,@body)
+               ,string))
 
 (defun fill-text (string &optional safe?)
   (check-type string string)
