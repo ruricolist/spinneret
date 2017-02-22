@@ -10,6 +10,16 @@
 (defun run-tests ()
   (run! 'spinneret))
 
+(defun equal-sans-trailing-spaces (string1 string2)
+  (let* ((lines1 (serapeum:lines string1))
+         (lines2 (serapeum:lines string2)))
+    (and (= (length lines1)
+            (length lines2))
+         (every (lambda (line1 line2)
+                  (equal (string-right-trim " " line1)
+                         (string-right-trim " " line2)))
+                lines1 lines2))))
+
 (test dataset
   (let (*print-pretty*)
     (flet ((dolomphious () 'dolomphious))
@@ -114,7 +124,7 @@
  <li><a>hai</a>
 </ul>")))
 
-    (is (equal
+    (is (equal-sans-trailing-spaces
          (with-html-string
            (:html (:head)
              (:body (:a "hai"))))

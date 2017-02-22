@@ -44,10 +44,10 @@
                (*html-path* (cons ,(make-keyword tag) *html-path*)))
            (declare (ignorable pretty)
                     (dynamic-extent *html-path*))
-           ,@(when newline-before-start
-               (unsplice
-                `(when pretty
-                   (newline-and-indent html))))
+           (when pretty
+             ,(if newline-before-start
+                  `(newline-and-indent html)
+                  `(indent html)))
            (write-string ,open html)
            ;; Note that format-attribute is responsible for printing
            ;; the closing >, so it must be called even when there are
@@ -59,7 +59,7 @@
                   `(when pretty
                      (terpri html))))
              (without-trailing-space
-                 (funcall body))
+               (funcall body))
              ,@(when newline-before-close
                  (unsplice
                   `(when pretty

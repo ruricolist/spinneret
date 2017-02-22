@@ -9,9 +9,8 @@
 
 (defvar *pre* nil)
 
-(defun indent ()
-  (when *print-pretty*
-   (format *html* "~V,0T" *depth*)))
+(defun indent (&optional (stream *html*))
+  (format stream "~V,0T" *depth*))
 
 (defun newline-and-indent (&optional (stream *html*))
   "Fresh line and indent according to *DEPTH*."
