@@ -105,6 +105,7 @@
 
 (defun call/words (thunk string)
   (let ((window (make-array 0
+                            :element-type (array-element-type string)
                             :adjustable t
                             :displaced-to string
                             :displaced-index-offset 0)))
