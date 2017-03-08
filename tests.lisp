@@ -10,7 +10,7 @@
 (defun run-tests ()
   (run! 'spinneret))
 
-(defun equal-sans-trailing-spaces (string1 string2)
+(defun visually-equal (string1 string2)
   (let* ((lines1 (serapeum:lines string1))
          (lines2 (serapeum:lines string2)))
     (and (= (length lines1)
@@ -112,7 +112,7 @@
                               for amount in amounts
                               do (:li amount item))))
                  (:footer ("Last login: ~A" last-login)))))))
-    (is (equalp generated-string expected-string))))
+    (is (visually-equal generated-string expected-string))))
 
 (test indent-problem
   (let ((*print-pretty* t))
@@ -124,7 +124,7 @@
  <li><a>hai</a>
 </ul>")))
 
-    (is (equal-sans-trailing-spaces
+    (is (visually-equal
          (with-html-string
            (:html (:head)
              (:body (:a "hai"))))
