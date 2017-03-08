@@ -130,14 +130,19 @@
         (*print-pretty*
          (let ((html *html*)
                (depth *depth*)
-               (margin *print-right-margin*))
+               (count 0))
+           ;; There can't be more words than chars.
+           (declare (type array-index count))
            (format html "~V,0T" depth)
-           (do-words (word string)
-             (with-space
-               (format html "~<~%~V,0T~1,V:;~A~>"
-                       depth
-                       margin
-                       (if safe? word (escape-string word)))))))
+           (pprint-logical-block (html nil)
+             (do-words (word string)
+               (when (> count 0)
+                 (write-char #\Space html))
+               (incf count)
+               (let ((word (if safe? word (escape-string word))))
+                 (write-string word html))
+               ;; This will discard the preceding space if necessary.
+               (pprint-newline :fill html)))))
         (t
          (with-space
            (if safe?
@@ -145,44 +150,54 @@
                (escape-to-stream string #'escape-string-char *html*)))))
   (values))
 
+(defun format-attribute-value (value)
+  (cond ((equal value "") "\"\"")
+        ((keywordp value) (string-downcase value))
+        ((eql value t) "true")
+        (t value)))
+
 (defun format-attributes (attrs &optional (stream *html*))
   (declare (stream stream))
-  (let ((seen '()))
-    ;; Ensure that the leftmost keyword has priority,
-    ;; as in function lambda lists.
-    (labels ((seen? (name)
-               (declare (optimize speed)
-                        (symbol name))
-               (prog1 (member name seen)
-                 (push name seen)))
-             (format-attr (attr value)
-               (declare (optimize speed))
-               (unless (or (null value) (seen? attr))
-                 (if (boolean? attr)
-                     (format stream "~( ~A~)~:_" attr)
-                     (format stream "~( ~A~)~:_=~:_~A~:_"
-                             attr
-                             (cond ((equal value "") "\"\"")
-                                   ((keywordp value) (string-downcase value))
-                                   ((eql value t) "true")
-                                   (t value))))))
-             (inner (attrs)
-               (declare (optimize speed))
-               (loop (unless attrs (return))
-                     (pprint-indent :block 1 stream)
-                     (let ((attr (pop attrs))
-                           (value (pop attrs)))
-                       (declare (symbol attr))
-                       (if (eql attr :attrs)
-                           (loop for (a v . nil) on value by #'cddr
-                                 do (format-attr a (escape-value v)))
-                           (format-attr attr value))))))
-      (declare (inline seen? inner))
-      (if *print-pretty*
-          (pprint-logical-block (stream nil :suffix ">")
-            (inner attrs))
-          (progn (inner attrs)
-                 (write-char #\> stream))))))
+  (if (null attrs)
+      (write-char #\> stream)
+      (let ((seen '())
+            *print-lines* *print-miser-width*
+            *print-level* *print-length*)
+        ;; Ensure that the leftmost keyword has priority,
+        ;; as in function lambda lists.
+        (write-char #\Space stream)
+        (pprint-logical-block (stream attrs :suffix ">")
+          (labels ((seen? (name)
+                     (declare (optimize speed)
+                              (symbol name))
+                     (prog1 (member name seen)
+                       (push name seen)))
+                   (format-attr (attr value)
+                     (unless (or (null value) (seen? attr))
+                       (if (boolean? attr)
+                           (pprint-logical-block (stream nil)
+                             (format stream "~(~a~)" attr))
+                           (let ((value (format-attribute-value value)))
+                             (pprint-logical-block (stream nil)
+                               (format stream "~(~a~)=" attr)
+                               (pprint-newline :fill stream)
+                               ;; TODO Doesn't work.
+                               (pprint-indent :block 1 stream)
+                               (format stream "~a" value))))))
+                   (dynamic-attrs (attrs)
+                     (loop for (a v . rest) on attrs by #'cddr
+                           do (format-attr a (escape-value v))
+                              (when rest
+                                (write-char #\Space stream)))))
+            (declare (inline seen?))
+            (loop for attr = (pprint-pop)
+                  for value = (pprint-pop)
+                  if (eql attr :attrs)
+                    do (dynamic-attrs value)
+                  else do (format-attr attr value)
+                          (pprint-exit-if-list-exhausted)
+                          (write-char #\Space stream)
+                          (pprint-newline :linear stream)))))))
 
 (defun escape-value (value)
   (if (or (eq value t)
