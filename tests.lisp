@@ -146,3 +146,8 @@
       (:div "hello"
         (:a :href "#")
         "there world")))))
+
+(test explicit-spaces
+  (is (equal "<div>hi<span> there</span></div>"
+             (let (*print-pretty*)
+               (spinneret:with-html-string (:div "hi" (:span " there")))))))
