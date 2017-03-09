@@ -30,12 +30,13 @@
   "Fresh line and indent according to *DEPTH*."
   (format stream "~&~V,0T" *depth*))
 
+(defun emit-pretty-end-tag/inline (tag &optional (stream *html*))
+  (write-string tag stream)
+  (write-char #\Space stream)
+  (pprint-newline :fill stream))
+
 (defun emit-pretty-end-tag (tag &optional (stream *html*))
-  (format stream
-          "~V,0T~:*~<~%~V,0T~1,V:;~A~>"
-          *depth*
-          *print-right-margin*
-          tag))
+  (format stream "~V,0T~a~&" *depth* tag))
 
 (defmacro without-trailing-space (&body body)
   `(let ((*pending-space* nil))
@@ -129,20 +130,15 @@
          (fast-format *html* "~&~A~%" string))
         (*print-pretty*
          (let ((html *html*)
-               (depth *depth*)
-               (count 0))
-           ;; There can't be more words than chars.
-           (declare (type array-index count))
+               (depth *depth*))
            (format html "~V,0T" depth)
-           (pprint-logical-block (html nil)
-             (do-words (word string)
-               (when (> count 0)
-                 (write-char #\Space html))
-               (incf count)
-               (let ((word (if safe? word (escape-string word))))
-                 (write-string word html))
-               ;; This will discard the preceding space if necessary.
-               (pprint-newline :fill html)))))
+           (pprint-newline :fill html)
+           (do-words (word string)
+             (let ((word (if safe? word (escape-string word))))
+               (write-string word html))
+             ;; This will discard the preceding space if necessary.
+             (write-char #\Space html)
+             (pprint-newline :fill html))))
         (t
          (with-space
            (if safe?
@@ -155,6 +151,47 @@
         ((keywordp value) (string-downcase value))
         ((eql value t) "true")
         (t value)))
+
+(defun format-attributes/inline (attrs &optional (stream *html*))
+  (declare (stream stream))
+  (if (null attrs)
+      (write-char #\> stream)
+      (let ((seen '()))
+        ;; Ensure that the leftmost keyword has priority,
+        ;; as in function lambda lists.
+        (write-char #\Space stream)
+        (labels ((seen? (name)
+                   (declare (optimize speed)
+                            (symbol name))
+                   (prog1 (member name seen)
+                     (push name seen)))
+                 (format-attr (attr value)
+                   (unless (or (null value) (seen? attr))
+                     (if (boolean? attr)
+                         (progn
+                           (pprint-newline :fill stream)
+                           (format stream "~(~a~)" attr))
+                         (let ((value (format-attribute-value value)))
+                           (pprint-newline :fill stream)
+                           (format stream "~(~a~)=" attr)
+                           (pprint-newline :fill stream)
+                           (format stream "~a" value)))))
+                 (dynamic-attrs (attrs)
+                   (loop for (a v . rest) on attrs by #'cddr
+                         do (format-attr a (escape-value v))
+                            (when rest
+                              (write-char #\Space stream)))))
+          (declare (inline seen?))
+          (loop for attr = (pop attrs)
+                for value = (pop attrs)
+                if (eql attr :attrs)
+                  do (dynamic-attrs value)
+                else do (format-attr attr value)
+                        (when (null attrs)
+                          (loop-finish))
+                        (write-char #\Space stream)
+                        (pprint-newline :fill stream)))
+        (write-char #\> stream))))
 
 (defun format-attributes (attrs &optional (stream *html*))
   (declare (stream stream))
@@ -234,11 +271,10 @@ able to use directives like ~c, ~d, ~{~} &c."
   (declare (ignore args))
   `(doctype))
 
-(defun doctype (&rest args)
+(defun doctype (&rest args &aux (html *html*))
   (declare (ignore args))
-  (write-string "<!DOCTYPE html>" *html*)
-  (when *print-pretty*
-    (terpri *html*)))
+  (write-string "<!DOCTYPE html>" html)
+  (pprint-newline :mandatory html))
 
 (defun make-comment (text)
   `(comment ,(if (stringp text)

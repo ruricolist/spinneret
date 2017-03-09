@@ -19,10 +19,11 @@
 (defmacro define-tag (tag)
   (let* ((fn-name
            (tag-fn tag :intern t))
+         (inline? (inline? tag))
          (newline-before-start
-           (not (inline? tag)))
+           (not inline?))
          (newline-after-start
-           (not (or (inline? tag) (paragraph? tag))))
+           (not (or inline? (paragraph? tag))))
          (newline-before-close
            newline-after-start)
          (open (format nil "<~(~A~)" tag))
@@ -52,14 +53,18 @@
            ;; Note that format-attribute is responsible for printing
            ;; the closing >, so it must be called even when there are
            ;; no attributes.
-           (format-attributes attrs html)
+           (,(if inline? 'format-attributes/inline 'format-attributes)
+            attrs html)
            (unless empty?
              ,@(when newline-after-start
                  (unsplice
                   `(when pretty
                      (terpri html))))
              (without-trailing-space
-               (funcall body))
+               ,(if inline?
+                    `(funcall body)
+                    `(pprint-logical-block (*html* nil)
+                       (funcall body))))
              ,@(when newline-before-close
                  (unsplice
                   `(when pretty
@@ -67,7 +72,9 @@
            ,@(when close
                (unsplice
                 `(if pretty
-                     (emit-pretty-end-tag ,close html)
+                     ,(if inline?
+                          `(emit-pretty-end-tag/inline ,close html)
+                          `(emit-pretty-end-tag ,close html))
                      (write-string ,close html))))
            (values))))))
 
