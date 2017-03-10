@@ -4,37 +4,45 @@
 
 (defun parse-html (form env)
   (labels ((rec (form)
-             (cond ((atom form) form)
-                   ((dotted-list? form) form)
-                   ((ignore-errors (constantp form env)) form)
-                   ((eql (car form) 'with-tag) form)
-                   ((keywordp (car form))
-                    (let ((form (pseudotag-expand (car form) (cdr form))))
-                      (if (not (keywordp (car form))) form
-                          (multiple-value-bind (name attrs body)
-                              (tag-parts form)
-                            (if (valid? name)
-                                `(with-tag (,name ,@attrs)
-                                   ,@(mapcar #'rec body))
-                                (cons (car form)
-                                      (mapcar #'rec (cdr form))))))))
-                   ((stringp (car form))
-                    (destructuring-bind (control-string . args)
-                        form
-                      (let ((cs (parse-as-markdown control-string)))
-                        `(format-text
-                          ,@(if (and args (every (lambda (arg) (constantp arg env)) args))
-                                (list (apply #'format nil cs
-                                             (mapcar #'escape-to-string args)))
-                                `((formatter ,cs)
-                                  ,@(loop for arg in args
-                                          ;; Escape literal strings at
-                                          ;; compile time.
-                                          if (typep arg 'string env)
-                                            collect (escape-to-string arg)
-                                          else collect `(xss-escape ,arg))))))))
-                   (t (cons (rec (car form))
-                            (mapcar #'rec (cdr form)))))))
+             (cond
+               ;; There's nothing we can do with an atom.
+               ((atom form) form)
+               ;; There's nothing we can do with an improper list, either.
+               ((dotted-list? form) form)
+               ;; If the form is constant, leave it to be inlined.
+               ((ignore-errors (constantp form env)) form)
+               ;; Don't descend into nested with-tag forms.
+               ((eql (car form) 'with-tag) form)
+               ;; Compile as a tag.
+               ((keywordp (car form))
+                (let ((form (pseudotag-expand (car form) (cdr form))))
+                  (if (not (keywordp (car form))) form
+                      (multiple-value-bind (name attrs body)
+                          (tag-parts form)
+                        (if (valid? name)
+                            `(with-tag (,name ,@attrs)
+                               ,@(mapcar #'rec body))
+                            (cons (car form)
+                                  (mapcar #'rec (cdr form))))))))
+               ;; Compile as a format string (possibly using Markdown).
+               ((stringp (car form))
+                (destructuring-bind (control-string . args)
+                    form
+                  (let ((cs (parse-as-markdown control-string)))
+                    `(format-text
+                      ,@(if (and args (every (lambda (arg) (constantp arg env)) args))
+                            (list (apply #'format nil cs
+                                         (mapcar #'escape-to-string args)))
+                            `((formatter ,cs)
+                              ,@(loop for arg in args
+                                      ;; Escape literal strings at
+                                      ;; compile time.
+                                      if (typep arg 'string env)
+                                        collect (escape-to-string arg)
+                                      else collect `(xss-escape ,arg))))))))
+               ;; Keep going.
+               (t (cons (rec (car form))
+                        (mapcar #'rec (cdr form)))))))
     (rec form)))
 
 (defun dotted-list? (list)
