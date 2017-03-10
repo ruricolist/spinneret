@@ -11,7 +11,8 @@
   :depends-on (#:parenscript
                #:alexandria
                #:cl-ppcre
-               #:global-vars)
+               #:global-vars
+               #:serapeum)
   :components ((:file "package")
                (:file "syntax")
                (:file "tags")

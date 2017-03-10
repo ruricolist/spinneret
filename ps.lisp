@@ -104,7 +104,7 @@
   (declare (ignore safe?))
   `(stringify
     ,(ps::concat-constant-strings
-      (list *cdata-start* text *cdata-end*))))
+      (list cdata-start text cdata-end))))
 
 (defpsmacro format-text (formatter &rest args)
   (let ((control-string

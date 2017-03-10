@@ -10,4 +10,5 @@
            #:deftag
            #:*unvalidated-attribute-prefixes*)
   (:shadowing-import-from :alexandria :switch)
+  (:import-from :serapeum :fmt :unsplice :string+)
   (:import-from :global-vars :define-global-parameter))

@@ -134,7 +134,7 @@ are all the following key-value pairs, and the body is what remains."
                   append (escape-attrs
                           tag
                           (loop for (attr val . nil) on val by #'cddr
-                                collect (make-keyword (fast-format nil "~:@(data-~A~)" attr))
+                                collect (make-keyword (fmt "~:@(data-~A~)" attr))
                                 collect val))
                 else if (eql attr :attrs)
                        collect attr and collect val

@@ -7,9 +7,6 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defparameter *tags-pkg* (find-package :spinneret.tag))
 
-  (defun unsplice (x)
-    (if x (list x) x))
-
   (defun tag-fn (tag &key intern)
     (let ((tag (string tag)))
       (if intern
@@ -26,11 +23,11 @@
            (not (or inline? (paragraph? tag))))
          (newline-before-close
            newline-after-start)
-         (open (format nil "~(~A~)" tag))
+         (open (fmt "~(~A~)" tag))
          (needs-close (not (or (void? tag) (unmatched? tag))))
          (close
            (when needs-close
-             (format nil "</~(~A~)>" tag))))
+             (fmt "</~(~A~)>" tag))))
     `(progn
        (declaim (notinline ,fn-name))
        (defun ,fn-name (attrs body pre? empty?)

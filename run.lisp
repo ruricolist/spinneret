@@ -286,13 +286,13 @@ able to use directives like ~c, ~d, ~{~} &c."
                text)
           ,(stringp text)))
 
-(defun cdata (text safe?)
-  (write-string *cdata-start* *html*)
+(defun cdata (text safe? &aux (html *html*))
+  (write-string cdata-start html)
   (write-string (if safe?
                     text
                     (escape-cdata text))
-                *html*)
-  (write-string *cdata-end* *html*))
+                html)
+  (write-string cdata-end html))
 
 (declaim (string *html-lang* *html-charset*))
 
