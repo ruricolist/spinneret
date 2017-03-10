@@ -115,17 +115,17 @@ are all the following key-value pairs, and the body is what remains."
 (defmacro with-tag ((name &rest attributes) &body body)
   (let ((empty? (not body))
         (pre? (not (null (preformatted? name))))
-        (tag-fn (or (tag-fn name) (error "No such tag: ~a" name))))
-    (with-gensyms (thunk)
-      `(prog1 nil
-         (flet ((,thunk ()
-                  ,@(loop for expr in body
-                          collect `(catch-output ,expr))))
-           (declare (dynamic-extent (function ,thunk)))
-           (,tag-fn (list ,@(escape-attrs name attributes))
-                    #',thunk
-                    ,pre?
-                    ,empty?))))))
+        (tag-fn (or (tag-fn name) (error "No such tag: ~a" name)))
+        (thunk (gensym (string+ '< name '>))))
+    `(prog1 nil
+       (flet ((,thunk ()
+                ,@(loop for expr in body
+                        collect `(catch-output ,expr))))
+         (declare (dynamic-extent (function ,thunk)))
+         (,tag-fn (list ,@(escape-attrs name attributes))
+                  #',thunk
+                  ,pre?
+                  ,empty?)))))
 
 (defun escape-attrs (tag attrs)
   (let ((attrs
