@@ -152,7 +152,7 @@ are all the following key-value pairs, and the body is what remains."
 
 (declaim (notinline parse-as-markdown))
 (defun parse-as-markdown (string)
-  "Placeholder, load spinneret.cl-markdown system if you want to expand
+  "Placeholder, load spinneret/cl-markdown system if you want to expand
   markdown."
   string)
 
