@@ -23,21 +23,6 @@
           `(fast-format ,stream (formatter ,control-string) ,@args))
       call))
 
-(defun indent (&optional (stream *html*))
-  (format stream "~V,0T" *depth*))
-
-(defun newline-and-indent (&optional (stream *html*))
-  "Fresh line and indent according to *DEPTH*."
-  (format stream "~&~V,0T" *depth*))
-
-(defun emit-pretty-end-tag/inline (tag &optional (stream *html*))
-  (write-string tag stream)
-  (write-char #\Space stream)
-  (pprint-newline :fill stream))
-
-(defun emit-pretty-end-tag (tag &optional (stream *html*))
-  (format stream "~V,0T~a~&" *depth* tag))
-
 (defmacro without-trailing-space (&body body)
   `(let ((*pending-space* nil))
      ,@body))
@@ -190,8 +175,7 @@
                         (when (null attrs)
                           (loop-finish))
                         (write-char #\Space stream)
-                        (pprint-newline :fill stream)))
-        (write-char #\> stream))))
+                        (pprint-newline :fill stream))))))
 
 (defun format-attributes (attrs &optional (stream *html*))
   (declare (stream stream))
@@ -203,7 +187,7 @@
         ;; Ensure that the leftmost keyword has priority,
         ;; as in function lambda lists.
         (write-char #\Space stream)
-        (pprint-logical-block (stream attrs :suffix ">")
+        (pprint-logical-block (stream attrs)
           (labels ((seen? (name)
                      (declare (optimize speed)
                               (symbol name))
@@ -218,8 +202,6 @@
                              (pprint-logical-block (stream nil)
                                (format stream "~(~a~)=" attr)
                                (pprint-newline :fill stream)
-                               ;; TODO Doesn't work.
-                               (pprint-indent :block 1 stream)
                                (format stream "~a" value))))))
                    (dynamic-attrs (attrs)
                      (loop for (a v . rest) on attrs by #'cddr
@@ -248,8 +230,7 @@
             string))))
 
 (defun format-text (control-string &rest args)
-  (when *print-pretty*
-    (fresh-line *html*))
+  (pprint-newline :mandatory *html*)
   (let ((*depth* (1+ *depth*)))
     (fill-text (apply #'format nil control-string args) t))
   (values))
@@ -271,10 +252,9 @@ able to use directives like ~c, ~d, ~{~} &c."
   (declare (ignore args))
   `(doctype))
 
-(defun doctype (&rest args &aux (html *html*))
+(defun doctype (&rest args)
   (declare (ignore args))
-  (write-string "<!DOCTYPE html>" html)
-  (pprint-newline :mandatory html))
+  (format *html* "<!DOCTYPE html>~%"))
 
 (defun make-comment (text)
   `(comment ,(if (stringp text)

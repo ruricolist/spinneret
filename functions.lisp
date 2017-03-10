@@ -26,7 +26,7 @@
            (not (or inline? (paragraph? tag))))
          (newline-before-close
            newline-after-start)
-         (open (format nil "<~(~A~)" tag))
+         (open (format nil "~(~A~)" tag))
          (needs-close (not (or (void? tag) (unmatched? tag))))
          (close
            (when needs-close
@@ -38,45 +38,38 @@
                    (speed 3) (safety 0) (debug 0)
                    (compilation-speed 0))
                   (function body))
-         (let ((html *html*)
-               (pretty *print-pretty*)
-               (*pre* pre?)
-               (*depth* (1+ *depth*))
-               (*html-path* (cons ,(make-keyword tag) *html-path*)))
-           (declare (ignorable pretty)
-                    (dynamic-extent *html-path*))
-           (when pretty
-             ,(if newline-before-start
-                  `(newline-and-indent html)
-                  `(indent html)))
-           (write-string ,open html)
-           ;; Note that format-attribute is responsible for printing
-           ;; the closing >, so it must be called even when there are
-           ;; no attributes.
-           (,(if inline? 'format-attributes/inline 'format-attributes)
-            attrs html)
-           (unless empty?
-             ,@(when newline-after-start
-                 (unsplice
-                  `(when pretty
-                     (terpri html))))
-             (without-trailing-space
-               ,(if inline?
-                    `(funcall body)
-                    `(pprint-logical-block (*html* nil)
-                       (funcall body))))
-             ,@(when newline-before-close
-                 (unsplice
-                  `(when pretty
-                     (newline-and-indent html)))))
-           ,@(when close
-               (unsplice
-                `(if pretty
-                     ,(if inline?
-                          `(emit-pretty-end-tag/inline ,close html)
-                          `(emit-pretty-end-tag ,close html))
-                     (write-string ,close html))))
-           (values))))))
+         ,@(unsplice
+            (when newline-before-start
+              `(pprint-newline :mandatory *html*)))
+         (,@(if inline? '(progn) `(pprint-logical-block (*html* nil)))
+          (let ((pretty *print-pretty*)
+                (*pre* pre?)
+                (*depth* (1+ *depth*))
+                (*html-path* (cons ,(make-keyword tag) *html-path*)))
+            (declare (ignorable pretty)
+                     (dynamic-extent *html-path*))
+            (pprint-logical-block (*html* nil :prefix "<" :suffix ">")
+              (write-string ,open *html*)
+              (when attrs
+                (,(if inline? 'format-attributes/inline 'format-attributes)
+                 attrs *html*)))
+            (unless empty?
+              (pprint-indent :block 1 *html*)
+              ,@(unsplice
+                 (when newline-after-start
+                   `(pprint-newline :mandatory *html*)))
+              (without-trailing-space
+                ,(if inline?
+                     `(funcall body)
+                     `(pprint-logical-block (*html* nil)
+                        (funcall body))))
+              (pprint-indent :block 0)
+              ,(if newline-before-close
+                   `(pprint-newline :mandatory *html*)
+                   `(pprint-newline :linear *html*))
+              ,(when close
+                 `(write-string ,close *html*)))
+            (values)))))))
 
 (defmacro define-all-tags ()
   `(progn

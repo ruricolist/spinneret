@@ -57,6 +57,33 @@
     (bt t)
     (bt nil)))
 
+(defun readme-example ()
+  (let* ((user-name "John Q. Lisper")
+         (last-login "12th Never")
+         (shopping-list
+           '("Atmospheric ponds"
+             "Electric gumption socks"
+             "Mrs. Leland's embyronic television combustion"
+             "Savage gymnatic aggressors"
+             "Pharmaceutical pianos"
+             "Intravenous retribution champions"))
+         (amounts '(10 6 4 9 6 9))
+         (*print-pretty* t))
+    (with-html-string
+      (:doctype)
+      (:html
+        (:head
+          (:title "Home page"))
+        (:body
+          (:header
+            (:h1 "Home page"))
+          (:section
+            ("~A, here is *your* shopping list: " user-name)
+            (:ol (loop for item in shopping-list
+                       for amount in amounts
+                       do (:li amount item))))
+          (:footer ("Last login: ~A" last-login)))))))
+
 (test readme-example
   (let* ((user-name "John Q. Lisper")
          (last-login "12th Never")
@@ -148,6 +175,6 @@
         "there world")))))
 
 (test explicit-spaces
-  (is (equal "<div>hi<span> there</span></div>"
-             (let (*print-pretty*)
-               (spinneret:with-html-string (:div "hi" (:span " there")))))))
+      (is (equal "<div>hi<span> there</span></div>"
+                 (let (*print-pretty*)
+                   (spinneret:with-html-string (:div "hi" (:span " there")))))))
