@@ -31,8 +31,8 @@
                   (let ((cs (parse-as-markdown control-string)))
                     `(format-text
                       ,@(if (and args (every (lambda (arg) (constantp arg env)) args))
-                            (list (apply #'format nil cs
-                                         (mapcar #'escape-to-string args)))
+                            (list (format nil "~?" cs
+                                          (mapcar #'escape-to-string args)))
                             `((formatter ,cs)
                               ,@(loop for arg in args
                                       ;; Escape literal strings at

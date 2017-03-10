@@ -226,13 +226,13 @@
       (let ((string (escape-attribute-value
                      (princ-to-string value))))
         (if (needs-quotes? string)
-            (format nil "\"~A\"" string)
+            (concatenate 'string "\"" string "\"")
             string))))
 
 (defun format-text (control-string &rest args)
   (pprint-newline :mandatory *html*)
   (let ((*depth* (1+ *depth*)))
-    (fill-text (apply #'format nil control-string args) t))
+    (fill-text (format nil "~?" control-string args) t))
   (values))
 
 (defun xss-escape (arg)
