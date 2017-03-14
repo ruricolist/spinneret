@@ -2,7 +2,7 @@
 
 (in-package #:spinneret)
 
-(declaim (type (integer -1 #.most-positive-fixnum) *depth*))
+(declaim (type (integer -1 #.(1- most-positive-fixnum)) *depth*))
 
 (defvar *depth* -1
   "Depth of the tag being output.")

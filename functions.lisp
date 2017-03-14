@@ -14,20 +14,19 @@
           (find-symbol tag *tags-pkg*)))))
 
 (defmacro define-tag (tag)
-  (let* ((fn-name
+  (let* ((inline? (inline? tag))
+         (paragraph? (paragraph? tag))
+         (needs-close? (not (or (void? tag) (unmatched? tag))))
+         (fn-name
            (tag-fn tag :intern t))
-         (inline? (inline? tag))
          (newline-before-start
            (not inline?))
          (newline-after-start
-           (not (or inline? (paragraph? tag))))
+           (not (or inline? paragraph?)))
          (newline-before-close
            newline-after-start)
          (open (fmt "~(~A~)" tag))
-         (needs-close (not (or (void? tag) (unmatched? tag))))
-         (close
-           (when needs-close
-             (fmt "</~(~A~)>" tag))))
+         (close (and needs-close? (fmt "</~(~A~)>" tag))))
     `(progn
        (declaim (notinline ,fn-name))
        (defun ,fn-name (attrs body pre? empty?)
@@ -35,38 +34,38 @@
                    (speed 3) (safety 0) (debug 0)
                    (compilation-speed 0))
                   (function body))
-         ,@(unsplice
-            (when newline-before-start
-              `(pprint-newline :mandatory *html*)))
-         (,@(if inline? '(progn) `(pprint-logical-block (*html* nil)))
-          (let ((pretty *print-pretty*)
-                (*pre* pre?)
-                (*depth* (1+ *depth*))
-                (*html-path* (cons ,(make-keyword tag) *html-path*)))
-            (declare (ignorable pretty)
-                     (dynamic-extent *html-path*))
+         (let ((*pre* pre?)
+               (*depth* (1+ *depth*))
+               (*html-path* (cons ,(make-keyword tag) *html-path*)))
+           (declare (dynamic-extent *html-path*))
+           ,@(unsplice
+              (when newline-before-start
+                `(pprint-newline :mandatory *html*)))
+           (,@(if inline? '(progn) `(pprint-logical-block (*html* nil)))
+            ;; Print the opening tag.
             (pprint-logical-block (*html* nil :prefix "<" :suffix ">")
               (write-string ,open *html*)
               (when attrs
                 (,(if inline? 'format-attributes/inline 'format-attributes)
                  attrs *html*)))
             (unless empty?
+              ;; Print the body.
               (pprint-indent :block 1 *html*)
               ,@(unsplice
                  (when newline-after-start
                    `(pprint-newline :mandatory *html*)))
               (without-trailing-space
-                ,(if inline?
-                     `(funcall body)
-                     `(pprint-logical-block (*html* nil)
-                        (funcall body))))
-              (pprint-indent :block 0)
-              ,(if newline-before-close
-                   `(pprint-newline :mandatory *html*)
-                   `(pprint-newline :linear *html*))
-              ,(when close
-                 `(write-string ,close *html*)))
-            (values)))))))
+                (funcall body)))
+            ;; Print the closing tag.
+            ,(if newline-before-close
+                 `(progn
+                    (pprint-indent :block 0 *html*)
+                    (pprint-newline :mandatory *html*))
+                 `(pprint-newline :linear *html*))
+            ,@(unsplice
+               (when needs-close?
+                 `(write-string ,close *html*))))
+           (values))))))
 
 (defmacro define-all-tags ()
   `(progn
