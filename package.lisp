@@ -12,5 +12,6 @@
   (:shadowing-import-from :alexandria :switch)
   (:import-from :serapeum
     :fmt :unsplice :string+ :eif
-    :define-do-macro)
+    :define-do-macro
+    :nlet)
   (:import-from :global-vars :define-global-parameter))
