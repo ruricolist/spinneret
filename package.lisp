@@ -10,5 +10,7 @@
            #:deftag
            #:*unvalidated-attribute-prefixes*)
   (:shadowing-import-from :alexandria :switch)
-  (:import-from :serapeum :fmt :unsplice :string+ :eif)
+  (:import-from :serapeum
+    :fmt :unsplice :string+ :eif
+    :define-do-macro)
   (:import-from :global-vars :define-global-parameter))

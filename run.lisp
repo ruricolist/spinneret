@@ -105,7 +105,7 @@
                (funcall thunk window)
           until (>= right len))))
 
-(defmacro do-words ((var string) &body body)
+(define-do-macro do-words ((var string &optional return) &body body)
   `(call/words (lambda (,var) ,@body)
                ,string))
 
