@@ -83,6 +83,8 @@ Which produces:
       </body>
      </html>
 
+Serapeum’s pretty-printing facility builds on the Lisp pretty printer. This is what allows pretty printing to be fast. The downside is that the behavior of the pretty printer is not perfectly consistent between Lisp implementations, and you may get slightly different results depending on which implementation you are using.
+
 (Pretty-printing is pretty fast, but SPINNERET obeys `*print-pretty*`
 should you want to turn it off.)
 
