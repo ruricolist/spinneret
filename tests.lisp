@@ -169,10 +169,11 @@
   (is
    (equal
     "<div>hello<a href=#></a> there world</div>"
-    (spinneret:with-html-string
-      (:div "hello"
-        (:a :href "#")
-        "there world")))))
+    (let (*print-pretty*)
+      (spinneret:with-html-string
+        (:div "hello"
+          (:a :href "#")
+          "there world"))))))
 
 (test explicit-spaces
       (is (equal "<div>hi<span> there</span></div>"
