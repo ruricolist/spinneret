@@ -20,7 +20,7 @@
          (fn-name
            (tag-fn tag :intern t))
          (newline-before-start
-           (not inline?))
+           (and (not inline?) (not (eql tag :html))))
          (newline-after-start
            (not (or inline? paragraph?)))
          (newline-before-close
@@ -51,17 +51,14 @@
             (unless empty?
               ;; Print the body.
               (pprint-indent :block 1 *html*)
-              ,@(unsplice
-                 (when newline-after-start
-                   `(pprint-newline :mandatory *html*)))
+              ;; (pprint-newline ,(eif newline-after-start :mandatory :fill)
+              ;;                 *html*)
               (without-trailing-space
                 (funcall body)))
             ;; Print the closing tag.
-            ,(if newline-before-close
-                 `(progn
-                    (pprint-indent :block 0 *html*)
-                    (pprint-newline :mandatory *html*))
-                 `(pprint-newline :linear *html*))
+            (pprint-indent :block 0 *html*)
+            (pprint-newline ,(eif newline-before-close :mandatory :fill)
+                            *html*)
             ,@(unsplice
                (when needs-close?
                  `(write-string ,close *html*))))
