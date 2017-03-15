@@ -94,7 +94,8 @@
                             :element-type (array-element-type string)
                             :adjustable t
                             :displaced-to string
-                            :displaced-index-offset 0)))
+                            :displaced-index-offset 0))
+        (thunk (ensure-function thunk)))
     (loop with len = (length string)
           for left = 0 then (+ right 1)
           for right = (or (position-if #'whitespace string :start left) len)
@@ -102,33 +103,44 @@
             do (adjust-array window (- right left)
                              :displaced-to string
                              :displaced-index-offset left)
-               (funcall thunk window)
-          until (>= right len))))
+               ;; NB In terms of *words*, this might seem wrong: the
+               ;; remainder of the string might just be whitespace.
+               ;; However, this is the behavior we want: the presence
+               ;; of trailing whitespace *should* be preserved.
+               (funcall thunk window (= right len))
+          until (= right len))))
 
-(define-do-macro do-words ((var string &optional return) &body body)
-  `(call/words (lambda (,var) ,@body)
-               ,string))
+(define-do-macro do-words ((var at-end? string &optional return) &body body)
+  (serapeum:with-thunk (body var at-end?)
+    `(call/words ,body ,string)))
 
 (defun fill-text (string &optional safe?)
   (check-type string string)
-  (cond (*pre*
-         (fast-format *html* "~&~A~%" string))
-        (*print-pretty*
-         (let ((html *html*)
-               (depth *depth*))
-           (format html "~V,0T" depth)
-           (pprint-newline :fill html)
-           (do-words (word string)
-             (let ((word (if safe? word (escape-string word))))
-               (write-string word html))
-             ;; This will discard the preceding space if necessary.
-             (write-char #\Space html)
-             (pprint-newline :fill html))))
-        (t
-         (with-space
-           (if safe?
-               (write-string string *html*)
-               (escape-to-stream string #'escape-string-char *html*)))))
+  (cond
+    ((= (length string) 0))
+    (*pre*
+     (fast-format *html* "~&~A~%" string))
+    (*print-pretty*
+     (let ((html *html*)
+           (depth *depth*))
+       (cond ((every #'whitespace string)
+              (write-char #\Space *html*)
+              (pprint-newline :fill *html*))
+             (t
+              (format html "~V,0T" depth)
+              (pprint-newline :fill html)
+              (do-words (word at-end? string)
+                (let ((word (if safe? word (escape-string word))))
+                  (write-string word html))
+                (unless at-end?
+                  (write-char #\Space html))
+                ;; This will discard the preceding space if necessary.
+                (pprint-newline :fill html))))))
+    (t
+     (with-space
+       (if safe?
+           (write-string string *html*)
+           (escape-to-stream string #'escape-string-char *html*)))))
   (values))
 
 (defun format-attribute-value (value)
@@ -260,7 +272,7 @@ able to use directives like ~c, ~d, ~{~} &c."
   `(comment ,(if (stringp text)
                  (escape-comment text)
                  text)
-            ,(stringp text)))
+     ,(stringp text)))
 
 (defun comment (text safe?)
   (if *print-pretty*
