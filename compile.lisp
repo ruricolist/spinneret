@@ -97,9 +97,11 @@ plist of the regular attributes."
         (when rest (write-char #\Space s))))))
 
 (define-compiler-macro join-tokens (&whole call &rest tokens)
-  (cond ((null tokens) "")
+  (cond ((null tokens) nil)
         ((null (rest tokens))
-         `(princ-to-string ,(car tokens)))
+         (let ((token (car tokens)))
+           (once-only (token)
+             `(and ,token (princ-to-string ,token)))))
         (t call)))
 
 (defun tag-parts (form)

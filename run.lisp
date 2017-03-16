@@ -156,7 +156,6 @@
       (let ((seen '()))
         ;; Ensure that the leftmost keyword has priority,
         ;; as in function lambda lists.
-        (write-char #\Space stream)
         (labels ((seen? (name)
                    (declare (optimize speed)
                             (symbol name))
@@ -164,6 +163,7 @@
                      (push name seen)))
                  (format-attr (attr value)
                    (unless (or (null value) (seen? attr))
+                     (write-char #\Space stream)
                      (if (boolean? attr)
                          (progn
                            (pprint-newline :fill stream)
@@ -186,7 +186,6 @@
                 else do (format-attr attr value)
                         (when (null attrs)
                           (loop-finish))
-                        (write-char #\Space stream)
                         (pprint-newline :fill stream))))))
 
 (defun format-attributes (attrs &optional (stream *html*))
@@ -198,7 +197,6 @@
             *print-level* *print-length*)
         ;; Ensure that the leftmost keyword has priority,
         ;; as in function lambda lists.
-        (write-char #\Space stream)
         (pprint-logical-block (stream attrs)
           (labels ((seen? (name)
                      (declare (optimize speed)
@@ -207,6 +205,7 @@
                        (push name seen)))
                    (format-attr (attr value)
                      (unless (or (null value) (seen? attr))
+                       (write-char #\Space stream)
                        (if (boolean? attr)
                            (pprint-logical-block (stream nil)
                              (format stream "~(~a~)" attr))

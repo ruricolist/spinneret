@@ -185,3 +185,21 @@
        (let ((*print-pretty* t))
          (spinneret:with-html-string
            (:div "hi " (:span "there")))))))
+
+(test null-attr
+  (let (*print-pretty*)
+    (is (equal (with-html-string (:li :class nil "Hello"))
+               "<li>Hello")))
+  (let ((*print-pretty* t))
+    (is (equal (with-html-string (:li :class nil "Hello"))
+               "<li>Hello")))
+
+  (is (equal (with-html-string (:li :class (progn nil)))
+             "<li>")))
+
+(test no-final-space-after-skipped-attribute
+  (let (*print-pretty*)
+    (is (equal (with-html-string (:a :href "#" :data-instant t))
+               "<a href=# data-instant=true></a>"))
+    (is (equal (with-html-string (:a :href "#" :data-instant nil))
+               "<a href=#></a>"))))

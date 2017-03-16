@@ -9,7 +9,7 @@
 (defparameter *html* (make-synonym-stream '*standard-output*)
   "Output stream for HTML generation.")
 
-(defvar *html-path* nil
+(serapeum:defvar-unbound *html-path*
   "List (in ascending order) of parent nodes.")
 
 (defun get-html-path ()
