@@ -143,7 +143,7 @@
 
 (test indent-problem
   (let ((*print-pretty* t))
-    (is (equal
+    (is (visually-equal
          (with-html-string
            (:ul (:li (:a "hai"))))
          (format nil "~
@@ -160,8 +160,7 @@
  <head>
   <meta charset=UTF-8>
  </head>
- <body>
-  <a>hai</a>
+ <body><a>hai</a>
  </body>
 </html>")))))
 
@@ -176,6 +175,13 @@
           "there world"))))))
 
 (test explicit-spaces
-      (is (equal "<div>hi<span> there</span></div>"
-                 (let (*print-pretty*)
-                   (spinneret:with-html-string (:div "hi" (:span " there")))))))
+  (is (equal "<div>hi<span> there</span></div>"
+             (let (*print-pretty*)
+               (spinneret:with-html-string (:div "hi" (:span " there"))))))
+  (is (visually-equal
+       #.(format nil "~
+<div>hi <span>there</span>
+</div>")
+       (let ((*print-pretty* t))
+         (spinneret:with-html-string
+           (:div "hi " (:span "there")))))))
