@@ -9,6 +9,10 @@
 
 (defvar *pre* nil)
 
+(defparameter *fill-column* 80
+  "Column at which to wrap text.
+This is always measured from the start of the tag.")
+
 (defun fast-format (stream control-string &rest args)
   "Like `format', but bind `*print-pretty*' to nil."
   (declare (dynamic-extent args))
@@ -22,6 +26,15 @@
             `(princ ,arg ,stream))
           `(fast-format ,stream (formatter ,control-string) ,@args))
       call))
+
+(defun indent (&optional (stream *html*) (col *depth*))
+  (when *print-pretty*
+    (format stream "~V,0T" col)))
+
+(defun newline-and-indent (&optional (stream *html*))
+  "Fresh line and indent according to *DEPTH*."
+  (when *print-pretty*
+    (format stream "~&~V,0T" *depth*)))
 
 (defmacro without-trailing-space (&body body)
   `(let ((*pending-space* nil))
@@ -114,28 +127,37 @@
   (serapeum:with-thunk (body var at-end?)
     `(call/words ,body ,string)))
 
-(defun fill-text (string &optional safe?)
+(defun fill-text (string &optional safe? &aux (html *html*))
   (check-type string string)
   (cond
     ((= (length string) 0))
     (*pre*
-     (fast-format *html* "~&~A~%" string))
+     (fast-format html "~&~A~%" string))
     (*print-pretty*
-     (let ((html *html*)
-           (depth *depth*))
-       (cond ((every #'whitespace string)
-              (write-char #\Space *html*)
-              (pprint-newline :fill *html*))
-             (t
-              (format html "~V,0T" depth)
-              (pprint-newline :fill html)
-              (do-words (word at-end? string)
-                (let ((word (if safe? word (escape-string word))))
-                  (write-string word html))
-                (unless at-end?
-                  (write-char #\Space html))
-                ;; This will discard the preceding space if necessary.
-                (pprint-newline :fill html))))))
+     (let* ((start-col *depth*)
+            (fill *fill-column*)
+            (goal (+ fill start-col)))
+       (when (whitespace (aref string 0))
+         (write-char #\Space html))
+       (indent html)
+       (flet ((wrap ()
+                (terpri html)
+                (indent html start-col)))
+         (declare (dynamic-extent #'wrap))
+         (do-words (word at-end? string)
+           (let* ((word (if safe? word (escape-string word)))
+                  (len (length word)))
+             (cond ((> len fill)
+                    (wrap)
+                    (write-string word html)
+                    (wrap))
+                   ((> (+ len (html-stream-column html))
+                       goal)
+                    (wrap)
+                    (write-string word html))
+                   (t (write-string word html))))
+           (unless at-end?
+             (write-char #\Space html))))))
     (t
      (with-space
        (if safe?
@@ -151,50 +173,53 @@
 
 (defun format-attributes/inline (attrs &optional (stream *html*))
   (declare (stream stream))
-  (if (null attrs)
-      (write-char #\> stream)
-      (let ((seen '()))
-        ;; Ensure that the leftmost keyword has priority,
-        ;; as in function lambda lists.
-        (labels ((seen? (name)
-                   (declare (optimize speed)
-                            (symbol name))
-                   (prog1 (member name seen)
-                     (push name seen)))
-                 (format-attr (attr value)
-                   (unless (or (null value) (seen? attr))
-                     (write-char #\Space stream)
-                     (if (boolean? attr)
-                         (progn
-                           (pprint-newline :fill stream)
-                           (format stream "~(~a~)" attr))
-                         (let ((value (format-attribute-value value)))
-                           (pprint-newline :fill stream)
-                           (format stream "~(~a~)=" attr)
-                           (pprint-newline :fill stream)
-                           (format stream "~a" value)))))
-                 (dynamic-attrs (attrs)
-                   (loop for (a v . rest) on attrs by #'cddr
-                         do (format-attr a (escape-value v))
-                            (when rest
-                              (write-char #\Space stream)))))
-          (declare (inline seen?))
-          (loop for attr = (pop attrs)
-                for value = (pop attrs)
-                if (eql attr :attrs)
-                  do (dynamic-attrs value)
-                else do (format-attr attr value)
-                        (when (null attrs)
-                          (loop-finish))
-                        (pprint-newline :fill stream))))))
+  (let* ((seen '())
+         (start-col *depth*)
+         (fill *fill-column*)
+         (goal (+ start-col fill)))
+    ;; Ensure that the leftmost keyword has priority,
+    ;; as in function lambda lists.
+    (serapeum:fbind ((too-long?
+                      (if *print-pretty*
+                          (lambda (len)
+                            (> (+ len (html-stream-column stream))
+                               goal))
+                          (constantly nil))))
+      (labels ((seen? (name)
+                 (declare (optimize speed)
+                          (symbol name))
+                 (prog1 (member name seen)
+                   (push name seen)))
+               (format-attr (attr value)
+                 (unless (or (null value) (seen? attr))
+                   (if (boolean? attr)
+                       (let ((len (length (symbol-name attr))))
+                         ;; No valid attribute is longer than 80. (I
+                         ;; suppose a data attribute could be.)
+                         (if (too-long? len)
+                             (format stream "~%~V,0T~(~a~)" start-col attr)
+                             (progn
+                               (format stream " ~(~a~)" attr))))
+                       (let ((value (format-attribute-value value)))
+                         (let ((len (1+ (length (symbol-name attr)))))
+                           (if (too-long? len)
+                               (format stream "~%~V,0T~(~a~)=" start-col attr)
+                               (format stream " ~(~a~)=" attr)))
+                         (format stream "~a" value)))))
+               (dynamic-attrs (attrs)
+                 (doplist (a v attrs)
+                   (format-attr a (escape-value v)))))
+        (declare (inline seen? too-long?))
+        (doplist (attr value attrs)
+          (if (eql attr :attrs)
+              (dynamic-attrs value)
+              (format-attr attr value)))))))
 
 (defun format-attributes (attrs &optional (stream *html*))
   (declare (stream stream))
   (if (null attrs)
       (write-char #\> stream)
-      (let ((seen '())
-            *print-lines* *print-miser-width*
-            *print-level* *print-length*)
+      (let ((seen '()))
         ;; Ensure that the leftmost keyword has priority,
         ;; as in function lambda lists.
         (pprint-logical-block (stream attrs)
@@ -241,7 +266,8 @@
             string))))
 
 (defun format-text (control-string &rest args)
-  (pprint-newline :mandatory *html*)
+  (when *print-pretty*
+    (terpri *html*))
   (let ((*depth* (1+ *depth*)))
     (fill-text (format nil "~?" control-string args) t))
   (values))
