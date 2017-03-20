@@ -1,7 +1,8 @@
 ;;;; package.lisp
 
 (defpackage #:spinneret
-  (:use #:cl #:parenscript #:alexandria)
+  (:use #:cl #:parenscript #:alexandria
+    #:trivial-gray-streams)
   (:export #:with-html #:with-html-string #:html
            #:*html*
            #:*html-lang* #:*html-charset*

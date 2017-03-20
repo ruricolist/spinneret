@@ -12,8 +12,10 @@
                #:alexandria
                #:cl-ppcre
                #:global-vars
-               #:serapeum)
+               #:serapeum
+               #:trivial-gray-streams)
   :components ((:file "package")
+               (:file "stream")
                (:file "syntax")
                (:file "tags")
                (:file "spinneret")
