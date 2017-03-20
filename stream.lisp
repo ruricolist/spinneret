@@ -103,3 +103,11 @@
   ;; (:method elastic-newline (s)
   ;;   (setf elastic-newline t))
   )
+
+
+(defmacro with-block ((&key (stream '*html*)) &body body)
+  (serapeum:with-thunk (body)
+    `(if *print-pretty*
+         (let ((*block-start* (html-stream-column ,stream)))
+           (funcall ,body))
+         (funcall ,body))))

@@ -25,7 +25,7 @@
            (not (or inline? paragraph?)))
          (newline-before-close
            newline-after-start)
-         (open (fmt "~(~A~)" tag))
+         (open (fmt "<~(~A~)" tag))
          (close (and needs-close? (fmt "</~(~A~)>" tag))))
     `(progn
        (declaim (notinline ,fn-name))
@@ -34,34 +34,36 @@
                    (speed 3) (safety 0) (debug 0)
                    (compilation-speed 0))
                   (function body))
-         (let ((*pre* pre?)
+         (let ((html *html*)
+               (pretty *print-pretty*)
+               (*pre* pre?)
                (*depth* (1+ *depth*))
                (*html-path* (cons ,(make-keyword tag) *html-path*)))
            (declare (dynamic-extent *html-path*))
            ,@(unsplice
               (when newline-before-start
-                `(pprint-newline :mandatory *html*)))
-           (,@(if inline? '(progn) `(pprint-logical-block (*html* nil)))
-            ;; Print the opening tag.
-            (pprint-logical-block (*html* nil :prefix "<" :suffix ">")
-              (write-string ,open *html*)
-              (when attrs
-                (,(if inline? 'format-attributes/inline 'format-attributes)
-                 attrs *html*)))
-            (unless empty?
-              ;; Print the body.
-              (pprint-indent :block 1 *html*)
-              ;; (pprint-newline ,(eif newline-after-start :mandatory :fill)
-              ;;                 *html*)
-              (without-trailing-space
-                (funcall body)))
-            ;; Print the closing tag.
-            (pprint-indent :block 0 *html*)
-            (pprint-newline ,(eif newline-before-close :mandatory :fill)
-                            *html*)
-            ,@(unsplice
-               (when needs-close?
-                 `(write-string ,close *html*))))
+                '(newline-and-indent html)))
+           ;; Print the opening tag.
+           (write-string ,open html)
+           (when attrs
+             (eif pretty
+                  (,(eif inline?
+                         'format-attributes-pretty/inline
+                         'format-attributes-pretty/block)
+                   attrs html)
+                  (format-attributes-plain attrs html)))
+           (write-char #\> html)
+           (unless empty?
+             ;; Print the body.
+             (without-trailing-space
+               (funcall body)))
+           ,@(unsplice
+              (when newline-before-close
+                '(newline-and-indent html)))
+           ;; Print the closing tag.
+           ,@(unsplice
+              (when needs-close?
+                `(write-string ,close *html*)))
            (values))))))
 
 (defmacro define-all-tags ()

@@ -7,6 +7,12 @@
 (defvar *depth* -1
   "Depth of the tag being output.")
 
+(defvar *block-start*)
+
+(defun get-block-start ()
+  (or (serapeum:bound-value '*block-start*)
+      *depth*))
+
 (defvar *pre* nil)
 
 (defparameter *fill-column* 80
@@ -171,20 +177,14 @@ This is always measured from the start of the tag.")
         ((eql value t) "true")
         (t value)))
 
-(defun format-attributes/inline (attrs &optional (stream *html*))
-  (declare (stream stream))
-  (let* ((seen '())
-         (start-col *depth*)
-         (fill *fill-column*)
-         (goal (+ start-col fill)))
-    ;; Ensure that the leftmost keyword has priority,
-    ;; as in function lambda lists.
-    (serapeum:fbind ((too-long?
-                      (if *print-pretty*
-                          (lambda (len)
-                            (> (+ len (html-stream-column stream))
-                               goal))
-                          (constantly nil))))
+(defun format-attributes-with (attrs print-boolean print-value)
+  "Format ATTRS, uses the unary function PRINT-BOOLEAN to print
+Boolean attributes, and the binary function PRINT-VALUE to print
+ordinary attributes."
+  (serapeum:fbind (print-boolean print-value)
+    (let ((seen '()))
+      ;; Ensure that the leftmost keyword has priority,
+      ;; as in function lambda lists.
       (labels ((seen? (name)
                  (declare (optimize speed)
                           (symbol name))
@@ -193,66 +193,63 @@ This is always measured from the start of the tag.")
                (format-attr (attr value)
                  (unless (or (null value) (seen? attr))
                    (if (boolean? attr)
-                       (let ((len (length (symbol-name attr))))
-                         ;; No valid attribute is longer than 80. (I
-                         ;; suppose a data attribute could be.)
-                         (if (too-long? len)
-                             (format stream "~%~V,0T~(~a~)" start-col attr)
-                             (progn
-                               (format stream " ~(~a~)" attr))))
+                       (print-boolean attr)
                        (let ((value (format-attribute-value value)))
-                         (let ((len (1+ (length (symbol-name attr)))))
-                           (if (too-long? len)
-                               (format stream "~%~V,0T~(~a~)=" start-col attr)
-                               (format stream " ~(~a~)=" attr)))
-                         (format stream "~a" value)))))
+                         (print-value attr value)))))
                (dynamic-attrs (attrs)
                  (doplist (a v attrs)
                    (format-attr a (escape-value v)))))
-        (declare (inline seen? too-long?))
+        (declare (inline seen?))
         (doplist (attr value attrs)
           (if (eql attr :attrs)
               (dynamic-attrs value)
               (format-attr attr value)))))))
 
-(defun format-attributes (attrs &optional (stream *html*))
+(defun format-attributes-plain (attrs &optional (stream *html*))
+  (flet ((format-boolean (attr)
+           (format stream " ~(~a~)" attr))
+         (format-value (attr value)
+           (format stream " ~(~a~)=~a" attr value)))
+    (declare (dynamic-extent #'format-boolean #'format-value))
+    (format-attributes-with attrs #'format-boolean #'format-value)))
+
+(defun format-attributes-pretty/inline (attrs &optional (stream *html*))
   (declare (stream stream))
-  (if (null attrs)
-      (write-char #\> stream)
-      (let ((seen '()))
-        ;; Ensure that the leftmost keyword has priority,
-        ;; as in function lambda lists.
-        (pprint-logical-block (stream attrs)
-          (labels ((seen? (name)
-                     (declare (optimize speed)
-                              (symbol name))
-                     (prog1 (member name seen)
-                       (push name seen)))
-                   (format-attr (attr value)
-                     (unless (or (null value) (seen? attr))
-                       (write-char #\Space stream)
-                       (if (boolean? attr)
-                           (pprint-logical-block (stream nil)
-                             (format stream "~(~a~)" attr))
-                           (let ((value (format-attribute-value value)))
-                             (pprint-logical-block (stream nil)
-                               (format stream "~(~a~)=" attr)
-                               (pprint-newline :fill stream)
-                               (format stream "~a" value))))))
-                   (dynamic-attrs (attrs)
-                     (loop for (a v . rest) on attrs by #'cddr
-                           do (format-attr a (escape-value v))
-                              (when rest
-                                (write-char #\Space stream)))))
-            (declare (inline seen?))
-            (loop for attr = (pprint-pop)
-                  for value = (pprint-pop)
-                  if (eql attr :attrs)
-                    do (dynamic-attrs value)
-                  else do (format-attr attr value)
-                          (pprint-exit-if-list-exhausted)
-                          (write-char #\Space stream)
-                          (pprint-newline :linear stream)))))))
+  (let* ((start-col (get-block-start))
+         (fill *fill-column*)
+         (goal (+ start-col fill)))
+    (serapeum:fbind* ((too-long?
+                       (if *print-pretty*
+                           (lambda (len)
+                             (> (+ len (html-stream-column stream))
+                                goal))
+                           (constantly nil)))
+                      (print-boolean
+                       (lambda (attr)
+                         (let ((len (length (symbol-name attr))))
+                           ;; No valid attribute is longer than 80. (I
+                           ;; suppose a data attribute could be.)
+                           (if (too-long? len)
+                               (format stream "~%~V,0T~(~a~)" (1- start-col) attr)
+                               (progn
+                                 (format stream " ~(~a~)" attr))))))
+                      (print-attr
+                       (lambda (attr value)
+                         (let ((len (1+ (length (symbol-name attr)))))
+                           (if (too-long? len)
+                               (format stream "~%~V,0T~(~a~)=" (1- start-col) attr)
+                               (format stream " ~(~a~)=" attr)))
+                         (format stream "~a" value))))
+      (declare (dynamic-extent #'print-boolean #'print-attr))
+      (format-attributes-with attrs
+                              #'print-boolean
+                              #'print-attr))))
+
+(defun format-attributes-pretty/block (attrs &optional (stream *html*))
+  (declare (stream stream))
+  (let ((*fill-column* (truncate *fill-column* 2)))
+    (with-block ()
+      (format-attributes-pretty/inline attrs stream))))
 
 (defun escape-value (value)
   (if (or (eq value t)

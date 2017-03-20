@@ -203,3 +203,64 @@
                "<a href=# data-instant=true></a>"))
     (is (equal (with-html-string (:a :href "#" :data-instant nil))
                "<a href=#></a>"))))
+
+(serapeum:def lorem-ipsum
+  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
+
+(defun lorem-ipsum ()
+  (let ((*print-pretty* t)
+        (*fill-column* 80))
+    (with-html-string
+      (:doctype)
+      (:html
+        (:body
+          (:div
+            (:p lorem-ipsum (:span)
+              (:a :href "" :data-instant t "Hello")
+              lorem-ipsum)))))))
+
+(test lorem-ipsum
+  (is (visually-equal
+       #.(format nil "~
+<!DOCTYPE html>
+<html lang=en>
+ <body>
+  <div>
+   <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+   tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+   quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo
+   consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum
+   dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+   sunt in culpa qui officia deserunt mollit anim id est laborum.<span></span><a
+   href=\"\" data-instant=true>Hello</a> Lorem ipsum dolor sit amet, consectetur
+   adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna
+   aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi
+   ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in
+   voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
+   occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim
+   id est laborum.
+  </div>
+ </body>
+</html>
+")
+       (lorem-ipsum))))
+
+(test hello-hello-hello
+  (is (visually-equal
+       "<div>
+ <div>
+  <div>
+   <ul>
+    <li><a class=\"class1 class2 class3 class4 class5\" href=\"hello hello hello\"></a>
+   </ul>
+  </div>
+ </div>
+</div>"
+       (spinneret:with-html-string
+         (:div
+           (:div
+             (:div
+               (:ul
+                 (:li
+                   (:a.class1.class2.class3.class4.class5
+                    :href "hello hello hello"))))))))))

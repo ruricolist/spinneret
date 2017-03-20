@@ -9,10 +9,11 @@
            #:get-html-path
            #:do-elements
            #:deftag
-           #:*unvalidated-attribute-prefixes*)
+           #:*unvalidated-attribute-prefixes*
+           #:*fill-column*)
   (:shadowing-import-from :alexandria :switch)
   (:import-from :serapeum
     :fmt :unsplice :string+ :eif
     :define-do-macro
-    :nlet)
+    :nlet :nix :assure)
   (:import-from :global-vars :define-global-parameter))

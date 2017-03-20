@@ -19,14 +19,10 @@ This is necessary because *HTML-PATH* itself is stack-allocated."
 
 (defmacro with-html (&body body &environment env)
   "Interpret BODY as HTML. Consult README.txt for the syntax."
-  `(let (*print-lines*
-         *print-miser-width*
-         *print-level*
-         *print-length*)
-     (pprint-logical-block (*html* nil)
-       ,(if (and (null (cdr body)) (atom (car body)))
-            (car body)
-            `(progn ,@(parse-html body env))))))
+  `(let ((*html* (ensure-html-stream *html*)))
+     ,(if (and (null (cdr body)) (atom (car body)))
+          (car body)
+          `(progn ,@(parse-html body env)))))
 
 (defmacro with-html-string (&body body)
   "Like WITH-HTML, but capture the output as a string."
