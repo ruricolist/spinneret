@@ -288,3 +288,30 @@
            (:input :type "password" :name "password"
              :class "form-control" :id "password"
              :required t))))))
+
+(test indent-text-sanely
+  (is (visually-equal
+       (format nil "~
+   <div class=\"last-update col-xs-2 col-md-1\"
+        title=\"Last updated 232 days ago\">
+    232d
+   </div>")
+       (let ((*print-pretty* t))
+         (with-html-string
+           (:div :class "last-update col-xs-2 col-md-1" :title "Last updated 232 days ago"
+             "232d"))))))
+
+(test indent-sanely-in-blocks-in-paragraphs
+  (let ((*print-pretty* t))
+    (is (serapeum:string*=
+         (with-html-string
+           (:div :class "status col-xs-2 col-md-1"
+             (:span :class "text-success"
+               (:a :href "https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#200"
+                 200))))
+         (with-html-string
+           (:li
+             (:div :class "status col-xs-2 col-md-1"
+               (:span :class "text-success"
+                 (:a :href "https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#200"
+                   200)))))))))
