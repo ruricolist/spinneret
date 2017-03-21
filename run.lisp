@@ -13,6 +13,9 @@
   (or (serapeum:bound-value '*block-start*)
       *depth*))
 
+(defun in-block? ()
+  (boundp '*block-start*))
+
 (defvar *pre* nil)
 
 (defparameter *fill-column* 80
@@ -246,10 +249,12 @@ ordinary attributes."
                               #'print-attr))))
 
 (defun format-attributes-pretty/block (attrs &optional (stream *html*))
-  (declare (stream stream))
-  (let ((*fill-column* (truncate *fill-column* 2)))
-    (with-block ()
-      (format-attributes-pretty/inline attrs stream))))
+  (declare (html-stream stream))
+  (let ((*fill-column* (truncate *fill-column* 2))
+        (*block-start* (+ (html-stream-column stream)
+                          ;; Force the attributes to line up.
+                          2)))
+    (format-attributes-pretty/inline attrs stream)))
 
 (defun escape-value (value)
   (if (or (eq value t)

@@ -43,9 +43,12 @@
                (*depth* (1+ *depth*))
                (*html-path* (cons ,(make-keyword tag) *html-path*)))
            (declare (dynamic-extent *html-path*))
-           ,@(unsplice
-              (when newline-before-start
-                '(newline-and-indent html)))
+           ,(if newline-before-start
+                '(newline-and-indent html)
+                ;; Inline elements should be indented when not in
+                ;; blocks.
+                '(unless (in-block?)
+                  (newline-and-indent html)))
            ;; Print the opening tag.
            (write-string ,open html)
            (when attrs
@@ -57,9 +60,12 @@
                   (format-attributes-plain attrs html)))
            (write-char #\> html)
            (unless empty?
-             ;; Print the body.
-             (without-trailing-space
-               (funcall body)))
+             (,@(eif paragraph?
+                     '(let ((*block-start* (1+ *depth*))))
+                     '(progn))
+              ;; Print the body.
+              (without-trailing-space
+                (funcall body))))
            ,@(unsplice
               (when newline-before-close
                 '(newline-and-indent html)))

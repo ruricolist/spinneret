@@ -30,6 +30,10 @@
   (:method ((x t))
     (values)))
 
+(defgeneric html-stream-column (stream)
+  (:method ((x stream))
+    0))
+
 (serapeum:defmethods html-stream (s col line last-char base-stream
                                     elastic-newline)
   (:method ensure-html-stream (s)
@@ -61,29 +65,42 @@
     char)
 
   (:method stream-write-string (s string &optional (start 0) end)
-    (let ((end (or end (length string)))
-          (start (or start 0)))
-      (declare (type array-index start end))
-      (nlet rec ((start start))
-        (when (nix elastic-newline)
-          (unless (serapeum:string^= #\Newline string)
-            (incf line)
-            (setf col 0)
-            (terpri base-stream)))
-        (let ((newline-count (count #\Newline string :start start :end end)))
-          (if (= newline-count 0)
-              (progn
-                (write-string string base-stream :start start :end end)
-                (incf col (- end start)))
-              (progn
-                (incf line newline-count)
-                (setf col (- end (position #\Newline string
-                                           :from-end t
-                                           :end end
-                                           :start start))))))
-        (when (> (- end start) 1)
-          (setf last-char (aref string (1- end))))))
-    string)
+    (declare (type (or null array-index) start end))
+    (prog1 string
+      (let* ((end (or end (length string)))
+             (start (or start 0))
+             (len (assure array-index (- end start))))
+        (cond ((= len 0))
+              ((= len 1)
+               (write-char (aref string start) s))
+              (t
+               (when (nix elastic-newline)
+                 (unless (eql (aref string start) #\Newline)
+                   (incf line)
+                   (setf col 0)
+                   (terpri base-stream)))
+               (setf last-char (aref string (1- end)))
+               (multiple-value-bind (newline-count chars)
+                   (nlet rec ((i start)
+                              (lines 0)
+                              (chars 0))
+                     (eif (= i end)
+                          (values lines chars)
+                          (let ((c (aref string i)))
+                            (eif (eql c #\Newline)
+                                 (rec (1+ i)
+                                      (1+ lines)
+                                      0)
+                                 (rec (1+ i)
+                                      lines
+                                      (1+ chars))))))
+                 (declare (array-index newline-count chars))
+                 (write-string string base-stream :start start :end end)
+                 (eif (> newline-count 0)
+                      (progn
+                        (incf line newline-count)
+                        (setf col chars))
+                      (incf col chars))))))))
 
   (:method stream-terpri (s)
     (incf line)
@@ -111,9 +128,11 @@
     (setf elastic-newline t)))
 
 
-(defmacro with-block ((&key (stream '*html*)) &body body)
+(defmacro with-block ((&key (stream '*html*)
+                            (offset 0))
+                      &body body)
   (serapeum:with-thunk (body)
-    `(if *print-pretty*
-         (let ((*block-start* (html-stream-column ,stream)))
-           (funcall ,body))
-         (funcall ,body))))
+    `(let ((*block-start*
+             (+ (html-stream-column ,stream)
+                ,offset)))
+       (funcall ,body))))

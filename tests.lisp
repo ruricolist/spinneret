@@ -160,7 +160,8 @@
  <head>
   <meta charset=UTF-8>
  </head>
- <body><a>hai</a>
+ <body>
+  <a>hai</a>
  </body>
 </html>")))))
 
@@ -180,11 +181,10 @@
                (spinneret:with-html-string (:div "hi" (:span " there"))))))
   (is (visually-equal
        #.(format nil "~
-<div>hi <span>there</span>
-</div>")
+<p>hi <span>there</span>")
        (let ((*print-pretty* t))
          (spinneret:with-html-string
-           (:div "hi " (:span "there")))))))
+           (:p "hi " (:span "there")))))))
 
 (test null-attr
   (let (*print-pretty*)
@@ -264,3 +264,27 @@
                  (:li
                    (:a.class1.class2.class3.class4.class5
                     :href "hello hello hello"))))))))))
+
+(test inline-element-after-paragraph
+  (is (visually-equal
+       (format nil "~
+<div>
+ <p>Hello
+ <a>world</a>
+</div>")
+       (let ((*print-pretty* t))
+         (with-html-string
+           (:div
+             (:p "Hello")
+             (:a "world")))))))
+
+(test indent-attributes-in-blocks
+  (is (visually-equal
+       (format nil "~
+<input class=form-control type=password name=password
+       id=password required>")
+       (let ((*print-pretty* t))
+         (with-html-string
+           (:input :type "password" :name "password"
+             :class "form-control" :id "password"
+             :required t))))))
