@@ -63,7 +63,7 @@
            ;; Print the closing tag.
            ,@(unsplice
               (when needs-close?
-                `(write-string ,close *html*)))
+                `(write-string ,close html)))
            (values))))))
 
 (defmacro define-all-tags ()
