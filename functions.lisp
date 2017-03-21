@@ -17,6 +17,7 @@
   (let* ((inline? (inline? tag))
          (paragraph? (paragraph? tag))
          (needs-close? (not (or (void? tag) (unmatched? tag))))
+
          (fn-name
            (tag-fn tag :intern t))
          (newline-before-start
@@ -25,6 +26,8 @@
            (not (or inline? paragraph?)))
          (newline-before-close
            newline-after-start)
+         (newline-after-close
+           paragraph?)
          (open (fmt "<~(~A~)" tag))
          (close (and needs-close? (fmt "</~(~A~)>" tag))))
     `(progn
@@ -64,6 +67,9 @@
            ,@(unsplice
               (when needs-close?
                 `(write-string ,close html)))
+           ,@(unsplice
+              (when newline-after-close
+                `(elastic-newline html)))
            (values))))))
 
 (defmacro define-all-tags ()
