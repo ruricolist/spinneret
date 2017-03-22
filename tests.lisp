@@ -291,6 +291,18 @@
              :class "form-control" :id "password"
              :required t))))))
 
+(test indent-text-sanely
+  (is (visually-equal
+       (format nil "~
+   <div class=\"last-update col-xs-2 col-md-1\"
+        title=\"Last updated 232 days ago\">
+    232d
+   </div>")
+       (let ((*print-pretty* t))
+         (with-html-string
+           (:div :class "last-update col-xs-2 col-md-1" :title "Last updated 232 days ago"
+             "232d"))))))
+
 (defun indent-string (string n)
   "Add N spaces at the beginning of each line of STRING."
   (let ((padding (make-string n :initial-element #\Space)))
@@ -316,3 +328,17 @@
                (:span :class "text-success"
                  (:a :href "https://en.wikipedia.org/wiki/List_of_HTTP_status_codes#200"
                    200)))))))))
+
+(test indent-closing-inline-tags-in-blocks
+  (let ((*print-pretty* t))
+    (is (visually-equal
+         (format nil "~
+<div>
+ <span>
+  <a href=#>Hello</a>
+ </span>
+</div>")
+         (with-html-string
+           (:div
+             (:span
+               (:a :href "#" "Hello"))))))))
