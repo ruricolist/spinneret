@@ -61,8 +61,7 @@
       (write-char #\Newline s))
     (incf col 1)
     (write-char char base-stream)
-    (setf last-char char)
-    char)
+    (setf last-char char))
 
   (:method stream-write-string (s string &optional (start 0) end)
     (declare (type (or null array-index) start end))
@@ -106,11 +105,13 @@
     (incf line)
     (setf col 0)
     (setf last-char #\Newline)
+    (nix elastic-newline)
     (terpri base-stream))
 
   (:method stream-fresh-line (s)
-    (unless (eql last-char #\Newline)
-      (terpri s)))
+    (prog1 (unless (eql last-char #\Newline)
+             (terpri s))
+      (assert (eql last-char #\Newline))))
 
   (:method stream-finish-output (s)
     (finish-output base-stream))
@@ -119,9 +120,9 @@
     (force-output base-stream))
 
   (:method stream-advance-to-column (s c)
-    (when (< col c)
-      (loop repeat (- c col) do
-        (write-char #\Space s)))
+    (loop while (< col c) do
+      (write-char #\Space s))
+    (assert (>= col c))
     t)
 
   (:method elastic-newline (s)

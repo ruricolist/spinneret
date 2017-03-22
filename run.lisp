@@ -14,7 +14,7 @@
       *depth*))
 
 (defun in-block? ()
-  (boundp '*block-start*))
+  (serapeum:bound-value '*block-start*))
 
 (defvar *pre* nil)
 
@@ -38,12 +38,15 @@ This is always measured from the start of the tag.")
 
 (defun indent (&optional (stream *html*) (col *depth*))
   (when *print-pretty*
-    (format stream "~V,0T" col)))
+    (let (*print-pretty*)
+      (format stream "~V,0T" col)))
+  col)
 
 (defun newline-and-indent (&optional (stream *html*))
   "Fresh line and indent according to *DEPTH*."
   (when *print-pretty*
-    (format stream "~&~V,0T" *depth*)))
+    (let (*print-pretty*)
+      (format stream "~&~V,0T" *depth*))))
 
 (defmacro without-trailing-space (&body body)
   `(let ((*pending-space* nil))
@@ -148,7 +151,7 @@ This is always measured from the start of the tag.")
             (goal (+ fill start-col)))
        (when (whitespace (aref string 0))
          (write-char #\Space html))
-       (indent html)
+       (indent html start-col)
        (flet ((wrap ()
                 (terpri html)
                 (indent html start-col)))

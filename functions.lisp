@@ -59,10 +59,13 @@
                    attrs html)
                   (format-attributes-plain attrs html)))
            (write-char #\> html)
+           ,@(unsplice
+              (when newline-after-start
+                '(elastic-newline html)))
            (unless empty?
              (,@(eif paragraph?
                      '(let ((*block-start* (1+ *depth*))))
-                     '(progn))
+                     '(let ((*block-start* nil))))
               ;; Print the body.
               (without-trailing-space
                 (funcall body))))
