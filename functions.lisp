@@ -20,8 +20,6 @@
 
          (fn-name
            (tag-fn tag :intern t))
-         (newline-before-start
-           (and (not inline?) (not (eql tag :html))))
          (newline-after-start
            (not (or inline? paragraph?)))
          (newline-before-close
@@ -43,12 +41,11 @@
                (*depth* (1+ *depth*))
                (*html-path* (cons ,(make-keyword tag) *html-path*)))
            (declare (dynamic-extent *html-path*))
-           ,(if newline-before-start
-                '(newline-and-indent html)
-                ;; Inline elements should be indented when not in
-                ;; blocks.
+           ,(if inline?
                 '(unless (in-block?)
-                  (newline-and-indent html)))
+                  (fresh-line html))
+                '(fresh-line html))
+           (indent html *depth*)
            ;; Print the opening tag.
            (write-string ,open html)
            (when attrs

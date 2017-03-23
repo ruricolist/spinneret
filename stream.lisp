@@ -2,7 +2,8 @@
 
 (defclass html-stream (fundamental-character-output-stream)
   ((col :type (integer 0 *) :initform 0
-        :reader html-stream-column)
+        :reader html-stream-column
+        :reader stream-line-column)
    (line :type (integer 0 *) :initform 0)
    (last-char :type character
               ;; The last char defaults to newline to get reasonable
@@ -34,6 +35,10 @@
   (:method ((x stream))
     0))
 
+(defgeneric indent (stream col)
+  (:method ((s stream) col)
+    (format s "~V,0T" col)))
+
 (serapeum:defmethods html-stream (s col line last-char base-stream
                                     elastic-newline)
   (:method ensure-html-stream (s)
@@ -42,23 +47,25 @@
   (:method html-stream? (s)
     t)
 
-  (:method stream-line-column (s)
-    col)
-
   (:method stream-start-line-p (s)
     (= col 0))
+
+  (:method fire-elastic-newline (s (char (eql #\Newline)))
+    (nix elastic-newline))
+
+  (:method fire-elastic-newline (s char)
+    (when (nix elastic-newline)
+      (write-char #\Newline s)))
 
   (:method stream-write-char (s (char (eql #\Newline)))
     (nix elastic-newline)
     (incf line)
     (setf col 0)
     (setf last-char #\Newline)
-    (terpri base-stream)
-    #\Newline)
+    (write-char #\Newline base-stream))
 
   (:method stream-write-char (s char)
-    (when (nix elastic-newline)
-      (write-char #\Newline s))
+    (fire-elastic-newline s char)
     (incf col 1)
     (write-char char base-stream)
     (setf last-char char))
@@ -73,11 +80,7 @@
               ((= len 1)
                (write-char (aref string start) s))
               (t
-               (when (nix elastic-newline)
-                 (unless (eql (aref string start) #\Newline)
-                   (incf line)
-                   (setf col 0)
-                   (terpri base-stream)))
+               (fire-elastic-newline s (aref string start))
                (setf last-char (aref string (1- end)))
                (multiple-value-bind (newline-count chars)
                    (nlet rec ((i start)
@@ -125,15 +128,9 @@
     (assert (>= col c))
     t)
 
+  (:method indent (s c)
+    (prog1 (stream-advance-to-column s c)
+      (assert (>= col c))))
+
   (:method elastic-newline (s)
     (setf elastic-newline t)))
-
-
-(defmacro with-block ((&key (stream '*html*)
-                            (offset 0))
-                      &body body)
-  (serapeum:with-thunk (body)
-    `(let ((*block-start*
-             (+ (html-stream-column ,stream)
-                ,offset)))
-       (funcall ,body))))
