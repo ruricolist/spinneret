@@ -16,14 +16,14 @@
 (defvar *depth* -1
   "Depth of the tag being output.")
 
-(defvar *block-start*)
+(defvar *indent*)
 
-(defun get-block-start ()
-  (or (serapeum:bound-value '*block-start*)
+(defun get-indent ()
+  (or (serapeum:bound-value '*indent*)
       *depth*))
 
 (defun in-block? ()
-  (serapeum:bound-value '*block-start*))
+  (serapeum:bound-value '*indent*))
 
 (defvar *pre* nil)
 

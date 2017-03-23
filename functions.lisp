@@ -61,8 +61,8 @@
                 '(elastic-newline html)))
            (unless empty?
              (,@(eif paragraph?
-                     '(let ((*block-start* (1+ *depth*))))
-                     '(let ((*block-start* nil))))
+                     '(let ((*indent* (1+ *depth*))))
+                     '(let ((*indent* nil))))
               ;; Print the body.
               (without-trailing-space
                 (funcall body))))

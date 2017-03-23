@@ -197,7 +197,7 @@ ordinary attributes."
 
 (defun format-attributes-pretty/inline (attrs &optional (stream *html*))
   (declare (stream stream))
-  (let* ((start-col (get-block-start))
+  (let* ((start-col (get-indent))
          (fill *fill-column*)
          (goal (+ start-col fill)))
     (serapeum:fbind* ((too-long?
@@ -230,9 +230,9 @@ ordinary attributes."
 (defun format-attributes-pretty/block (attrs &optional (stream *html*))
   (declare (html-stream stream))
   (let ((*fill-column* (truncate *fill-column* 2))
-        (*block-start* (+ (html-stream-column stream)
-                          ;; Force the attributes to line up.
-                          2)))
+        (*indent* (+ (html-stream-column stream)
+                     ;; Force the attributes to line up.
+                     2)))
     (format-attributes-pretty/inline attrs stream)))
 
 (defun escape-value (value)
