@@ -30,22 +30,24 @@
          (close (and needs-close? (fmt "</~(~A~)>" tag))))
     `(progn
        (declaim (notinline ,fn-name))
+       (declaim (ftype (function (list function t t) (values))
+                       ,fn-name))
        (defun ,fn-name (attrs body pre? empty?)
          (declare (optimize
                    (speed 3) (safety 0) (debug 0)
                    (compilation-speed 0))
-                  (function body))
+                  (type function body)
+                  (type list attrs))
          (let ((html *html*)
                (pretty *print-pretty*)
                (*pre* pre?)
                (*depth* (1+ *depth*))
                (*html-path* (cons ,(make-keyword tag) *html-path*)))
            (declare (dynamic-extent *html-path*))
-           ,(if inline?
-                '(unless (in-block?)
-                  (fresh-line html))
-                '(fresh-line html))
-           (indent html *depth*)
+           (when pretty
+             ,(if inline?
+                  `(maybe-wrap ,(length open) html)
+                  '(fresh-line html)))
            ;; Print the opening tag.
            (write-string ,open html)
            (when attrs
@@ -56,26 +58,24 @@
                    attrs html)
                   (format-attributes-plain attrs html)))
            (write-char #\> html)
-           ,@(unsplice
-              (when newline-after-start
-                '(elastic-newline html)))
            (unless empty?
-             (,@(eif paragraph?
-                     '(let ((*indent* (1+ *depth*))))
-                     '(let ((*indent* nil))))
-              ;; Print the body.
-              (without-trailing-space
-                (funcall body))))
-           ,@(unsplice
-              (when newline-before-close
-                '(newline-and-indent html)))
+             ,(when newline-after-start
+                '(when pretty
+                  (elastic-newline html)))
+             (let ((*indent* (1+ *depth*)))
+               ;; Print the body.
+               (without-trailing-space
+                 (funcall body)))
+             ,(when newline-before-close
+                '(when pretty
+                  (terpri html))))
            ;; Print the closing tag.
            ,@(unsplice
               (when needs-close?
                 `(write-string ,close html)))
            ,@(unsplice
               (when newline-after-close
-                `(elastic-newline html)))
+                '(elastic-newline html)))
            (values))))))
 
 (defmacro define-all-tags ()

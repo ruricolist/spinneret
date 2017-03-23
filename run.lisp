@@ -16,18 +16,6 @@
           `(fast-format ,stream (formatter ,control-string) ,@args))
       call))
 
-(defun indent (&optional (stream *html*) (col *depth*))
-  (when *print-pretty*
-    (let (*print-pretty*)
-      (format stream "~V,0T" col)))
-  col)
-
-(defun newline-and-indent (&optional (stream *html*))
-  "Fresh line and indent according to *DEPTH*."
-  (when *print-pretty*
-    (let (*print-pretty*)
-      (format stream "~&~V,0T" *depth*))))
-
 (defmacro without-trailing-space (&body body)
   `(let ((*pending-space* nil))
      ,@body))
@@ -115,6 +103,15 @@
   (serapeum:with-thunk (body var at-end?)
     `(call/words ,body ,string)))
 
+(defun maybe-wrap (&optional (offset 0) (stream *html*))
+  (when *print-pretty*
+    (let* ((indent (get-indent))
+           (fill *fill-column*)
+           (goal (+ fill indent))
+           (col (+ offset (html-stream-column stream))))
+      (when (> col goal)
+        (terpri stream)))))
+
 (defun fill-text (string &optional safe? &aux (html *html*))
   (check-type string string)
   (cond
@@ -122,16 +119,12 @@
     (*pre*
      (fast-format html "~&~A~%" string))
     (*print-pretty*
-     (let* ((start-col *depth*)
+     (let* ((start-col (get-indent))
             (fill *fill-column*)
             (goal (+ fill start-col)))
        (when (whitespace (aref string 0))
          (write-char #\Space html))
-       (indent html start-col)
-       (flet ((wrap ()
-                (terpri html)
-                (indent html start-col)))
-         (declare (dynamic-extent #'wrap))
+       (flet ((wrap () (terpri html))) (declare (inline wrap))
          (do-words (word at-end? string)
            (let* ((word (if safe? word (escape-string word)))
                   (len (length word)))
@@ -212,14 +205,14 @@ ordinary attributes."
                            ;; No valid attribute is longer than 80. (I
                            ;; suppose a data attribute could be.)
                            (if (too-long? len)
-                               (format stream "~%~V,0T~(~a~)" (1- start-col) attr)
+                               (format stream "~%~(~a~)" attr)
                                (progn
                                  (format stream " ~(~a~)" attr))))))
                       (print-attr
                        (lambda (attr value)
                          (let ((len (1+ (length (symbol-name attr)))))
                            (if (too-long? len)
-                               (format stream "~%~V,0T~(~a~)=" (1- start-col) attr)
+                               (format stream "~%~(~a~)=" attr)
                                (format stream " ~(~a~)=" attr)))
                          (format stream "~a" value))))
       (declare (dynamic-extent #'print-boolean #'print-attr))
@@ -230,9 +223,8 @@ ordinary attributes."
 (defun format-attributes-pretty/block (attrs &optional (stream *html*))
   (declare (html-stream stream))
   (let ((*fill-column* (truncate *fill-column* 2))
-        (*indent* (+ (html-stream-column stream)
-                     ;; Force the attributes to line up.
-                     2)))
+        ;; Force the attributes to line up.
+        (*indent* (1+ (html-stream-column stream))))
     (format-attributes-pretty/inline attrs stream)))
 
 (defun escape-value (value)
@@ -249,8 +241,7 @@ ordinary attributes."
 (defun format-text (control-string &rest args)
   (when *print-pretty*
     (terpri *html*))
-  (let ((*depth* (1+ *depth*)))
-    (fill-text (format nil "~?" control-string args) t))
+  (fill-text (format nil "~?" control-string args) t)
   (values))
 
 (defun xss-escape (arg)

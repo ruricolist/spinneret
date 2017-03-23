@@ -22,9 +22,6 @@
   (or (serapeum:bound-value '*indent*)
       *depth*))
 
-(defun in-block? ()
-  (serapeum:bound-value '*indent*))
-
 (defvar *pre* nil)
 
 (defparameter *fill-column* 80

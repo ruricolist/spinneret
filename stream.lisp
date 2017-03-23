@@ -12,7 +12,8 @@
    (elastic-newline :type boolean
                     :initform nil)
    (base-stream :type stream
-                :initarg :base-stream)))
+                :initarg :base-stream))
+  (:default-initargs))
 
 (defun make-html-stream (base-stream)
   (make-instance 'html-stream
@@ -35,9 +36,9 @@
   (:method ((x stream))
     0))
 
-(defgeneric indent (stream col)
-  (:method ((s stream) col)
-    (format s "~V,0T" col)))
+(defun newline (&optional s)
+  (when *print-pretty*
+    (terpri s)))
 
 (serapeum:defmethods html-stream (s col line last-char base-stream
                                     elastic-newline)
@@ -53,16 +54,21 @@
   (:method fire-elastic-newline (s (char (eql #\Newline)))
     (nix elastic-newline))
 
-  (:method fire-elastic-newline (s char)
+  (:method fire-elastic-newline (s (char character))
     (when (nix elastic-newline)
       (write-char #\Newline s)))
 
   (:method stream-write-char (s (char (eql #\Newline)))
     (nix elastic-newline)
+    (write-char #\Newline base-stream)
     (incf line)
-    (setf col 0)
-    (setf last-char #\Newline)
-    (write-char #\Newline base-stream))
+    ;; Remember the starting value is -1.
+    (let ((indent (max 0 (get-indent))))
+      ;; (PRINC INDENT)
+      (setf col indent)
+      (loop repeat indent do
+        (write-char #\Space s)))
+    (setf last-char #\Newline))
 
   (:method stream-write-char (s char)
     (fire-elastic-newline s char)
@@ -105,11 +111,7 @@
                       (incf col chars))))))))
 
   (:method stream-terpri (s)
-    (incf line)
-    (setf col 0)
-    (setf last-char #\Newline)
-    (nix elastic-newline)
-    (terpri base-stream))
+    (write-char #\Newline s))
 
   (:method stream-fresh-line (s)
     (prog1 (unless (eql last-char #\Newline)
@@ -127,10 +129,6 @@
       (write-char #\Space s))
     (assert (>= col c))
     t)
-
-  (:method indent (s c)
-    (prog1 (stream-advance-to-column s c)
-      (assert (>= col c))))
 
   (:method elastic-newline (s)
     (setf elastic-newline t)))
