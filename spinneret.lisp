@@ -4,14 +4,6 @@
 
 ;;;; The exported macros.
 
-(declaim (stream *html*))
-
-(defparameter *html* (make-synonym-stream '*standard-output*)
-  "Output stream for HTML generation.")
-
-(serapeum:defvar-unbound *html-path*
-  "List (in ascending order) of parent nodes.")
-
 (defun get-html-path ()
   "Return a copy of *HTML-PATH*.
 This is necessary because *HTML-PATH* itself is stack-allocated."

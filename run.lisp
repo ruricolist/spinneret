@@ -2,26 +2,6 @@
 
 (in-package #:spinneret)
 
-(declaim (type (integer -1 #.(1- most-positive-fixnum)) *depth*))
-
-(defvar *depth* -1
-  "Depth of the tag being output.")
-
-(defvar *block-start*)
-
-(defun get-block-start ()
-  (or (serapeum:bound-value '*block-start*)
-      *depth*))
-
-(defun in-block? ()
-  (serapeum:bound-value '*block-start*))
-
-(defvar *pre* nil)
-
-(defparameter *fill-column* 80
-  "Column at which to wrap text.
-This is always measured from the start of the tag.")
-
 (defun fast-format (stream control-string &rest args)
   "Like `format', but bind `*print-pretty*' to nil."
   (declare (dynamic-extent args))
@@ -57,10 +37,6 @@ This is always measured from the start of the tag.")
      (flush-space)
      ,@body
      (buffer-space)))
-
-(declaim (boolean *pending-space*))
-
-(defvar *pending-space* nil)
 
 (declaim (inline buffer-space flush-space))
 
@@ -336,15 +312,9 @@ able to use directives like ~c, ~d, ~{~} &c."
                 html)
   (write-string cdata-end html))
 
-(declaim (string *html-lang* *html-charset*))
-
-(defparameter *html-lang* "en")
-
-(defparameter *html-charset* "UTF-8")
-
 (defun make-html (&rest args)
   `(:html :lang *html-lang*
-          ,@args))
+     ,@args))
 
 (defun make-head (&rest args)
   `(:head

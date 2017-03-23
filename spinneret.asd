@@ -15,6 +15,7 @@
                #:serapeum
                #:trivial-gray-streams)
   :components ((:file "package")
+               (:file "special")
                (:file "stream")
                (:file "syntax")
                (:file "tags")
