@@ -342,3 +342,15 @@
            (:div
              (:span
                (:a :href "#" "Hello"))))))))
+
+(test indent-inline-after-paragraph
+  (let ((*print-pretty* t))
+    (is (visually-equal
+         (format nil "~
+<p>
+ <button>Log in</button>
+ <a href=#>Forgot?</a>")
+         (with-html-string
+           (:p
+             (:button "Log in")
+             (:a :href "#" "Forgot?")))))))
