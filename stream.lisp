@@ -60,14 +60,14 @@
 
   (:method stream-write-char (s (char (eql #\Newline)))
     (nix elastic-newline)
-    (write-char #\Newline base-stream)
-    (incf line)
     ;; Remember the starting value is -1.
     (let ((indent (max 0 (get-indent))))
+      (write-char #\Newline base-stream)
+      (incf line)
       ;; (PRINC INDENT)
       (setf col indent)
       (loop repeat indent do
-        (write-char #\Space s)))
+        (write-char #\Space base-stream)))
     (setf last-char #\Newline))
 
   (:method stream-write-char (s char)

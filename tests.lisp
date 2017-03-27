@@ -363,3 +363,25 @@
          (with-html-string
            (:div
              (:div)))))))
+
+(test misaligned-attrs-in-nested-blocks
+  (let ((*print-pretty* t))
+    (is (visually-equal
+         (format nil "~
+<div>
+ <div>
+  <div>
+   <div class=\"list-group toc-entries\"
+        data-instant=true></div>
+  </div>
+ </div>
+</div>
+")))
+
+    (with-html-string
+      (:div
+        (:div
+          (:div
+            (:div.list-group.toc-entries
+             :data-instant t))))))
+  )
