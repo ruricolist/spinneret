@@ -10,7 +10,8 @@
            #:do-elements
            #:deftag
            #:*unvalidated-attribute-prefixes*
-           #:*fill-column*)
+           #:*fill-column*
+           #:html-length)
   (:shadowing-import-from :alexandria :switch)
   (:import-from :serapeum
     :fmt :unsplice :string+ :eif

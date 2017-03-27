@@ -188,19 +188,27 @@ ordinary attributes."
     (declare (dynamic-extent #'format-boolean #'format-value))
     (format-attributes-with attrs #'format-boolean #'format-value)))
 
-(defun html-length (x)
+(defgeneric html-length (x)
+  (:documentation "The length of X when printed as an HTML string.
+
+This is provided so you can give Spinneret the information it needs to
+make reasonable decisions about line wrapping.")
+  (:method ((x t)) 0))
+
+(defun html-length* (x)
   (typecase x
+    ((eql t) 4)
     (string (length x))
     (symbol (length (symbol-name x)))
     (character 1)
-    ((integer 0 0) 1)
-    ((integer 0 999999)
-     (let ((base (float *print-base* 0s0)))
-       (1+ (truncate (log x base)))))
-    ((integer 1000000 99999999999999999)
-     (let ((base (float *print-base* 0d0)))
-       (1+ (truncate (log x base)))))
-    (otherwise nil)))
+    (integer
+     (eif (zerop x) 1
+          (let ((x (abs x))
+                ;; Single precision is not enough.
+                (base (coerce *print-base* 'double-float)))
+            (1+ (floor (log x base))))))
+    (otherwise
+     (assure unsigned-byte (html-length x)))))
 
 (defun format-attributes-pretty/inline (attrs &optional (stream *html*))
   (declare (stream stream))
@@ -226,7 +234,7 @@ ordinary attributes."
                        (lambda (attr value)
                          (let ((len (+ (length (symbol-name attr))
                                        1 ;for the equals sign
-                                       (or (html-length value) 0))))
+                                       (html-length* value))))
                            (if (too-long? len)
                                (format stream "~%~(~a~)=" attr)
                                (format stream " ~(~a~)=" attr)))
