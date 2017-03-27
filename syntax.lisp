@@ -27,12 +27,14 @@
 (defun needs-quotes? (string)
   (declare (string string))
   (or (some #'must-quote? string)
-      (ends-with #\/ string)))
+      (serapeum:string$= "/" string)))
 
 ;; See 8.3.
 ;; http://www.w3.org/TR/html5/the-end.html#serializing-html-fragments
 
 (defun escape-string-char (c)
+  (declare (character c)
+           (optimize (speed 3) (safety 1) (debug 0)))
   (case c
     (#\& "&amp;")
     (#\No-break_space "&nbsp;")
@@ -56,45 +58,20 @@
                          (#\" "&quot;")))))
 
 (defun escape-to-stream (string table stream)
-  (declare (stream stream)
-           (optimize speed))
-  (let ((start-pointer 0)
-        (end-pointer 0)
-        (rep (ensure-function
-              (etypecase table
-                (function table)
-                (hash-table (lambda (c)
-                              (gethash c table)))))))
-    (declare (index start-pointer)
-             ((or null index) end-pointer))
-    (loop (setf end-pointer
-                (position-if rep string :start start-pointer))
-          (if end-pointer
-              (progn
-                (write-string string stream
-                              :start start-pointer
-                              :end end-pointer)
-                (write-string
-                 (funcall rep (char string end-pointer))
-                 stream)
-                (setf start-pointer (1+ end-pointer)))
-              (progn
-                (write-string string stream :start start-pointer)
-                (return))))))
+  (serapeum:escape string table :stream stream))
 
 (defun escape-with-table (string table)
-  (with-output-to-string (s)
-    (escape-to-stream string table s)))
+  (serapeum:escape string table))
 
 ;; See 8.1.5
 ;; http://www.w3.org/TR/html5/syntax.html#cdata-sections
 
-(defparameter *cdata-start* "<![CDATA[")
+(serapeum:defconst cdata-start "<![CDATA[")
 
-(defparameter *cdata-end* "]]>")
+(serapeum:defconst cdata-end "]]>")
 
 (defun escape-cdata (text)
-  (remove-substring text *cdata-end*))
+  (remove-substring text cdata-end))
 
 ;; See 8.1.6
 ;; http://www.w3.org/TR/html5/syntax.html#comments
@@ -103,9 +80,4 @@
   (remove-substring (string-trim ">-" text) "--"))
 
 (defun remove-substring (string substring)
-  (with-output-to-string (s)
-    (let ((len (length substring)))
-      (loop for start = 0 then (+ end len)
-            for end = (search substring string :start2 start)
-            do (write-string string s :start start :end end)
-            while end))))
+  (serapeum:string-replace-all substring string ""))

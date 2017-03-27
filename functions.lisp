@@ -7,9 +7,6 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defparameter *tags-pkg* (find-package :spinneret.tag))
 
-  (defun unsplice (x)
-    (if x (list x) x))
-
   (defun tag-fn (tag &key intern)
     (let ((tag (string tag)))
       (if intern
@@ -17,58 +14,68 @@
           (find-symbol tag *tags-pkg*)))))
 
 (defmacro define-tag (tag)
-  (let* ((fn-name
+  (let* ((inline? (inline? tag))
+         (paragraph? (paragraph? tag))
+         (needs-close? (not (or (void? tag) (unmatched? tag))))
+
+         (fn-name
            (tag-fn tag :intern t))
-         (newline-before-start
-           (not (inline? tag)))
          (newline-after-start
-           (not (or (inline? tag) (paragraph? tag))))
+           (not (or inline? paragraph?)))
          (newline-before-close
            newline-after-start)
-         (open (format nil "<~(~A~)" tag))
-         (needs-close (not (or (void? tag) (unmatched? tag))))
-         (close
-           (when needs-close
-             (format nil "</~(~A~)>" tag))))
+         (newline-after-close
+           paragraph?)
+         (open (fmt "<~(~A~)" tag))
+         (close (and needs-close? (fmt "</~(~A~)>" tag))))
     `(progn
        (declaim (notinline ,fn-name))
+       (declaim (ftype (function (list function t t) (values))
+                       ,fn-name))
        (defun ,fn-name (attrs body pre? empty?)
          (declare (optimize
                    (speed 3) (safety 0) (debug 0)
                    (compilation-speed 0))
-                  (function body))
+                  (type function body)
+                  (type list attrs))
          (let ((html *html*)
                (pretty *print-pretty*)
                (*pre* pre?)
                (*depth* (1+ *depth*))
                (*html-path* (cons ,(make-keyword tag) *html-path*)))
-           (declare (ignorable pretty)
-                    (dynamic-extent *html-path*))
+           (declare (dynamic-extent *html-path*))
            (when pretty
-             ,(if newline-before-start
-                  `(newline-and-indent html)
-                  `(indent html)))
+             ,(if inline?
+                  `(maybe-wrap ,(length open) html)
+                  '(fresh-line html)))
+           ;; Print the opening tag.
            (write-string ,open html)
-           ;; Note that format-attribute is responsible for printing
-           ;; the closing >, so it must be called even when there are
-           ;; no attributes.
-           (format-attributes attrs html)
+           (when attrs
+             (eif pretty
+                  (,(eif inline?
+                         'format-attributes-pretty/inline
+                         'format-attributes-pretty/block)
+                   attrs html)
+                  (format-attributes-plain attrs html)))
+           (write-char #\> html)
            (unless empty?
-             ,@(when newline-after-start
-                 (unsplice
-                  `(when pretty
-                     (terpri html))))
-             (without-trailing-space
-               (funcall body))
-             ,@(when newline-before-close
-                 (unsplice
-                  `(when pretty
-                     (newline-and-indent html)))))
-           ,@(when close
-               (unsplice
-                `(if pretty
-                     (emit-pretty-end-tag ,close html)
-                     (write-string ,close html))))
+             ,(when newline-after-start
+                '(when pretty
+                  (elastic-newline html)))
+             (let ((*indent* (1+ *depth*)))
+               ;; Print the body.
+               (without-trailing-space
+                 (funcall body)))
+             ,(when newline-before-close
+                '(when pretty
+                  (terpri html))))
+           ;; Print the closing tag.
+           ,@(unsplice
+              (when needs-close?
+                `(write-string ,close html)))
+           ,@(unsplice
+              (when newline-after-close
+                '(elastic-newline html)))
            (values))))))
 
 (defmacro define-all-tags ()

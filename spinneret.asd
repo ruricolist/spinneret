@@ -11,8 +11,12 @@
   :depends-on (#:parenscript
                #:alexandria
                #:cl-ppcre
-               #:global-vars)
+               #:global-vars
+               #:serapeum
+               #:trivial-gray-streams)
   :components ((:file "package")
+               (:file "special")
+               (:file "stream")
                (:file "syntax")
                (:file "tags")
                (:file "spinneret")

@@ -2,13 +2,6 @@
 
 (in-package #:spinneret)
 
-(declaim (type (integer -1 #.most-positive-fixnum) *depth*))
-
-(defvar *depth* -1
-  "Depth of the tag being output.")
-
-(defvar *pre* nil)
-
 (defun fast-format (stream control-string &rest args)
   "Like `format', but bind `*print-pretty*' to nil."
   (declare (dynamic-extent args))
@@ -23,20 +16,6 @@
           `(fast-format ,stream (formatter ,control-string) ,@args))
       call))
 
-(defun indent (&optional (stream *html*))
-  (format stream "~V,0T" *depth*))
-
-(defun newline-and-indent (&optional (stream *html*))
-  "Fresh line and indent according to *DEPTH*."
-  (format stream "~&~V,0T" *depth*))
-
-(defun emit-pretty-end-tag (tag &optional (stream *html*))
-  (format stream
-          "~V,0T~:*~<~%~V,0T~1,V:;~A~>"
-          *depth*
-          *print-right-margin*
-          tag))
-
 (defmacro without-trailing-space (&body body)
   `(let ((*pending-space* nil))
      ,@body))
@@ -46,10 +25,6 @@
      (flush-space)
      ,@body
      (buffer-space)))
-
-(declaim (boolean *pending-space*))
-
-(defvar *pending-space* nil)
 
 (declaim (inline buffer-space flush-space))
 
@@ -108,7 +83,8 @@
                             :element-type (array-element-type string)
                             :adjustable t
                             :displaced-to string
-                            :displaced-index-offset 0)))
+                            :displaced-index-offset 0))
+        (thunk (ensure-function thunk)))
     (loop with len = (length string)
           for left = 0 then (+ right 1)
           for right = (or (position-if #'whitespace string :start left) len)
@@ -116,73 +92,164 @@
             do (adjust-array window (- right left)
                              :displaced-to string
                              :displaced-index-offset left)
-               (funcall thunk window)
-          until (>= right len))))
+               ;; NB In terms of *words*, this might seem wrong: the
+               ;; remainder of the string might just be whitespace.
+               ;; However, this is the behavior we want: the presence
+               ;; of trailing whitespace *should* be preserved.
+               (funcall thunk window (= right len))
+          until (= right len))))
 
-(defmacro do-words ((var string) &body body)
-  `(call/words (lambda (,var) ,@body)
-               ,string))
+(define-do-macro do-words ((var at-end? string &optional return) &body body)
+  (serapeum:with-thunk (body var at-end?)
+    `(call/words ,body ,string)))
 
-(defun fill-text (string &optional safe?)
+(defun maybe-wrap (&optional (offset 0) (stream *html*))
+  (when *print-pretty*
+    (let* ((indent (get-indent))
+           (fill *fill-column*)
+           (goal (+ fill indent))
+           (col (+ offset (html-stream-column stream))))
+      (when (> col goal)
+        (terpri stream)))))
+
+(defun fill-text (string &optional safe? &aux (html *html*))
   (check-type string string)
-  (cond (*pre*
-         (fast-format *html* "~&~A~%" string))
-        (*print-pretty*
-         (let ((html *html*)
-               (depth *depth*)
-               (margin *print-right-margin*))
-           (format html "~V,0T" depth)
-           (do-words (word string)
-             (with-space
-               (format html "~<~%~V,0T~1,V:;~A~>"
-                       depth
-                       margin
-                       (if safe? word (escape-string word)))))))
-        (t
-         (with-space
-           (if safe?
-               (write-string string *html*)
-               (escape-to-stream string #'escape-string-char *html*)))))
+  (cond
+    ((= (length string) 0))
+    (*pre*
+     (fast-format html "~&~A~%" string))
+    (*print-pretty*
+     (let* ((start-col (get-indent))
+            (fill *fill-column*)
+            (goal (+ fill start-col)))
+       (when (whitespace (aref string 0))
+         (write-char #\Space html))
+       (flet ((wrap () (terpri html))) (declare (inline wrap))
+         (do-words (word at-end? string)
+           (let* ((word (if safe? word (escape-string word)))
+                  (len (length word)))
+             (cond ((> len fill)
+                    (wrap)
+                    (write-string word html)
+                    (wrap))
+                   ((> (+ len (html-stream-column html))
+                       goal)
+                    (wrap)
+                    (write-string word html))
+                   (t (write-string word html))))
+           (unless at-end?
+             (write-char #\Space html))))))
+    (t
+     (with-space
+       (if safe?
+           (write-string string *html*)
+           (escape-to-stream string #'escape-string-char *html*)))))
   (values))
 
-(defun format-attributes (attrs &optional (stream *html*))
+(defun format-attribute-value (value)
+  (cond ((equal value "") "\"\"")
+        ((keywordp value) (string-downcase value))
+        ((eql value t) "true")
+        (t value)))
+
+(defun format-attributes-with (attrs print-boolean print-value)
+  "Format ATTRS, uses the unary function PRINT-BOOLEAN to print
+Boolean attributes, and the binary function PRINT-VALUE to print
+ordinary attributes."
+  (serapeum:fbind (print-boolean print-value)
+    (let ((seen '()))
+      ;; Ensure that the leftmost keyword has priority,
+      ;; as in function lambda lists.
+      (labels ((seen? (name)
+                 (declare (optimize speed)
+                          (symbol name))
+                 (prog1 (member name seen)
+                   (push name seen)))
+               (format-attr (attr value)
+                 (unless (or (null value) (seen? attr))
+                   (if (boolean? attr)
+                       (print-boolean attr)
+                       (let ((value (format-attribute-value value)))
+                         (print-value attr value)))))
+               (dynamic-attrs (attrs)
+                 (doplist (a v attrs)
+                   (format-attr a (escape-value v)))))
+        (declare (inline seen?))
+        (doplist (attr value attrs)
+          (if (eql attr :attrs)
+              (dynamic-attrs value)
+              (format-attr attr value)))))))
+
+(defun format-attributes-plain (attrs &optional (stream *html*))
+  (flet ((format-boolean (attr)
+           (format stream " ~(~a~)" attr))
+         (format-value (attr value)
+           (format stream " ~(~a~)=~a" attr value)))
+    (declare (dynamic-extent #'format-boolean #'format-value))
+    (format-attributes-with attrs #'format-boolean #'format-value)))
+
+(defgeneric html-length (x)
+  (:documentation "The length of X when printed as an HTML string.
+
+This is provided so you can give Spinneret the information it needs to
+make reasonable decisions about line wrapping.")
+  (:method ((x t)) 0))
+
+(defun html-length* (x)
+  (typecase x
+    ((eql t) 4)
+    (string (length x))
+    (symbol (length (symbol-name x)))
+    (character 1)
+    (integer
+     (eif (zerop x) 1
+          (let ((x (abs x))
+                ;; Single precision is not enough.
+                (base (coerce *print-base* 'double-float)))
+            (1+ (floor (log x base))))))
+    (otherwise
+     (assure unsigned-byte (html-length x)))))
+
+(defun format-attributes-pretty/inline (attrs &optional (stream *html*))
   (declare (stream stream))
-  (let ((seen '()))
-    ;; Ensure that the leftmost keyword has priority,
-    ;; as in function lambda lists.
-    (labels ((seen? (name)
-               (declare (optimize speed)
-                        (symbol name))
-               (prog1 (member name seen)
-                 (push name seen)))
-             (format-attr (attr value)
-               (declare (optimize speed))
-               (unless (or (null value) (seen? attr))
-                 (if (boolean? attr)
-                     (format stream "~( ~A~)~:_" attr)
-                     (format stream "~( ~A~)~:_=~:_~A~:_"
-                             attr
-                             (cond ((equal value "") "\"\"")
-                                   ((keywordp value) (string-downcase value))
-                                   ((eql value t) "true")
-                                   (t value))))))
-             (inner (attrs)
-               (declare (optimize speed))
-               (loop (unless attrs (return))
-                     (pprint-indent :block 1 stream)
-                     (let ((attr (pop attrs))
-                           (value (pop attrs)))
-                       (declare (symbol attr))
-                       (if (eql attr :attrs)
-                           (loop for (a v . nil) on value by #'cddr
-                                 do (format-attr a (escape-value v)))
-                           (format-attr attr value))))))
-      (declare (inline seen? inner))
-      (if *print-pretty*
-          (pprint-logical-block (stream nil :suffix ">")
-            (inner attrs))
-          (progn (inner attrs)
-                 (write-char #\> stream))))))
+  (let* ((start-col (get-indent))
+         (fill *fill-column*)
+         (goal (+ start-col fill)))
+    (serapeum:fbind* ((too-long?
+                       (if *print-pretty*
+                           (lambda (len)
+                             (> (+ len (html-stream-column stream))
+                                goal))
+                           (constantly nil)))
+                      (print-boolean
+                       (lambda (attr)
+                         (let ((len (length (symbol-name attr))))
+                           ;; No valid attribute is longer than 80. (I
+                           ;; suppose a data attribute could be.)
+                           (if (too-long? len)
+                               (format stream "~%~(~a~)" attr)
+                               (progn
+                                 (format stream " ~(~a~)" attr))))))
+                      (print-attr
+                       (lambda (attr value)
+                         (let ((len (+ (length (symbol-name attr))
+                                       1 ;for the equals sign
+                                       (html-length* value))))
+                           (if (too-long? len)
+                               (format stream "~%~(~a~)=" attr)
+                               (format stream " ~(~a~)=" attr)))
+                         (format stream "~a" value))))
+      (declare (dynamic-extent #'print-boolean #'print-attr))
+      (format-attributes-with attrs
+                              #'print-boolean
+                              #'print-attr))))
+
+(defun format-attributes-pretty/block (attrs &optional (stream *html*))
+  (declare (html-stream stream))
+  (let ((*fill-column* (truncate *fill-column* 2))
+        ;; Force the attributes to line up.
+        (*indent* (1+ (html-stream-column stream))))
+    (format-attributes-pretty/inline attrs stream)))
 
 (defun escape-value (value)
   (if (or (eq value t)
@@ -192,14 +259,13 @@
       (let ((string (escape-attribute-value
                      (princ-to-string value))))
         (if (needs-quotes? string)
-            (format nil "\"~A\"" string)
+            (concatenate 'string "\"" string "\"")
             string))))
 
 (defun format-text (control-string &rest args)
   (when *print-pretty*
-    (fresh-line *html*))
-  (let ((*depth* (1+ *depth*)))
-    (fill-text (apply #'format nil control-string args) t))
+    (terpri *html*))
+  (fill-text (format nil "~?" control-string args) t)
   (values))
 
 (defun xss-escape (arg)
@@ -221,15 +287,13 @@ able to use directives like ~c, ~d, ~{~} &c."
 
 (defun doctype (&rest args)
   (declare (ignore args))
-  (write-string "<!DOCTYPE html>" *html*)
-  (when *print-pretty*
-    (terpri *html*)))
+  (format *html* "<!DOCTYPE html>~%"))
 
 (defun make-comment (text)
   `(comment ,(if (stringp text)
                  (escape-comment text)
                  text)
-            ,(stringp text)))
+     ,(stringp text)))
 
 (defun comment (text safe?)
   (if *print-pretty*
@@ -255,23 +319,17 @@ able to use directives like ~c, ~d, ~{~} &c."
                text)
           ,(stringp text)))
 
-(defun cdata (text safe?)
-  (write-string *cdata-start* *html*)
+(defun cdata (text safe? &aux (html *html*))
+  (write-string cdata-start html)
   (write-string (if safe?
                     text
                     (escape-cdata text))
-                *html*)
-  (write-string *cdata-end* *html*))
-
-(declaim (string *html-lang* *html-charset*))
-
-(defparameter *html-lang* "en")
-
-(defparameter *html-charset* "UTF-8")
+                html)
+  (write-string cdata-end html))
 
 (defun make-html (&rest args)
   `(:html :lang *html-lang*
-          ,@args))
+     ,@args))
 
 (defun make-head (&rest args)
   `(:head

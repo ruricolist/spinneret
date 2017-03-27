@@ -83,6 +83,19 @@ Which produces:
       </body>
      </html>
 
+Spinneret makes the best decisions about line wrapping that it can,
+given the information it has about how to get the print length of
+various types. But, in the case of user-defined types, it has no way
+to tell in advance how long they will be when printed. If you find
+Spinneret is making bad line-breaking decisions with your types, you
+can help it out by specializing `html-length`. For example, if you use
+PURI, you could help Spinneret pretty-print PURI URIs by teaching it
+how to get their length:
+
+    (defmethod html-length ((uri puri:uri))
+      ;; Doesn't cons.
+      (length (puri:render-uri uri nil)))
+
 (Pretty-printing is pretty fast, but SPINNERET obeys `*print-pretty*`
 should you want to turn it off.)
 

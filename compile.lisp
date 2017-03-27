@@ -4,37 +4,45 @@
 
 (defun parse-html (form env)
   (labels ((rec (form)
-             (cond ((atom form) form)
-                   ((dotted-list? form) form)
-                   ((ignore-errors (constantp form env)) form)
-                   ((eql (car form) 'with-tag) form)
-                   ((keywordp (car form))
-                    (let ((form (pseudotag-expand (car form) (cdr form))))
-                      (if (not (keywordp (car form))) form
-                          (multiple-value-bind (name attrs body)
-                              (tag-parts form)
-                            (if (valid? name)
-                                `(with-tag (,name ,@attrs)
-                                   ,@(mapcar #'rec body))
-                                (cons (car form)
-                                      (mapcar #'rec (cdr form))))))))
-                   ((stringp (car form))
-                    (destructuring-bind (control-string . args)
-                        form
-                      (let ((cs (parse-as-markdown control-string)))
-                        `(format-text
-                          ,@(if (and args (every (lambda (arg) (constantp arg env)) args))
-                                (list (apply #'format nil cs
-                                             (mapcar #'escape-to-string args)))
-                                `((formatter ,cs)
-                                  ,@(loop for arg in args
-                                          ;; Escape literal strings at
-                                          ;; compile time.
-                                          if (typep arg 'string env)
-                                            collect (escape-to-string arg)
-                                          else collect `(xss-escape ,arg))))))))
-                   (t (cons (rec (car form))
-                            (mapcar #'rec (cdr form)))))))
+             (cond
+               ;; There's nothing we can do with an atom.
+               ((atom form) form)
+               ;; There's nothing we can do with an improper list, either.
+               ((dotted-list? form) form)
+               ;; If the form is constant, leave it to be inlined.
+               ((ignore-errors (constantp form env)) form)
+               ;; Don't descend into nested with-tag forms.
+               ((eql (car form) 'with-tag) form)
+               ;; Compile as a tag.
+               ((keywordp (car form))
+                (let ((form (pseudotag-expand (car form) (cdr form))))
+                  (if (not (keywordp (car form))) form
+                      (multiple-value-bind (name attrs body)
+                          (tag-parts form)
+                        (if (valid? name)
+                            `(with-tag (,name ,@attrs)
+                               ,@(mapcar #'rec body))
+                            (cons (car form)
+                                  (mapcar #'rec (cdr form))))))))
+               ;; Compile as a format string (possibly using Markdown).
+               ((stringp (car form))
+                (destructuring-bind (control-string . args)
+                    form
+                  (let ((cs (parse-as-markdown control-string)))
+                    `(format-text
+                      ,@(if (and args (every (lambda (arg) (constantp arg env)) args))
+                            (list (format nil "~?" cs
+                                          (mapcar #'escape-to-string args)))
+                            `((formatter ,cs)
+                              ,@(loop for arg in args
+                                      ;; Escape literal strings at
+                                      ;; compile time.
+                                      if (typep arg 'string env)
+                                        collect (escape-to-string arg)
+                                      else collect `(xss-escape ,arg))))))))
+               ;; Keep going.
+               (t (cons (rec (car form))
+                        (mapcar #'rec (cdr form)))))))
     (rec form)))
 
 (defun dotted-list? (list)
@@ -89,9 +97,11 @@ plist of the regular attributes."
         (when rest (write-char #\Space s))))))
 
 (define-compiler-macro join-tokens (&whole call &rest tokens)
-  (cond ((null tokens) "")
+  (cond ((null tokens) nil)
         ((null (rest tokens))
-         `(princ-to-string ,(car tokens)))
+         (let ((token (car tokens)))
+           (once-only (token)
+             `(and ,token (princ-to-string ,token)))))
         (t call)))
 
 (defun tag-parts (form)
@@ -105,19 +115,20 @@ are all the following key-value pairs, and the body is what remains."
           (values tag (simplify-tokenized-attributes attrs) body))))))
 
 (defmacro with-tag ((name &rest attributes) &body body)
-  (let ((empty? (not body))
-        (pre? (not (null (preformatted? name))))
-        (tag-fn (or (tag-fn name) (error "No such tag: ~a" name))))
-    (with-gensyms (thunk)
-      `(prog1 nil
-         (flet ((,thunk ()
-                  ,@(loop for expr in body
-                          collect `(catch-output ,expr))))
-           (declare (dynamic-extent (function ,thunk)))
-           (,tag-fn (list ,@(escape-attrs name attributes))
-                    #',thunk
-                    ,pre?
-                    ,empty?))))))
+  (let* ((empty? (not body))
+         (pre? (not (null (preformatted? name))))
+         (tag-fn (or (tag-fn name) (error "No such tag: ~a" name)))
+         (id (getf attributes :id))
+         (thunk (gensym (fmt "<~a~@[#~a~]>" name id))))
+    `(prog1 nil
+       (flet ((,thunk ()
+                ,@(loop for expr in body
+                        collect `(catch-output ,expr))))
+         (declare (dynamic-extent (function ,thunk)))
+         (,tag-fn (list ,@(escape-attrs name attributes))
+                  #',thunk
+                  ,pre?
+                  ,empty?)))))
 
 (defun escape-attrs (tag attrs)
   (let ((attrs
@@ -126,7 +137,7 @@ are all the following key-value pairs, and the body is what remains."
                   append (escape-attrs
                           tag
                           (loop for (attr val . nil) on val by #'cddr
-                                collect (make-keyword (fast-format nil "~:@(data-~A~)" attr))
+                                collect (make-keyword (fmt "~:@(data-~A~)" attr))
                                 collect val))
                 else if (eql attr :attrs)
                        collect attr and collect val
@@ -144,7 +155,7 @@ are all the following key-value pairs, and the body is what remains."
 
 (declaim (notinline parse-as-markdown))
 (defun parse-as-markdown (string)
-  "Placeholder, load spinneret.cl-markdown system if you want to expand
+  "Placeholder, load spinneret/cl-markdown system if you want to expand
   markdown."
   string)
 
