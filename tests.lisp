@@ -280,8 +280,8 @@
 (test indent-attributes-in-blocks
   (is (visually-equal
        (format nil "~
-<input class=form-control type=password name=password
-       id=password required>")
+<input class=form-control type=password
+       name=password id=password required>")
        (let ((*print-pretty* t))
          (with-html-string
            (:input :type "password" :name "password"

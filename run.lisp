@@ -188,6 +188,20 @@ ordinary attributes."
     (declare (dynamic-extent #'format-boolean #'format-value))
     (format-attributes-with attrs #'format-boolean #'format-value)))
 
+(defun html-length (x)
+  (typecase x
+    (string (length x))
+    (symbol (length (symbol-name x)))
+    (character 1)
+    ((integer 0 0) 1)
+    ((integer 0 999999)
+     (let ((base (float *print-base* 0s0)))
+       (1+ (truncate (log x base)))))
+    ((integer 1000000 99999999999999999)
+     (let ((base (float *print-base* 0d0)))
+       (1+ (truncate (log x base)))))
+    (otherwise nil)))
+
 (defun format-attributes-pretty/inline (attrs &optional (stream *html*))
   (declare (stream stream))
   (let* ((start-col (get-indent))
@@ -210,7 +224,9 @@ ordinary attributes."
                                  (format stream " ~(~a~)" attr))))))
                       (print-attr
                        (lambda (attr value)
-                         (let ((len (1+ (length (symbol-name attr)))))
+                         (let ((len (+ (length (symbol-name attr))
+                                       1 ;for the equals sign
+                                       (or (html-length value) 0))))
                            (if (too-long? len)
                                (format stream "~%~(~a~)=" attr)
                                (format stream " ~(~a~)=" attr)))
