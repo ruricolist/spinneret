@@ -14,7 +14,7 @@
            #:html-length)
   (:shadowing-import-from :alexandria :switch)
   (:import-from :serapeum
-    :fmt :unsplice :string+ :eif
+    :fmt :unsplice :string+ :eif :econd :receive
     :define-do-macro
     :nlet :nix :assure)
   (:import-from :global-vars :define-global-parameter))
