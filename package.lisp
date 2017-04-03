@@ -18,3 +18,6 @@
     :define-do-macro
     :nlet :nix :assure)
   (:import-from :global-vars :define-global-parameter))
+
+(defpackage #:spinneret-user
+  (:use #:cl #:parenscript #:spinneret))
