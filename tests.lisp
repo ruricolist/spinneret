@@ -245,8 +245,9 @@
        (lorem-ipsum-string))))
 
 (test hello-hello-hello
-  (is (visually-equal
-       "<div>
+  (let ((*print-pretty* t))
+    (is (visually-equal
+         "<div>
  <div>
   <div>
    <ul>
@@ -255,14 +256,14 @@
   </div>
  </div>
 </div>"
-       (spinneret:with-html-string
-         (:div
+         (spinneret:with-html-string
            (:div
              (:div
-               (:ul
-                 (:li
-                   (:a.class1.class2.class3.class4.class5
-                    :href "hello hello hello"))))))))))
+               (:div
+                 (:ul
+                   (:li
+                     (:a.class1.class2.class3.class4.class5
+                      :href "hello hello hello")))))))))))
 
 (test inline-element-after-paragraph
   (is (visually-equal
