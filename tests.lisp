@@ -382,3 +382,12 @@
                (:div
                  (:div.list-group.toc-entries
                   :data-instant t)))))))))
+
+(test keywords-in-tokenized-attributes
+  (let (*print-pretty*)
+    (is (equal "<p class=foo>"
+               (with-html-string
+                 (:p :class :foo))))
+    (is (equal "<link rel=stylesheet>"
+               (with-html-string
+                 (:link :rel :stylesheet))))))

@@ -93,7 +93,9 @@ plist of the regular attributes."
   (when-let (tokens (remove-duplicates (remove nil tokens) :test #'equal))
     (with-output-to-string (s)
       (loop for (token . rest) on tokens do
-        (princ token s)
+        (eif (keywordp token)
+             (format s "~(~a~)" token)
+             (format s "~a" token))
         (when rest (write-char #\Space s))))))
 
 (define-compiler-macro join-tokens (&whole call &rest tokens)
