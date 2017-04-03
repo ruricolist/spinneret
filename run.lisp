@@ -339,3 +339,10 @@ able to use directives like ~c, ~d, ~{~} &c."
 (defun write-raw (&rest args)
   `(prog1 nil ,@(loop for arg in args
                       collect `(fill-text ,arg t))))
+
+(defun heading-depth ()
+  "Return the current dynamic heading depth.
+This follows the convention for the XHTML <h/> element, where the top
+level is level 1, inside the first section is level 2, and so forth."
+  (1+ (count :section *html-path*)))
+
