@@ -35,8 +35,16 @@
             (length lines2))
          (every #'equal lines1 lines2))))
 
+(defmacro with-pretty-printing (&body body)
+  `(let ((*print-pretty* t))
+     ,@body))
+
+(defmacro without-pretty-printing (&body body)
+  `(let ((*print-pretty* nil))
+     ,@body))
+
 (test dataset
-  (let (*print-pretty*)
+  (without-pretty-printing
     (flet ((dolomphious () 'dolomphious))
       (is (equal
            "<p data-duck=DOLOMPHIOUS data-fish=FIZZGIGIOUS data-spoon=runcible>"
@@ -45,7 +53,7 @@
                            :spoon "runcible"))))))))
 
 (test attrs
-  (let (*print-pretty*)
+  (without-pretty-printing
     (is (equal
          "<p foo=bar baz=quux>bar"
          (let ((attrs '(:foo "bar" :baz "quux")))
@@ -73,39 +81,40 @@
     (bt nil)))
 
 (defun readme-example ()
-  (let* ((user-name "John Q. Lisper")
-         (last-login "12th Never")
-         (shopping-list
-           '("Atmospheric ponds"
-             "Electric gumption socks"
-             "Mrs. Leland's embyronic television combustion"
-             "Savage gymnatic aggressors"
-             "Pharmaceutical pianos"
-             "Intravenous retribution champions"))
-         (amounts '(10 6 4 9 6 9))
-         (*print-pretty* t))
-    (with-html
-      (:doctype)
-      (:html
-        (:head
-          (:title "Home page"))
-        (:body
-          (:header
-            (:h1 "Home page"))
-          (:section
-            ("~A, here is *your* shopping list: " user-name)
-            (:ol (loop for item in shopping-list
-                       for amount in amounts
-                       do (:li amount item))))
-          (:footer ("Last login: ~A" last-login)))))))
+  (with-pretty-printing
+    (let* ((user-name "John Q. Lisper")
+           (last-login "12th Never")
+           (shopping-list
+             '("Atmospheric ponds"
+               "Electric gumption socks"
+               "Mrs. Leland's embyronic television combustion"
+               "Savage gymnatic aggressors"
+               "Pharmaceutical pianos"
+               "Intravenous retribution champions"))
+           (amounts '(10 6 4 9 6 9)))
+      (with-html
+        (:doctype)
+        (:html
+          (:head
+            (:title "Home page"))
+          (:body
+            (:header
+              (:h1 "Home page"))
+            (:section
+              ("~A, here is *your* shopping list: " user-name)
+              (:ol (loop for item in shopping-list
+                         for amount in amounts
+                         do (:li amount item))))
+            (:footer ("Last login: ~A" last-login))))))))
 
 (defun readme-example-string ()
   (with-output-to-string (*html*)
     (readme-example)))
 
 (test readme-example
-  (let* ((expected-string
-           (format nil "~
+  (with-pretty-printing
+    (let* ((expected-string
+             (format nil "~
 <!DOCTYPE html>
 <html lang=en>
  <head>
@@ -132,13 +141,13 @@
   </footer>
  </body>
 </html>"))
-         (*print-pretty* t)
-         (generated-string
-           (readme-example-string)))
-    (is (visually-equal generated-string expected-string))))
+           (*print-pretty* t)
+           (generated-string
+             (readme-example-string)))
+      (is (visually-equal generated-string expected-string)))))
 
 (test indent-problem
-  (let ((*print-pretty* t))
+  (with-pretty-printing
     (is (visually-equal
          (with-html-string
            (:ul (:li (:a "hai"))))
@@ -162,31 +171,32 @@
 </html>")))))
 
 (test space-problem
-  (is
-   (equal
-    "<div>hello<a href=#></a> there world</div>"
-    (let (*print-pretty*)
+  (without-pretty-printing
+    (is
+     (equal
+      "<div>hello<a href=#></a> there world</div>"
       (spinneret:with-html-string
         (:div "hello"
           (:a :href "#")
           "there world"))))))
 
 (test explicit-spaces
-  (is (equal "<div>hi<span> there</span></div>"
-             (let (*print-pretty*)
+  (without-pretty-printing
+    (is (equal "<div>hi<span> there</span></div>"
                (spinneret:with-html-string (:div "hi" (:span " there"))))))
-  (is (visually-equal
-       #.(format nil "~
+  (with-pretty-printing
+    (is (visually-equal
+         #.(format nil "~
 <p>hi <span>there</span>")
-       (let ((*print-pretty* t))
-         (spinneret:with-html-string
-           (:p "hi " (:span "there")))))))
+         (let ((*print-pretty* t))
+           (spinneret:with-html-string
+             (:p "hi " (:span "there"))))))))
 
 (test null-attr
-  (let (*print-pretty*)
+  (without-pretty-printing
     (is (equal (with-html-string (:li :class nil "Hello"))
                "<li>Hello")))
-  (let ((*print-pretty* t))
+  (without-pretty-printing
     (is (equal (with-html-string (:li :class nil "Hello"))
                "<li>Hello")))
 
@@ -194,7 +204,7 @@
              "<li>")))
 
 (test no-final-space-after-skipped-attribute
-  (let (*print-pretty*)
+  (without-pretty-printing
     (is (equal (with-html-string (:a :href "#" :data-instant t))
                "<a href=# data-instant=true></a>"))
     (is (equal (with-html-string (:a :href "#" :data-instant nil))
@@ -204,16 +214,16 @@
   "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.")
 
 (defun lorem-ipsum ()
-  (let ((*print-pretty* t)
-        (*fill-column* 80))
-    (with-html
-      (:doctype)
-      (:html
-        (:body
-          (:div
-            (:p lorem-ipsum (:span)
-              (:a :href "" :data-instant t "Hello")
-              lorem-ipsum)))))))
+  (with-pretty-printing
+    (let ((*fill-column* 80))
+      (with-html
+        (:doctype)
+        (:html
+          (:body
+            (:div
+              (:p lorem-ipsum (:span)
+                (:a :href "" :data-instant t "Hello")
+                lorem-ipsum))))))))
 
 (defun lorem-ipsum-string ()
   (with-output-to-string (*html*)
@@ -245,7 +255,7 @@
        (lorem-ipsum-string))))
 
 (test hello-hello-hello
-  (let ((*print-pretty* t))
+  (with-pretty-printing
     (is (visually-equal
          "<div>
  <div>
@@ -266,37 +276,37 @@
                       :href "hello hello hello")))))))))))
 
 (test inline-element-after-paragraph
-  (is (visually-equal
-       (format nil "~
+  (with-pretty-printing
+    (is (visually-equal
+         (format nil "~
 <div>
  <p>Hello
  <a>world</a>
 </div>")
-       (let ((*print-pretty* t))
          (with-html-string
            (:div
              (:p "Hello")
              (:a "world")))))))
 
 (test indent-attributes-in-blocks
-  (is (visually-equal
-       (format nil "~
+  (with-pretty-printing
+    (is (visually-equal
+         (format nil "~
 <input class=form-control type=password
        name=password id=password required>")
-       (let ((*print-pretty* t))
          (with-html-string
            (:input :type "password" :name "password"
              :class "form-control" :id "password"
              :required t))))))
 
 (test indent-text-sanely
-  (is (linewise-equal
-       (format nil "~
+  (with-pretty-printing
+    (is (linewise-equal
+         (format nil "~
    <div class=\"last-update col-xs-2 col-md-1\"
         title=\"Last updated 232 days ago\">
     232d
    </div>")
-       (let ((*print-pretty* t))
          (with-html-string
            (:div :class "last-update col-xs-2 col-md-1" :title "Last updated 232 days ago"
              "232d"))))))
@@ -310,7 +320,7 @@
         (string-join #\Newline))))
 
 (test indent-sanely-in-blocks-in-paragraphs
-  (let ((*print-pretty* t))
+  (with-pretty-printing
     (is (serapeum:string*=
          (indent-string
           (with-html-string
@@ -342,7 +352,7 @@
 ;;                (:a :href "#" "Hello"))))))))
 
 (test indent-inline-after-paragraph
-  (let ((*print-pretty* t))
+  (with-pretty-printing
     (is (visually-equal
          (format nil "~
 <p>
@@ -354,7 +364,7 @@
              (:a :href "#" "Forgot?")))))))
 
 (test empty-tags-on-same-line
-  (let ((*print-pretty* t))
+  (with-pretty-printing
     (is (visually-equal
          (format nil "~
 <div>
@@ -365,7 +375,7 @@
              (:div)))))))
 
 (test misaligned-attrs-in-nested-blocks
-  (let ((*print-pretty* t))
+  (with-pretty-printing
     (is (visually-equal
          (format nil "~
 <div>
@@ -384,7 +394,7 @@
                   :data-instant t)))))))))
 
 (test keywords-in-tokenized-attributes
-  (let (*print-pretty*)
+  (with-pretty-printing
     (is (equal "<p class=foo>"
                (with-html-string
                  (:p :class :foo))))
