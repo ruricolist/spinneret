@@ -1,5 +1,31 @@
 (in-package #:spinneret)
 
+(declaim
+ (type list
+       *void-elements*
+       *literal-elements*
+       *inline-elements*
+       *paragraph-elements*
+       *end-tag-optional*
+       *preformatted*
+       *pseudotags*
+       *html5-elements*
+       *embedded-content*
+       *boolean-attributes*
+       *event-handler-attributes*
+       *global-attributes*
+       *permitted-attributes*
+       *aria-attributes*
+       *space-separated-attributes*))
+
+;; These are the only functions that are called at run time.
+(declaim (inline
+          boolean?
+          ;; These are only called at run time by dynamic-tag.
+          inline?
+          paragraph?
+          preformatted?))
+
 (define-global-parameter *void-elements*
   '(:!doctype :area :base :br :col :command :embed :hr :img
     :input :keygen :link :meta :param :source :track :wbr))
@@ -20,14 +46,14 @@
     :ins :del :col :meter :output))
 
 (defun inline? (element)
-  (find element *inline-elements*))
+  (find element *inline-elements* :test #'eq))
 
 (define-global-parameter *paragraph-elements*
   '(:meta :title :button :label :li :h1 :h2 :h3 :h4 :h5 :h6 :p :legend :option
     :dt :dd :figcaption :iframe :colgroup :td :th :output :summary :command))
 
 (defun paragraph? (element)
-  (find element *paragraph-elements*))
+  (find element *paragraph-elements* :test #'eq))
 
 (define-global-parameter *end-tag-optional*
   ;; html head body
@@ -42,7 +68,7 @@
   '(:pre :textarea :script :style))
 
 (defun preformatted? (element)
-  (find element *preformatted*))
+  (find element *preformatted* :test #'eq))
 
 (defun needs-close? (element)
   (not (or (void? element)
@@ -98,10 +124,8 @@
     :open :readonly :required :reversed :scoped
     :seamless :selected :typemustmatch))
 
-;;; This is the only function here that is called at run time.
-(declaim (inline boolean?))
 (defun boolean? (attr)
-  (find attr *boolean-attributes*))
+  (find attr *boolean-attributes* :test #'eq))
 
 (define-global-parameter *core-attributes*
   '(:accesskey :class :contenteditable :contextmenu :dir :draggable
