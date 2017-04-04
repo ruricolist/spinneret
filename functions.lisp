@@ -11,16 +11,24 @@
     (let ((tag (string tag)))
       (if intern
           (intern tag *tags-pkg*)
-          (find-symbol tag *tags-pkg*)))))
+          (find-symbol tag *tags-pkg*))))
+
+  (-> tag-open (string-designator) (simple-array character (*)))
+  (defun tag-open (tag)
+    (fmt "<~(~A~)" tag))
+
+  (-> tag-close (string-designator) (simple-array character (*)))
+  (defun tag-close (tag)
+    (if (needs-close? tag)
+        (fmt "</~(~A~)>" tag)
+        "")))
 
 (defmacro define-tag (tag)
   (let* ((inline? (inline? tag))
          (paragraph? (paragraph? tag))
-         (needs-close? (not (or (void? tag) (unmatched? tag))))
-
          (fn-name (tag-fn tag :intern t))
-         (open (fmt "<~(~A~)" tag))
-         (close (eif needs-close? (fmt "</~(~A~)>" tag) "")))
+         (open (tag-open tag))
+         (close (tag-close tag)))
     `(progn
        (declaim (notinline ,fn-name))
        (declaim (ftype (function (list function t t) (values))
@@ -69,8 +77,9 @@
       (fresh-line html))
     (write-string open html)
     (when attrs
-      (eif pretty (format-attributes-pretty/block attrs html)
-           (format-attributes-plain attrs html)))
+      (if pretty
+          (format-attributes-pretty/block attrs html)
+          (format-attributes-plain attrs html)))
     (write-char #\> html))
 
   (defun open-par (html pretty open attrs)
@@ -81,8 +90,9 @@
       (maybe-wrap offset html))
     (write-string open html)
     (when attrs
-      (eif pretty (format-attributes-pretty/inline attrs html)
-           (format-attributes-plain attrs html)))
+      (if pretty
+          (format-attributes-pretty/inline attrs html)
+          (format-attributes-plain attrs html)))
     (write-char #\> html))
 
   (defun block-body (html body pretty)
@@ -133,4 +143,48 @@
       (block-body html body pretty))
     (close-block html close))
 
-  (define-all-tags))
+  (progn
+    (defun dynamic-tag (tag attrs body &optional empty?)
+      "Dynamically select a tag at runtime.
+Note that TAG must be a known tag."
+      (let ((tag (or (and-let* ((kw (find-keyword tag))
+                                (tag (find kw *html5-elements* :test #'eq))))
+                     (error "No such tag as ~a" tag)))
+            (open (tag-open tag))
+            (close (tag-close tag))
+            (*pre* (and (preformatted? tag) t))
+            (*depth* (1+ *depth*))
+            (*html-path* (cons tag *html-path*)))
+        (declare (dynamic-extent *html-path*))
+        (cond ((inline? tag)
+               (print-inline-tag
+                *html*
+                *print-pretty*
+                open (length open) attrs
+                empty?
+                body
+                close))
+              ((paragraph? tag)
+               (print-par-tag
+                *html*
+                *print-pretty*
+                open attrs
+                empty? body
+                close))
+              (t
+               (print-block-tag
+                *html*
+                *print-pretty*
+                open
+                attrs
+                empty?
+                (assure function body)
+                close)))
+        (values)))
+
+    (define-all-tags)))
+
+(defmacro with-dynamic-tag (name attrs &body body)
+  `(with-html
+     ,(with-thunk (body)
+        `(dynamic-tag ,name ,attrs ,body ,(null body)))))

@@ -11,12 +11,17 @@
            #:deftag
            #:*unvalidated-attribute-prefixes*
            #:*fill-column*
-           #:html-length)
+           #:html-length
+           #:dynamic-tag
+           #:with-dynamic-tag)
   (:shadowing-import-from :alexandria :switch)
   (:import-from :serapeum
     :fmt :unsplice :string+ :eif :econd :receive
-    :define-do-macro
-    :nlet :nix :assure)
+    :define-do-macro :defsubst
+    :nlet :nix :assure
+    :find-keyword
+    :-> :with-thunk
+    :and-let*)
   (:import-from :global-vars :define-global-parameter))
 
 (defpackage #:spinneret-user

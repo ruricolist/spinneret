@@ -83,6 +83,11 @@ Which produces:
       </body>
      </html>
 
+(Pretty-printing is pretty fast, but SPINNERET obeys `*print-pretty*`
+should you want to turn it off.)
+
+### Line wrapping
+
 Spinneret makes the best decisions about line wrapping that it can,
 given the information it has about how to get the print length of
 various types. But, in the case of user-defined types, it has no way
@@ -95,9 +100,6 @@ how to get their length:
     (defmethod html-length ((uri puri:uri))
       ;; Doesn't cons.
       (length (puri:render-uri uri nil)))
-
-(Pretty-printing is pretty fast, but SPINNERET obeys `*print-pretty*`
-should you want to turn it off.)
 
 ## Syntax
 
