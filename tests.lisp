@@ -401,3 +401,17 @@
     (is (equal "<link rel=stylesheet>"
                (with-html-string
                  (:link :rel :stylesheet))))))
+
+(test dynamic-tags
+  (with-pretty-printing
+    (is (visually-equal
+         (with-html-string
+           (:div
+             (:section
+               (:h2
+                 (:p "hello")))))
+         (with-html-string
+           (:div
+             (:section
+               (with-dynamic-tag :h2 nil
+                 (:p "hello")))))))))
