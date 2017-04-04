@@ -21,39 +21,35 @@
          (fn-name (tag-fn tag :intern t))
          (open (fmt "<~(~A~)" tag))
          (close (eif needs-close? (fmt "</~(~A~)>" tag) "")))
-    (receive (open-form body-form close-form)
-        (econd
-         (inline?
-          (values
-           `(open-inline html pretty ,open ,(length open) attrs)
-           '(inline-body body)
-           `(close-inline html ,close)))
-         (paragraph?
-          (values
-           `(open-par html pretty ,open attrs)
-           '(par-body body)
-           `(close-par html ,close)))
-         (t
-          (values
-           `(open-block html pretty ,open attrs)
-           '(block-body html body pretty)
-           `(close-block html ,close))))
-      `(progn
-         (declaim (notinline ,fn-name))
-         (declaim (ftype (function (list function t t) (values))
-                         ,fn-name))
-         (defun ,fn-name (attrs body pre? empty?)
-           (let ((html *html*)
-                 (pretty *print-pretty*)
-                 (*pre* pre?)
-                 (*depth* (1+ *depth*))
-                 (*html-path* (cons ,(make-keyword tag) *html-path*)))
-             (declare (dynamic-extent *html-path*))
-             ,open-form
-             (unless empty?
-               ,body-form)
-             ,close-form
-             (values)))))))
+    `(progn
+       (declaim (notinline ,fn-name))
+       (declaim (ftype (function (list function t t) (values))
+                       ,fn-name))
+       (defun ,fn-name (attrs body pre? empty?)
+         (let ((html *html*)
+               (pretty *print-pretty*)
+               (*pre* pre?)
+               (*depth* (1+ *depth*))
+               (*html-path* (cons ,(make-keyword tag) *html-path*)))
+           (declare (dynamic-extent *html-path*))
+           ,(econd
+             (inline?
+              `(print-inline-tag html pretty
+                                 ,open ,(length open)
+                                 attrs
+                                 empty? body
+                                 ,close))
+             (paragraph?
+              `(print-par-tag html pretty
+                              ,open attrs
+                              empty? body
+                              ,close))
+             (t
+              `(print-block-tag html pretty
+                                ,open attrs
+                                empty? body
+                                ,close)))
+           (values))))))
 
 (defmacro define-all-tags ()
   `(progn
@@ -118,5 +114,23 @@
   (defun close-par (html close)
     (write-string close html)
     (elastic-newline html))
+
+  (defun print-inline-tag (html pretty open offset attrs empty? body close)
+    (open-inline html pretty open offset attrs)
+    (unless empty?
+      (inline-body body))
+    (close-inline html close))
+
+  (defun print-par-tag (html pretty open attrs empty? body close)
+    (open-par html pretty open attrs)
+    (unless empty?
+      (par-body body))
+    (close-par html close))
+
+  (defun print-block-tag (html pretty open attrs empty? body close)
+    (open-block html pretty open attrs)
+    (unless empty?
+      (block-body html body pretty))
+    (close-block html close))
 
   (define-all-tags))
