@@ -44,15 +44,19 @@
 (defun preformatted? (element)
   (find element *preformatted*))
 
+(defun needs-close? (element)
+  (not (or (void? element)
+           (unmatched? element))))
+
 (define-global-parameter *pseudotags*
-  '((:doctype . make-doctype)
-    (:!doctype . make-doctype)
-    (:cdata . make-cdata)
-    (:!-- . make-comment)
-    (:comment . make-comment)
-    (:html . make-html)
-    (:head . make-head)
-    (:raw . write-raw)))
+    '((:doctype . make-doctype)
+      (:!doctype . make-doctype)
+      (:cdata . make-cdata)
+      (:!-- . make-comment)
+      (:comment . make-comment)
+      (:html . make-html)
+      (:head . make-head)
+      (:raw . write-raw)))
 
 (defun pseudotag-expander (element)
   (cdr (assoc element *pseudotags*)))
