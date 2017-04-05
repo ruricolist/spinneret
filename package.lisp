@@ -12,8 +12,7 @@
            #:*unvalidated-attribute-prefixes*
            #:*fill-column*
            #:html-length
-           #:dynamic-tag
-           #:with-dynamic-tag)
+           #:dynamic-tag)
   (:shadowing-import-from :alexandria :switch)
   (:import-from :serapeum
     :fmt :unsplice :string+ :eif :econd :receive
@@ -21,7 +20,7 @@
     :nlet :nix :assure
     :find-keyword
     :-> :with-thunk
-    :and-let*)
+    :and-let* :op :string-prefix-p)
   (:import-from :global-vars :define-global-parameter))
 
 (defpackage #:spinneret-user

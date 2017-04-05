@@ -24,6 +24,7 @@
                (:file "functions")
                (:file "compile")
                (:file "deftag")
+               (:file "dynamic")
                (:file "ps")))
 
 (asdf:defsystem #:spinneret/cl-markdown

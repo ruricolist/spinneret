@@ -340,9 +340,18 @@ able to use directives like ~c, ~d, ~{~} &c."
   `(prog1 nil ,@(loop for arg in args
                       collect `(fill-text ,arg t))))
 
+(-> heading-depth () (integer 1 6))
 (defun heading-depth ()
   "Return the current dynamic heading depth.
 This follows the convention for the XHTML <h/> element, where the top
 level is level 1, inside the first section is level 2, and so forth."
-  (1+ (count :section *html-path*)))
+  (clamp (count :section *html-path*) 1 6))
 
+(defun heading-depth-heading ()
+  (ecase (heading-depth)
+    (1 :h1)
+    (2 :h2)
+    (3 :h3)
+    (4 :h4)
+    (5 :h5)
+    (6 :h6)))

@@ -1,6 +1,6 @@
 # Spinneret
 
-In the crowded space of Common Lisp HTML generators, SPINNERET
+In the crowded space of Common Lisp HTML generators, Spinneret
 occupies the following coordinates:
 
 - Modern. Targets HTML5. Does not treat XML and HTML as the same
@@ -15,12 +15,12 @@ occupies the following coordinates:
 
 - Aggressive. If something can be interpreted as HTML, then it will
   be, meaning that some Lisp forms can't be mixed with HTML syntax. In
-  the trade-off between 90% convenience and 10% correctness SPINNERET
+  the trade-off between 90% convenience and 10% correctness Spinneret
   is on the side of convenience.
 
 - Bilingual. Spinneret has the same semantics in Lisp and Parenscript.
 
-HTML generation with SPINNERET looks like this:
+HTML generation with Spinneret looks like this:
 
      (in-package #:spinneret)
 
@@ -83,7 +83,7 @@ Which produces:
       </body>
      </html>
 
-(Pretty-printing is pretty fast, but SPINNERET obeys `*print-pretty*`
+(Pretty-printing is pretty fast, but Spinneret obeys `*print-pretty*`
 should you want to turn it off.)
 
 ### Line wrapping
@@ -113,7 +113,18 @@ The rules for WITH-HTML are these:
   Certain keywords are recognized as pseudo-tags and given special
   treatment:
 
-  :RAW :DOCTYPE :!DOCTYPE :CDATA :!-- :COMMENT :HTML :HEAD
+  :RAW :DOCTYPE :!DOCTYPE :CDATA :!-- :COMMENT :HTML :HEAD :H*
+
+  - The pseudotag :RAW can be used to bypass Spinneret’s implicit
+    escaping for raw output.
+
+  - The pseudotags :!– and :COMMENT insert comments into the output.
+
+  - The pseudotag :H* renders as one of :H1 through :H6 depending on
+    how many :SECTION elements it is dynamically nested inside. At the
+    top level, :H* is equivalent to :H1. Inside the dynamic extent of
+    one :SECTION tag, it is equivalent to :H2; inside two section
+    tags, it is equivalent to :H3; and so forth up to :H6.
 
   The value of the LANG attribute of HTML is controlled by
   `*html-lang*`; the value of the meta charset attribute is controlled
@@ -155,7 +166,32 @@ The rules for WITH-HTML are these:
 WITH-HTML-STRING is like WITH-HTML, but intercepts the generated HTML
 at run time and returns a string.
 
-## Markdown
+### Dynamic output
+
+For flexibility, even at the cost of efficiency, the pseudo-attribute
+:ATTRS introduces a form to evaluate at run time for a plist of extra
+attributes and values.
+
+    (:p :attrs (list :id "dynamic!"))
+    => <p id="dynamic!">
+
+Similarly, the pseudo-tag :TAG allows you to select a tag at run time.
+
+    (:tag :name "div"
+     (:tag :name "p"
+      (:tag :name "span"
+        "Hello.")))
+    ≡ (:div (:p (:span "Hello")))
+
+Note that :TAG only allows you to *select* a tag, not *create* one.
+The tag must still be one that is known to Spinneret to be valid.
+
+For maximum dynamicity, you can combine :TAG and :ATTRS:
+
+    (:tag :name "div" :attrs (list :id "dynamic!"))
+    => <div id=dynamic!></div>
+
+### Markdown
 
 If the additional system `spinneret/cl-markdown` is loaded, then a
 string in function position is first compiled as Markdown (using
@@ -173,7 +209,6 @@ clumsy:
         (:a :href link "a link.")))
 
 ## `get-html-path`
-
 
 Sometimes it is useful for a piece of HTML-generating code to know
 where in the document it appears. You might, for example, want to
@@ -270,12 +305,12 @@ In effect, `input` *extends* the `:input` tag, almost like a subclass.
 This is a very idiomatic and expressive way of building abstractions
 over HTML.
 
-(SPINNERET used to provide a more elaborate way of building HTML
+(Spinneret used to provide a more elaborate way of building HTML
 abstractions, `deftemplate`, but `deftag` is simpler and more useful.)
 
 ## Parenscript
 
-The semantics of SPINNERET in Parenscript are almost the same. There
+The semantics of Spinneret in Parenscript are almost the same. There
 is no `with-html-string`, and `with-html` returns a
 `DocumentFragment`.
 
@@ -285,9 +320,11 @@ Parenscript does not have `format`).
 
 `get-html-path` is not implemented for Parenscript.
 
+Neither :ATTRS nor :TAG is available in Parenscript.
+
 ## Validation
 
-SPINNERET does not do document validation, but it does warn, at
+Spinneret does not do document validation, but it does warn, at
 compile time, about invalid tags and attributes.
 
 Although HTML5 does include a mechanism for application-specific

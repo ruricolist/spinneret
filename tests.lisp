@@ -413,5 +413,38 @@
          (with-html-string
            (:div
              (:section
-               (with-dynamic-tag :h2 nil
-                 (:p "hello")))))))))
+               (:tag :name :h2
+                     (:p "hello")))))))))
+
+(test h*
+  (with-pretty-printing
+    (is (visually-equal
+         (format nil "~
+<body>
+ <h1>This is a top level heading</h1>
+ <p>...
+ <section>
+  <p>...
+  <h1>This is a second-level heading</h1>
+  <p>...
+  <h1>This is another second-level heading</h1>
+  <p>...
+  <section>
+   <h2>This is a third-level heading</h2>
+   <p>...
+  </section>
+ </section>
+</body>")
+         (with-html-string
+           (:body
+             (:h* "This is a top level heading")
+             (:p "...")
+             (:section
+               (:p "...")
+               (:h* "This is a second-level heading")
+               (:p "...")
+               (:h* "This is another second-level heading")
+               (:p "...")
+               (:section
+                 (:h* "This is a third-level heading")
+                 (:p "...")))))))))

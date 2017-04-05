@@ -144,13 +144,15 @@
     (close-block html close))
 
   (progn
-    (defun dynamic-tag (tag attrs body &optional empty?)
+    (defun dynamic-tag* (tag attrs body &optional empty?)
       "Dynamically select a tag at runtime.
 Note that TAG must be a known tag."
-      (let ((tag (or (and-let* ((kw (find-keyword tag))
+      (let ((tag (or (and-let* ((kw (find-keyword (string-upcase tag)))
                                 (tag (find kw *html5-elements* :test #'eq))))
                      (error "No such tag as ~a" tag)))
             (open (tag-open tag))
+            ;; Note that dynamic tags always print the closing tag --
+            ;; not worth the effort to check.
             (close (tag-close tag))
             (*pre* (and (preformatted? tag) t))
             (*depth* (1+ *depth*))
@@ -183,8 +185,3 @@ Note that TAG must be a known tag."
         (values)))
 
     (define-all-tags)))
-
-(defmacro with-dynamic-tag (name attrs &body body)
-  `(with-html
-     ,(with-thunk (body)
-        `(dynamic-tag ,name ,attrs ,body ,(null body)))))

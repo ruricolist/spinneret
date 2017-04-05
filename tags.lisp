@@ -1,23 +1,5 @@
 (in-package #:spinneret)
 
-(declaim
- (type list
-       *void-elements*
-       *literal-elements*
-       *inline-elements*
-       *paragraph-elements*
-       *end-tag-optional*
-       *preformatted*
-       *pseudotags*
-       *html5-elements*
-       *embedded-content*
-       *boolean-attributes*
-       *event-handler-attributes*
-       *global-attributes*
-       *permitted-attributes*
-       *aria-attributes*
-       *space-separated-attributes*))
-
 ;; These are the only functions that are called at run time.
 (declaim (inline
           boolean?
@@ -26,18 +8,22 @@
           paragraph?
           preformatted?))
 
+(defsubst findq (item list)
+  (declare (type list list))
+  (find item list :test #'eq))
+
 (define-global-parameter *void-elements*
   '(:!doctype :area :base :br :col :command :embed :hr :img
     :input :keygen :link :meta :param :source :track :wbr))
 
 (defun void? (element)
-  (find element *void-elements*))
+  (findq element *void-elements*))
 
 (define-global-parameter *literal-elements*
   '(:pre :script :style))
 
 (defun literal? (element)
-  (find element *literal-elements*))
+  (findq element *literal-elements*))
 
 (define-global-parameter *inline-elements*
   '(:a :abbr :address :bdo :small :code :samp :kbd
@@ -46,14 +32,14 @@
     :ins :del :col :meter :output))
 
 (defun inline? (element)
-  (find element *inline-elements* :test #'eq))
+  (findq element *inline-elements*))
 
 (define-global-parameter *paragraph-elements*
   '(:meta :title :button :label :li :h1 :h2 :h3 :h4 :h5 :h6 :p :legend :option
     :dt :dd :figcaption :iframe :colgroup :td :th :output :summary :command))
 
 (defun paragraph? (element)
-  (find element *paragraph-elements* :test #'eq))
+  (findq element *paragraph-elements*))
 
 (define-global-parameter *end-tag-optional*
   ;; html head body
@@ -62,13 +48,13 @@
     :meta))
 
 (defun unmatched? (element)
-  (find element *end-tag-optional*))
+  (findq element *end-tag-optional*))
 
 (define-global-parameter *preformatted*
   '(:pre :textarea :script :style))
 
 (defun preformatted? (element)
-  (find element *preformatted* :test #'eq))
+  (findq element *preformatted*))
 
 (defun needs-close? (element)
   (not (or (void? element)
@@ -82,7 +68,9 @@
       (:comment . make-comment)
       (:html . make-html)
       (:head . make-head)
-      (:raw . write-raw)))
+      (:raw . write-raw)
+      (:h* . expand-h*)
+      (:tag . expand-dynamic-tag)))
 
 (defun pseudotag-expander (element)
   (cdr (assoc element *pseudotags*)))
@@ -106,7 +94,7 @@
     :track :u :ul :var :video :wbr))
 
 (defun valid? (element)
-  (find element *html5-elements*))
+  (findq element *html5-elements*))
 
 (defun invalid? (element)
   (not (valid? element)))
@@ -115,7 +103,7 @@
   '(:math :svg))
 
 (defun embedded? (element)
-  (find element *embedded-content*))
+  (findq element *embedded-content*))
 
 (define-global-parameter *boolean-attributes*
   '(:async :autofocus :autoplay :checked :controls
@@ -125,7 +113,7 @@
     :seamless :selected :typemustmatch))
 
 (defun boolean? (attr)
-  (find attr *boolean-attributes* :test #'eq))
+  (findq attr *boolean-attributes*))
 
 (define-global-parameter *core-attributes*
   '(:accesskey :class :contenteditable :contextmenu :dir :draggable
@@ -136,10 +124,8 @@
   "A list of prefixes for attributes that should not be validated.")
 
 (defun unvalidated-attribute? (attribute)
-  (loop for prefix in *unvalidated-attribute-prefixes*
-        thereis (starts-with-subseq prefix
-                                    (string attribute)
-                                    :test #'char-equal)))
+  (some (op (string-prefix-p _ attribute))
+        *unvalidated-attribute-prefixes*))
 
 ;; http://www.w3.org/TR/wai-aria/states_and_properties
 (define-global-parameter *aria-attributes*
@@ -164,7 +150,7 @@
   '(:accesskey :class :for :headers :rel :sandbox :sizes))
 
 (defun tokenized-attribute? (attr)
-  (find attr *space-separated-attributes*))
+  (findq attr *space-separated-attributes*))
 
 (define-global-parameter *permitted-attributes*
   '((:a :href :target :rel :hreflang :media :type :download :ping)
@@ -235,19 +221,20 @@
 attributes, beyond the global attributes.")
 
 (defun valid-attribute? (tag name)
-  (or (unvalidated-attribute? name)
+  (or (null tag)                        ;A dynamic tag.
+      (unvalidated-attribute? name)
       (eql name :attrs)
       (global-attribute? name)
       (aria-attribute? name)
       (let ((permitted (permitted-attributes tag)))
         (or (find name permitted :test #'string=)
-            (find '* permitted)))))
+            (findq '* permitted)))))
 
 (defun permitted-attributes (tag)
   (cdr (assoc tag *permitted-attributes*)))
 
 (defun global-attribute? (name)
-  (find name *global-attributes*))
+  (findq name *global-attributes*))
 
 (defun aria-attribute? (name)
-  (find name *aria-attributes*))
+  (findq name *aria-attributes*))
