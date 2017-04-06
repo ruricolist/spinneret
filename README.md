@@ -86,6 +86,45 @@ Which produces:
 (Pretty-printing is pretty fast, but Spinneret obeys `*print-pretty*`
 should you want to turn it off.)
 
+### Printing style
+
+Spinneret tries hard to produce human-writable output – output that
+looks like a human being wrote it. Sometimes, however, you may have
+markup to render that there is no human-writable way to render,
+because no human being would ever write it.
+
+In these cases you can set or bind the `*html-style*` variable to
+control Spinneret’s print style. The default is `:human`, which means
+to attempt to produce human-writable output. It can also be set to
+`:tree`, which simply prints every element as if it were a block
+element, and every run of text on a new line.
+
+    (let ((*html-style* :human))
+      (with-html
+        (:div
+          (:p "Text " (:a "link text") " more text"))))
+    => <div>
+        <p>Text <a>link text</a> more text
+       </div>"
+
+    (let ((*html-style* :tree))
+      (with-html-string
+        (:div
+          (:p "Text " (:a "link text") " more text"))))
+    => <div>
+        <p>
+         Text
+         <a>
+          link text
+         </a>
+          more text
+        </p>
+       </div>
+
+
+The value of `*html-style*` only matters when `*print-pretty*` is in
+effect.
+
 ### Line wrapping
 
 Spinneret makes the best decisions about line wrapping that it can,

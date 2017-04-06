@@ -35,3 +35,7 @@ This is always measured from the start of the tag.")
 (defvar *html-path* nil
   "List (in ascending order) of parent nodes.")
 (assert (null *html-path*))
+
+(defvar *html-style* :human
+  "How should we pretty-print HTML?")
+(declaim (type (member :human :tree) *html-style*))

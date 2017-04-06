@@ -36,7 +36,8 @@
          (every #'equal lines1 lines2))))
 
 (defmacro with-pretty-printing (&body body)
-  `(let ((*print-pretty* t))
+  `(let ((*print-pretty* t)
+         (*html-style* :human))
      ,@body))
 
 (defmacro without-pretty-printing (&body body)
@@ -67,18 +68,22 @@
                (:td (1+ i))))))))
 
 (test bigtable
-  (flet ((bt (pp)
-           (let ((*print-pretty* pp))
-             (let ((start (get-internal-run-time)))
-               (with-output-to-string (*html*)
-                 (finishes (bigtable)))
-               (let* ((end (get-internal-run-time))
-                      (duration (- end start))
-                      (seconds (/ duration (float internal-time-units-per-second))))
-                 (format t "~&Bigtable benchmark ~:[without~;with~] pretty printing: ~d second~:p~%"
-                         pp seconds))))))
-    (bt t)
-    (bt nil)))
+  (flet ((bt (msg)
+           (let ((start (get-internal-run-time)))
+             (with-output-to-string (*html*)
+               (finishes (bigtable)))
+             (let* ((end (get-internal-run-time))
+                    (duration (- end start))
+                    (seconds (/ duration (float internal-time-units-per-second))))
+               (format t "~&Bigtable benchmark ~a: ~d second~:p~%" msg seconds)))))
+    (let ((*print-pretty* t)
+          (*html-style* :human))
+      (bt "with pretty printing"))
+    (let ((*print-pretty* t)
+          (*html-style* :tree))
+      (bt "with pretty printing (tree style)"))
+    (let ((*print-pretty* nil))
+      (bt "without pretty printing"))))
 
 (defun readme-example ()
   (with-pretty-printing
