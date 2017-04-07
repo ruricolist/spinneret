@@ -122,6 +122,8 @@
      (let* ((start-col (get-indent))
             (fill *fill-column*)
             (goal (+ fill start-col)))
+       (when (eql *html-style* :tree)
+         (fresh-line html))
        (when (whitespace (aref string 0))
          (write-char #\Space html))
        (flet ((wrap () (terpri html))) (declare (inline wrap))

@@ -12,7 +12,8 @@
            #:*unvalidated-attribute-prefixes*
            #:*fill-column*
            #:html-length
-           #:dynamic-tag)
+           #:dynamic-tag
+           #:*html-style*)
   (:shadowing-import-from :alexandria :switch)
   (:import-from :serapeum
     :fmt :unsplice :string+ :eif :econd :receive

@@ -19,44 +19,47 @@
 
   (-> tag-close (string-designator) (simple-array character (*)))
   (defun tag-close (tag)
-    (if (needs-close? tag)
-        (fmt "</~(~A~)>" tag)
-        "")))
+    (fmt "</~(~A~)>" tag)))
 
 (defmacro define-tag (tag)
   (let* ((inline? (inline? tag))
          (paragraph? (paragraph? tag))
          (fn-name (tag-fn tag :intern t))
          (open (tag-open tag))
-         (close (tag-close tag)))
+         (close (tag-close tag))
+         (needs-close? (needs-close? tag)))
     `(progn
        (declaim (notinline ,fn-name))
        (declaim (ftype (function (list function t t) (values))
                        ,fn-name))
        (defun ,fn-name (attrs body pre? empty?)
-         (let ((html *html*)
-               (pretty *print-pretty*)
-               (*pre* pre?)
-               (*depth* (1+ *depth*))
-               (*html-path* (cons ,(make-keyword tag) *html-path*)))
+         (let* ((html *html*)
+                (pretty *print-pretty*)
+                (style (and pretty *html-style*))
+                (*pre* pre?)
+                (*depth* (1+ *depth*))
+                (*html-path* (cons ,(make-keyword tag) *html-path*)))
            (declare (dynamic-extent *html-path*))
            ,(econd
              (inline?
-              `(print-inline-tag html pretty
+              `(print-inline-tag html pretty style
                                  ,open ,(length open)
                                  attrs
                                  empty? body
-                                 ,close))
+                                 ,close
+                                 ,needs-close?))
              (paragraph?
-              `(print-par-tag html pretty
+              `(print-par-tag html pretty style
                               ,open attrs
                               empty? body
-                              ,close))
+                              ,close
+                              ,needs-close?))
              (t
-              `(print-block-tag html pretty
+              `(print-block-tag html pretty style
                                 ,open attrs
                                 empty? body
-                                ,close)))
+                                ,close
+                                ,needs-close?)))
            (values))))))
 
 (defmacro define-all-tags ()
@@ -115,73 +118,88 @@
   (defun par-body (body)
     (inline-body body))
 
-  (defun close-inline (html close)
-    (write-string close html))
+  (defun close-inline (html close needs-close?)
+    (when needs-close?
+      (write-string close html)))
 
-  (defun close-block (html close)
-    (write-string close html))
+  (defun close-block (html close needs-close?)
+    (when needs-close?
+      (write-string close html)))
 
-  (defun close-par (html close)
-    (write-string close html)
+  (defun close-par (html close needs-close?)
+    (when needs-close?
+      (write-string close html))
     (elastic-newline html))
 
-  (defun print-inline-tag (html pretty open offset attrs empty? body close)
+  (defun print-inline-tag (html pretty style open offset attrs empty? body close needs-close?)
+    (when (and pretty (eql style :tree))
+      (return-from print-inline-tag
+        (print-block-tag html pretty style open attrs empty? body close t)))
+
     (open-inline html pretty open offset attrs)
     (unless empty?
       (inline-body body))
-    (close-inline html close))
+    (close-inline html close needs-close?))
 
-  (defun print-par-tag (html pretty open attrs empty? body close)
+  (defun print-par-tag (html pretty style open attrs empty? body close needs-close?)
+    (when (and pretty (eql style :tree))
+      (return-from print-par-tag
+        (print-block-tag html pretty style open attrs empty? body close t)))
+
     (open-par html pretty open attrs)
     (unless empty?
       (par-body body))
-    (close-par html close))
+    (close-par html close needs-close?))
 
-  (defun print-block-tag (html pretty open attrs empty? body close)
+  (defun print-block-tag (html pretty style open attrs empty? body close needs-close?)
+    (when (and pretty (eql style :tree))
+      (setq needs-close? t))
     (open-block html pretty open attrs)
     (unless empty?
       (block-body html body pretty))
-    (close-block html close))
+    (close-block html close needs-close?))
 
   (progn
     (defun dynamic-tag* (tag attrs body &optional empty?)
       "Dynamically select a tag at runtime.
 Note that TAG must be a known tag."
-      (let ((tag (or (and-let* ((kw (find-keyword (string-upcase tag)))
-                                (tag (find kw *html5-elements* :test #'eq))))
-                     (error "No such tag as ~a" tag)))
-            (open (tag-open tag))
-            ;; Note that dynamic tags always print the closing tag --
-            ;; not worth the effort to check.
-            (close (tag-close tag))
-            (*pre* (and (preformatted? tag) t))
-            (*depth* (1+ *depth*))
-            (*html-path* (cons tag *html-path*)))
+      (let* ((tag (or (and-let* ((kw (find-keyword (string-upcase tag)))
+                                 (tag (findq kw *html5-elements*))))
+                      (error "No such tag as ~a" tag)))
+             (open (tag-open tag))
+             ;; Note that dynamic tags always print the closing tag --
+             ;; not worth the effort to check.
+             (close (tag-close tag))
+             (*pre* (and (preformatted? tag) t))
+             (*depth* (1+ *depth*))
+             (*html-path* (cons tag *html-path*))
+             (pretty *print-pretty*)
+             (style (and pretty *html-style*)))
         (declare (dynamic-extent *html-path*))
         (cond ((inline? tag)
                (print-inline-tag
                 *html*
-                *print-pretty*
+                pretty style
                 open (length open) attrs
                 empty?
                 body
-                close))
+                close t))
               ((paragraph? tag)
                (print-par-tag
                 *html*
-                *print-pretty*
+                pretty style
                 open attrs
                 empty? body
-                close))
+                close t))
               (t
                (print-block-tag
                 *html*
-                *print-pretty*
+                pretty style
                 open
                 attrs
                 empty?
                 (assure function body)
-                close)))
+                close t)))
         (values)))
 
     (define-all-tags)))
