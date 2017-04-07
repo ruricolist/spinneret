@@ -453,3 +453,32 @@
                (:section
                  (:h* "This is a third-level heading")
                  (:p "...")))))))))
+
+
+(test print-tree
+  (with-pretty-printing
+    (is (visually-equal
+         (format nil "~
+<div>
+ <p>Text <a>link text</a> more text
+</div>")
+         (let ((*html-style* :human))
+           (with-html-string
+             (:div
+               (:p "Text " (:a "link text") " more text"))))))
+
+    (is (visually-equal
+         (format nil "~
+<div>
+ <p>
+  Text
+  <a>
+   link text
+  </a>
+   more text
+ </p>
+</div>")
+         (let ((*html-style* :tree))
+           (with-html-string
+             (:div
+               (:p "Text " (:a "link text") " more text"))))))))
