@@ -17,7 +17,7 @@
   (:shadowing-import-from :alexandria :switch)
   (:import-from :serapeum
     :fmt :unsplice :string+ :eif :econd :receive
-    :define-do-macro :defsubst
+    :define-do-macro :defsubst :defconst
     :nlet :nix :assure
     :find-keyword
     :-> :with-thunk
