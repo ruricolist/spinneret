@@ -6,6 +6,10 @@
 
 (deftype index () '(integer 0 #.array-total-size-limit))
 
+(defconst no-break-space
+  #+lispworks #\No-break-space
+  #-lispworks #\No-break_space)
+
 ;; See 2.5.1.
 ;; http://www.w3.org/TR/html5/common-microsyntaxes.html#space-character
 
@@ -37,7 +41,7 @@
            (optimize (speed 3) (safety 1) (debug 0)))
   (case c
     (#\& "&amp;")
-    (#\No-break_space "&nbsp;")
+    (#.no-break-space "&nbsp;")
     (#\< "&lt;")
     (#\> "&gt")))
 
@@ -54,7 +58,7 @@
                      (lambda (c)
                        (case c
                          (#\& "&amp;")
-                         (#\No-break_space "&nbsp;")
+                         (#.no-break-space "&nbsp;")
                          (#\" "&quot;")))))
 
 (defun escape-to-stream (string table stream)
