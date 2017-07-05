@@ -15,11 +15,13 @@
 
   (-> tag-open (string-designator) (simple-array character (*)))
   (defun tag-open (tag)
-    (fmt "<~(~A~)" tag))
+    (coerce (fmt "<~(~A~)" tag)
+            '(simple-array character (*))))
 
   (-> tag-close (string-designator) (simple-array character (*)))
   (defun tag-close (tag)
-    (fmt "</~(~A~)>" tag)))
+    (coerce (fmt "</~(~A~)>" tag)
+            '(simple-array character (*)))))
 
 (defmacro define-tag (tag)
   (let* ((inline? (inline? tag))
