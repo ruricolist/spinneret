@@ -112,13 +112,17 @@
       (when (> col goal)
         (terpri stream)))))
 
-(defun fill-text (string &optional safe? &aux (html *html*))
+(defun fill-text (string &optional safe?
+                  &aux (html *html*)
+                       (pretty? *print-pretty*)
+                       (pre? *pre*))
   (check-type string string)
   (cond
     ((= (length string) 0))
-    (*pre*
-     (fast-format html "~&~A~%" string))
-    (*print-pretty*
+    (pre?
+     (let ((stream (html-stream.base-stream html)))
+       (fast-format stream "~A" string)))
+    (pretty?
      (let* ((start-col (get-indent))
             (fill *fill-column*)
             (goal (+ fill start-col)))

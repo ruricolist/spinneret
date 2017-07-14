@@ -1,5 +1,9 @@
 (in-package :spinneret)
 
+(defgeneric html-stream.base-stream (stream)
+  (:method ((stream stream))
+    stream))
+
 (defclass html-stream (fundamental-character-output-stream)
   ((col :type (integer 0 *) :initform 0
         :reader html-stream-column
@@ -12,7 +16,8 @@
    (elastic-newline :type boolean
                     :initform nil)
    (base-stream :type stream
-                :initarg :base-stream))
+                :initarg :base-stream
+                :reader html-stream.base-stream))
   (:default-initargs))
 
 (defun make-html-stream (base-stream)

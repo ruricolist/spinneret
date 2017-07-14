@@ -482,3 +482,26 @@
            (with-html-string
              (:div
                (:p "Text " (:a "link text") " more text"))))))))
+
+(test textarea-preformatting
+  (flet ((test1 ()
+           (with-html-string
+             (:div (:textarea "123"))))
+         (test2 ()
+           (with-html-string
+             (let ((*print-pretty*))
+               (:div (:textarea "123"))))))
+    (with-pretty-printing
+      (is (visually-equal (test1)
+                          (format nil "~
+<div>
+ <textarea>123
+ </textarea>
+</div>")))
+      (is (visually-equal (test2)
+                          "<div><textarea>123</textarea></div>")))
+    ;; Test that dereferencing the underlying stream works when the
+    ;; stream is not, in fact, an HTML stream.
+    (without-pretty-printing
+      (is (visually-equal (test2)
+                          "<div><textarea>123</textarea></div>")))))
