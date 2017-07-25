@@ -37,31 +37,31 @@
        (defun ,fn-name (attrs body pre? empty?)
          (let* ((html *html*)
                 (pretty *print-pretty*)
-                (style (and pretty *html-style*))
+                (style *html-style*)
                 (*pre* pre?)
                 (*depth* (1+ *depth*))
                 (*html-path* (cons ,(make-keyword tag) *html-path*)))
            (declare (dynamic-extent *html-path*))
            ,(econd
-             (inline?
-              `(print-inline-tag html pretty style
-                                 ,open ,(length open)
-                                 attrs
+              (inline?
+               `(print-inline-tag html pretty style
+                                  ,open ,(length open)
+                                  attrs
+                                  empty? body
+                                  ,close
+                                  ,needs-close?))
+              (paragraph?
+               `(print-par-tag html pretty style
+                               ,open attrs
+                               empty? body
+                               ,close
+                               ,needs-close?))
+              (t
+               `(print-block-tag html pretty style
+                                 ,open attrs
                                  empty? body
                                  ,close
-                                 ,needs-close?))
-             (paragraph?
-              `(print-par-tag html pretty style
-                              ,open attrs
-                              empty? body
-                              ,close
-                              ,needs-close?))
-             (t
-              `(print-block-tag html pretty style
-                                ,open attrs
-                                empty? body
-                                ,close
-                                ,needs-close?)))
+                                 ,needs-close?)))
            (values))))))
 
 (defmacro define-all-tags ()
@@ -134,7 +134,7 @@
     (elastic-newline html))
 
   (defun print-inline-tag (html pretty style open offset attrs empty? body close needs-close?)
-    (when (and pretty (eql style :tree))
+    (when (eql style :tree)
       (return-from print-inline-tag
         (print-block-tag html pretty style open attrs empty? body close t)))
 
@@ -144,7 +144,7 @@
     (close-inline html close needs-close?))
 
   (defun print-par-tag (html pretty style open attrs empty? body close needs-close?)
-    (when (and pretty (eql style :tree))
+    (when (eql style :tree)
       (return-from print-par-tag
         (print-block-tag html pretty style open attrs empty? body close t)))
 
@@ -154,7 +154,7 @@
     (close-par html close needs-close?))
 
   (defun print-block-tag (html pretty style open attrs empty? body close needs-close?)
-    (when (and pretty (eql style :tree))
+    (when (eql style :tree)
       (setq needs-close? t))
     (open-block html pretty open attrs)
     (unless empty?
@@ -176,7 +176,7 @@ Note that TAG must be a known tag."
              (*depth* (1+ *depth*))
              (*html-path* (cons tag *html-path*))
              (pretty *print-pretty*)
-             (style (and pretty *html-style*)))
+             (style *html-style*))
         (declare (dynamic-extent *html-path*))
         (cond ((inline? tag)
                (print-inline-tag

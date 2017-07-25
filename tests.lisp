@@ -13,7 +13,10 @@
 
 (defmacro test (name &body body)
   `(5am:test (,@(ensure-list name) :compile-at :run-time)
-     ,@body))
+     ;; Ensure the expected defaults.
+     (let ((*html-style* :human)
+           (*print-pretty* t))
+       ,@body)))
 
 (defun run-tests ()
   (run! 'spinneret))
@@ -82,8 +85,12 @@
     (let ((*print-pretty* t)
           (*html-style* :tree))
       (bt "with pretty printing (tree style)"))
-    (let ((*print-pretty* nil))
-      (bt "without pretty printing"))))
+    (let ((*print-pretty* nil)
+          (*html-style* :human))
+      (bt "without pretty printing"))
+    (let ((*print-pretty* nil)
+          (*html-style* :tree))
+      (bt "without pretty printing (tree style)"))))
 
 (defun readme-example ()
   (with-pretty-printing
@@ -505,3 +512,11 @@
     (without-pretty-printing
       (is (visually-equal (test2)
                           "<div><textarea>123</textarea></div>")))))
+
+(test print-as-tree-without-pretty-printing
+  (is (visually-equal "<p>hello</p><span>world</span>"
+                      (let ((spinneret:*html-style* :tree)
+                            (*print-pretty* nil))
+                        (spinneret:with-html-string
+                          (:p "hello")
+                          (:span "world"))))))
