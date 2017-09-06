@@ -2,6 +2,7 @@
 
 ;; These are the only functions that are called at run time.
 (declaim (inline
+          void?
           boolean?
           ;; These are only called at run time by dynamic-tag.
           inline?
