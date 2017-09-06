@@ -20,8 +20,10 @@
 
   (-> tag-close (string-designator) (simple-array character (*)))
   (defun tag-close (tag)
-    (coerce (fmt "</~(~A~)>" tag)
-            '(simple-array character (*)))))
+    (if (void? tag)
+        ""
+        (coerce (fmt "</~(~A~)>" tag)
+                '(simple-array character (*))))))
 
 (defmacro define-tag (tag)
   (let* ((inline? (inline? tag))
