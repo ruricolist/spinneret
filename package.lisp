@@ -21,7 +21,8 @@
     :nlet :nix :assure
     :find-keyword
     :-> :with-thunk
-    :and-let* :op :string-prefix-p)
+    :and-let* :op :string-prefix-p
+    :memq)
   (:import-from :global-vars :define-global-parameter))
 
 (defpackage #:spinneret-user

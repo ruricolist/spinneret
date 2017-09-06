@@ -8,22 +8,18 @@
           paragraph?
           preformatted?))
 
-(defsubst findq (item list)
-  (declare (type list list))
-  (find item list :test #'eq))
-
 (define-global-parameter *void-elements*
   '(:!doctype :area :base :br :col :command :embed :hr :img
     :input :keygen :link :meta :param :source :track :wbr))
 
 (defun void? (element)
-  (findq element *void-elements*))
+  (memq element *void-elements*))
 
 (define-global-parameter *literal-elements*
   '(:pre :script :style))
 
 (defun literal? (element)
-  (findq element *literal-elements*))
+  (memq element *literal-elements*))
 
 (define-global-parameter *inline-elements*
   '(:a :abbr :address :bdo :small :code :samp :kbd
@@ -32,14 +28,14 @@
     :ins :del :col :meter :output))
 
 (defun inline? (element)
-  (findq element *inline-elements*))
+  (memq element *inline-elements*))
 
 (define-global-parameter *paragraph-elements*
   '(:meta :title :button :label :li :h1 :h2 :h3 :h4 :h5 :h6 :p :legend :option
     :dt :dd :figcaption :iframe :colgroup :td :th :output :summary :command))
 
 (defun paragraph? (element)
-  (findq element *paragraph-elements*))
+  (memq element *paragraph-elements*))
 
 (define-global-parameter *end-tag-optional*
   ;; html head body
@@ -48,13 +44,13 @@
     :meta))
 
 (defun unmatched? (element)
-  (findq element *end-tag-optional*))
+  (memq element *end-tag-optional*))
 
 (define-global-parameter *preformatted*
   '(:pre :textarea :script :style))
 
 (defun preformatted? (element)
-  (findq element *preformatted*))
+  (memq element *preformatted*))
 
 (defun needs-close? (element)
   (not (or (void? element)
@@ -94,7 +90,7 @@
     :track :u :ul :var :video :wbr))
 
 (defun valid? (element)
-  (findq element *html5-elements*))
+  (memq element *html5-elements*))
 
 (defun invalid? (element)
   (not (valid? element)))
@@ -103,7 +99,7 @@
   '(:math :svg))
 
 (defun embedded? (element)
-  (findq element *embedded-content*))
+  (memq element *embedded-content*))
 
 (define-global-parameter *boolean-attributes*
   '(:async :autofocus :autoplay :checked :controls
@@ -113,7 +109,7 @@
     :seamless :selected :typemustmatch))
 
 (defun boolean? (attr)
-  (findq attr *boolean-attributes*))
+  (memq attr *boolean-attributes*))
 
 (define-global-parameter *core-attributes*
   '(:accesskey :class :contenteditable :contextmenu :dir :draggable
@@ -150,7 +146,7 @@
   '(:accesskey :class :for :headers :rel :sandbox :sizes))
 
 (defun tokenized-attribute? (attr)
-  (findq attr *space-separated-attributes*))
+  (memq attr *space-separated-attributes*))
 
 (define-global-parameter *permitted-attributes*
   '((:a :href :target :rel :hreflang :media :type :download :ping)
@@ -228,13 +224,13 @@ attributes, beyond the global attributes.")
       (aria-attribute? name)
       (let ((permitted (permitted-attributes tag)))
         (or (find name permitted :test #'string=)
-            (findq '* permitted)))))
+            (memq '* permitted)))))
 
 (defun permitted-attributes (tag)
   (cdr (assoc tag *permitted-attributes*)))
 
 (defun global-attribute? (name)
-  (findq name *global-attributes*))
+  (memq name *global-attributes*))
 
 (defun aria-attribute? (name)
-  (findq name *aria-attributes*))
+  (memq name *aria-attributes*))

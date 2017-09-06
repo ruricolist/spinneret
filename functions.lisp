@@ -166,7 +166,7 @@
       "Dynamically select a tag at runtime.
 Note that TAG must be a known tag."
       (let* ((tag (or (and-let* ((kw (find-keyword (string-upcase tag)))
-                                 (tag (findq kw *html5-elements*))))
+                                 (tag (car (memq kw *html5-elements*)))))
                       (error "No such tag as ~a" tag)))
              (open (tag-open tag))
              ;; Note that dynamic tags always print the closing tag --
