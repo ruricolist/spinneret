@@ -243,8 +243,8 @@ For maximum dynamicity, you can combine :TAG and :ATTRS:
 
 If the additional system `spinneret/cl-markdown` is loaded, then a
 string in function position is first compiled as Markdown (using
-CL-MARKDOWN), then passed to `format` as a control string and applied
-to its arguments.
+[CL-MARKDOWN][]), then passed to `format` as a control string and
+applied to its arguments.
 
 This is useful for inline formatting, like links, where sexps would be
 clumsy:
@@ -381,3 +381,5 @@ employ their own prefixes instead. You can disable validation for a
 given prefix by adding it to `*unvalidated-attribute-prefixes*`.
 
     (pushnew "ng-" *unvalidated-attribute-prefixes* :test #’equal)
+
+[CL-MARKDOWN]: https://github.com/gwkkwg/cl-markdown
