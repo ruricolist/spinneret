@@ -121,9 +121,16 @@ element, and every run of text on a new line.
         </p>
        </div>
 
+With `*html-style*` bounds to `:tree`, and `*print-pretty*` bounds to
+nil, output is verbose but predictable:
 
-The value of `*html-style*` only matters when `*print-pretty*` is in
-effect.
+
+    (let ((*html-style* :tree)
+          (*print-pretty* nil))
+      (with-html-string
+        (:div
+          (:p "Text " (:a "link text") " more text"))))
+    => "<div><p>Text <a>link text</a>  more text</p></div>"
 
 ### Line wrapping
 
