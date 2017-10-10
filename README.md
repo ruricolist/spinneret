@@ -179,8 +179,8 @@ The rules for WITH-HTML are these:
   Constant classes and ids can be specified with a selector-like
   syntax. E.g.:
 
-     (:div#wrapper (:div.section ...))
-     ≡ (:div :id "wrapper" (:div :class "section" ...))
+        (:div#wrapper (:div.section ...))
+        ≡ (:div :id "wrapper" (:div :class "section" ...))
 
 - Keyword-value pairs following a tag are interpreted as attributes.
   HTML syntax may not be used in attribute values. Attributes with nil
@@ -194,10 +194,10 @@ The rules for WITH-HTML are these:
 
   The argument :DATASET introduces a list of :DATA-FOO arguments:
 
-     (:p :dataset (:duck (dolomphious) :fish 'fizzgigious
-                         :spoon "runcible"))
-     ≡ (:p :data-duck (dolomphious) :data-fish 'fizzgigious
-           :data-spoon "runcible")
+        (:p :dataset (:duck (dolomphious) :fish 'fizzgigious
+                            :spoon "runcible"))
+        ≡ (:p :data-duck (dolomphious) :data-fish 'fizzgigious
+              :data-spoon "runcible")
 
   For flexibility, even at the cost of efficiency, the argument :ATTRS
   introduces a form to evaluate at run time for a plist of extra
