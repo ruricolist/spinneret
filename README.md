@@ -260,10 +260,11 @@ clumsy:
 
 Sometimes it is useful for a piece of HTML-generating code to know
 where in the document it appears. You might, for example, want to
-define a `tabulate` that prints list-of-lists as rows of cells, but
-only prints the surrounding `<table></table>` if it is not already
-within a table. The function `get-html-path` returns a list of open tags, from
-latest to earliest. Usually it will look something like
+define a `tabulate` function that prints list-of-lists as rows of
+cells, but only prints the surrounding `<table></table>` if it is not
+already within a table. The function `get-html-path` returns a list of
+open tags, from latest to earliest. Usually it will look something
+like
 
       (get-html-path) ;-> '(:table :section :body :html)
 
