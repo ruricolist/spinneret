@@ -159,7 +159,7 @@ The rules for WITH-HTML are these:
   Certain keywords are recognized as pseudo-tags and given special
   treatment:
 
-  :RAW :DOCTYPE :!DOCTYPE :CDATA :!-- :COMMENT :HTML :HEAD :H*
+  :RAW :DOCTYPE :!DOCTYPE :CDATA :!-- :COMMENT :HTML :HEAD :H* :TAG
 
   - The pseudotag :RAW can be used to bypass Spinneret’s implicit
     escaping for raw output.
@@ -171,6 +171,8 @@ The rules for WITH-HTML are these:
     top level, :H* is equivalent to :H1. Inside the dynamic extent of
     one :SECTION tag, it is equivalent to :H2; inside two section
     tags, it is equivalent to :H3; and so forth up to :H6.
+
+  - The pseudotag :TAG allow dynamic selection of a tag.
 
   The value of the LANG attribute of HTML is controlled by
   `*html-lang*`; the value of the meta charset attribute is controlled
