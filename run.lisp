@@ -121,7 +121,7 @@
     ((= (length string) 0))
     (pre?
      (let ((stream (html-stream.base-stream html)))
-       (fast-format stream "~A" string)))
+       (write-string string stream)))
     (pretty?
      (let* ((start-col (get-indent))
             (fill *fill-column*)
