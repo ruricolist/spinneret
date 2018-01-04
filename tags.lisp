@@ -10,10 +10,11 @@
           preformatted?))
 
 (define-global-parameter *void-elements*
-  '(:!doctype :area :base :br :col :command :embed :hr :img
-    :input :keygen :link :meta :param :source :track :wbr))
+    '(:!doctype :area :base :br :col :command :embed :hr :img
+      :input :keygen :link :meta :param :source :track :wbr))
 
 (defun void? (element)
+  (declare (inline memq))
   (memq element *void-elements*))
 
 (define-global-parameter *literal-elements*
@@ -29,6 +30,7 @@
     :ins :del :col :meter :output))
 
 (defun inline? (element)
+  (declare (inline memq))
   (memq element *inline-elements*))
 
 (define-global-parameter *paragraph-elements*
@@ -36,6 +38,7 @@
     :dt :dd :figcaption :iframe :colgroup :td :th :output :summary :command))
 
 (defun paragraph? (element)
+  (declare (inline memq))
   (memq element *paragraph-elements*))
 
 (define-global-parameter *end-tag-optional*
@@ -51,6 +54,7 @@
   '(:pre :textarea :script :style))
 
 (defun preformatted? (element)
+  (declare (inline memq))
   (memq element *preformatted*))
 
 (defun needs-close? (element)
@@ -110,6 +114,7 @@
     :seamless :selected :typemustmatch))
 
 (defun boolean? (attr)
+  (declare (inline memq))
   (memq attr *boolean-attributes*))
 
 (define-global-parameter *core-attributes*
