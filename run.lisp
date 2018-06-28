@@ -227,25 +227,29 @@ make reasonable decisions about line wrapping.")
                              (> (+ len (html-stream-column stream))
                                 goal))
                            (constantly nil)))
+                      (print-prefix
+                       (lambda (len attr)
+                         (let ((prefix (if (too-long? len) #\Newline #\Space)))
+                           (write-char prefix stream)
+                           ;; XXX Work around
+                           ;; <https://abcl.org/trac/ticket/166>
+                           #+abcl (write-string (string-downcase attr) stream)
+                           #-abcl (format stream "~(~a~)" attr))))
                       (print-boolean
                        (lambda (attr)
                          (let ((len (length (symbol-name attr))))
                            ;; No valid attribute is longer than 80. (I
                            ;; suppose a data attribute could be.)
-                           (if (too-long? len)
-                               (format stream "~%~(~a~)" attr)
-                               (progn
-                                 (format stream " ~(~a~)" attr))))))
+                           (print-prefix len attr))))
                       (print-attr
                        (lambda (attr value)
                          (let ((len (+ (length (symbol-name attr))
                                        1 ;for the equals sign
                                        (html-length* value))))
-                           (if (too-long? len)
-                               (format stream "~%~(~a~)=" attr)
-                               (format stream " ~(~a~)=" attr)))
+                           (print-prefix len attr))
+                         (write-char #\= stream)
                          (format stream "~a" value))))
-      (declare (dynamic-extent #'print-boolean #'print-attr))
+      (declare (dynamic-extent #'print-prefix #'print-boolean #'print-attr))
       (format-attributes-with attrs
                               #'print-boolean
                               #'print-attr))))
