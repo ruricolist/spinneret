@@ -77,25 +77,25 @@
   (fast-format *html* "~a" sym))
 
 (defun call/words (thunk string)
-  (let ((window (make-array 0
-                            :element-type (array-element-type string)
-                            :adjustable t
-                            :displaced-to string
-                            :displaced-index-offset 0))
-        (thunk (ensure-function thunk)))
-    (loop with len = (length string)
-          for left = 0 then (+ right 1)
-          for right = (or (position-if #'whitespace string :start left) len)
-          unless (= left right)
-            do (adjust-array window (- right left)
-                             :displaced-to string
-                             :displaced-index-offset left)
-               ;; NB In terms of *words*, this might seem wrong: the
-               ;; remainder of the string might just be whitespace.
-               ;; However, this is the behavior we want: the presence
-               ;; of trailing whitespace *should* be preserved.
-               (funcall thunk window (= right len))
-          until (= right len))))
+  (serapeum:fbind (thunk)
+    (let ((window (make-array 0
+                              :element-type (array-element-type string)
+                              :adjustable t
+                              :displaced-to string
+                              :displaced-index-offset 0)))
+      (loop with len = (length string)
+            for left = 0 then (+ right 1)
+            for right = (or (position-if #'whitespace string :start left) len)
+            unless (= left right)
+              do (adjust-array window (- right left)
+                               :displaced-to string
+                               :displaced-index-offset left)
+                 ;; NB In terms of *words*, this might seem wrong: the
+                 ;; remainder of the string might just be whitespace.
+                 ;; However, this is the behavior we want: the presence
+                 ;; of trailing whitespace *should* be preserved.
+                 (thunk window (= right len))
+            until (= right len)))))
 
 (define-do-macro do-words ((var at-end? string &optional return) &body body)
   (serapeum:with-thunk (body var at-end?)
