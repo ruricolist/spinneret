@@ -44,6 +44,10 @@
      `(fill-text ,(escape-string (princ-to-string arg)) t))
     (t `(html ,arg))))
 
+;;; Why not use a wrapper function for `html' to avoid generic
+;;; dispatch on built-in types? Simple: we want users who write
+;;; methods on `html' to be able to call `html' within their methods.
+
 (defgeneric html (object)
   (:method (object)
     (declare (ignore object))
