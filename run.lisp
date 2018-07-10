@@ -40,7 +40,9 @@
   (typecase arg
     (null nil)
     (string `(fill-text ,(escape-string arg) t))
-    ((or character number)              ;not symbol, because not evaluated.
+    ((or character number
+         ;; not symbol, because not evaluated.
+         keyword (member t nil))
      `(fill-text ,(escape-string (princ-to-string arg)) t))
     (t `(html ,arg))))
 
