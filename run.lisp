@@ -81,6 +81,7 @@
   (fast-format *html* "~a" sym))
 
 (defun call/words (thunk string)
+  "Function that implements `do-words'."
   (serapeum:fbind (thunk)
     (let ((window (make-array 0
                               :element-type (array-element-type string)
