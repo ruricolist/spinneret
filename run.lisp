@@ -36,15 +36,25 @@
     (setf *pending-space* nil)
     (write-char #\Space *html*)))
 
-(defmacro catch-output (arg)
-  (typecase arg
-    (null nil)
-    (string `(fill-text ,(escape-string arg) t))
-    ((or character number
-         ;; not symbol, because not evaluated.
-         keyword (member t nil))
-     `(fill-text ,(escape-string (princ-to-string arg)) t))
-    (t `(html ,arg))))
+(defmacro catch-output (arg &environment env)
+  (labels ((print-escaped (x)
+             `(fill-text ,(escape-string x) t))
+           (punt (&optional (x arg))
+             `(html ,x))
+           (rec (arg)
+             (typecase arg
+               (null nil)
+               (string (print-escaped arg))
+               ((or character number
+                    ;; not symbol, because not evaluated.
+                    keyword (member t nil))
+                (print-escaped (princ-to-string arg)))
+               (t (multiple-value-bind (val constant?)
+                      (serapeum:eval-if-constant arg env)
+                    (if constant?
+                        (rec val)
+                        (punt)))))))
+    (rec arg)))
 
 ;;; Why not use a wrapper function for `html' to avoid generic
 ;;; dispatch on built-in types? Simple: we want users who write
