@@ -172,7 +172,7 @@ ordinary attributes."
       (labels ((seen? (name)
                  (declare (optimize speed)
                           (symbol name))
-                 (prog1 (member name seen)
+                 (prog1 (memq name seen)
                    (push name seen)))
                (format-attr (attr value)
                  (unless (or (null value) (seen? attr))
