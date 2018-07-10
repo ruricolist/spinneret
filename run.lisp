@@ -52,7 +52,7 @@
     (values))
   (:method :around ((nada null))
     (values))
-  (:documentation "Return an unescaped, unfilled string representing OBJECT."))
+  (:documentation "Handle writing OBJECT as HTML (for side-effects only)."))
 
 (defmethod html :around (object)
   (declare (ignore object))
