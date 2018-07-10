@@ -70,6 +70,12 @@
     (values))
   (:documentation "Handle writing OBJECT as HTML (for side-effects only)."))
 
+(define-compiler-macro html (object)
+  (with-unique-names (temp)
+    `(let ((,temp ,object))
+       (declare (notinline html))
+       (and ,temp (html ,temp)))))
+
 (defmethod html :around (object)
   (declare (ignore object))
   (with-space
