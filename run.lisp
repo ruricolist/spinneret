@@ -76,8 +76,6 @@
 (defmethod html ((sym symbol))
   (fast-format *html* "~a" sym))
 
-(defun mklist (x) (if (listp x) x (list x)))
-
 (defun call/words (thunk string)
   (let ((window (make-array 0
                             :element-type (array-element-type string)
