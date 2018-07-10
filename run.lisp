@@ -303,23 +303,23 @@ able to use directives like ~c, ~d, ~{~} &c."
                  text)
      ,(stringp text)))
 
-(defun comment (text safe?)
+(defun comment (text safe? &aux (html *html*))
   (if *print-pretty*
       (let ((*depth* (+ *depth* 1)))
-        (format *html* "~&~v,0T<!-- " *depth*)
+        (format html "~&~v,0T<!-- " *depth*)
         (fill-text (if safe?
                        text
                        (escape-comment text))
                    t)
-        (format *html* " -->~%"))
+        (format html " -->~%"))
       (progn
-        (write-string "<!-- " *html*)
+        (write-string "<!-- " html)
         (write-string
          (if safe?
              text
              (escape-comment text))
-         *html*)
-        (write-string " -->" *html*))))
+         html)
+        (write-string " -->" html))))
 
 (defun make-cdata (text)
   `(cdata ,(if (stringp text)
