@@ -16,8 +16,8 @@
            #:*html-style*)
   (:shadowing-import-from :alexandria :switch)
   (:import-from :serapeum
-    :fmt :unsplice :string+ :eif :econd :receive
-    :define-do-macro :defsubst :defconst
+    :fmt :eif :econd
+    :define-do-macro :defconst
     :nlet :nix :assure
     :find-keyword
     :-> :with-thunk
