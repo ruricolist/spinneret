@@ -1,6 +1,12 @@
-(in-package #:spinneret)
+;; We define this package to make ASDF package-inferred
+;; systems happy
+(defpackage #:spinneret/cl-markdown
+  (:use #:cl))
+(in-package #:spinneret/cl-markdown)
 
-(defun parse-as-markdown (string)
+;; Here we redefine a function inside of the main
+;; package, to change it's behavior
+(defun spinneret::parse-as-markdown (string)
   "Expand STRING as markdown only if it contains markdown."
   (declare (string string))
   (let ((expansion
@@ -14,4 +20,4 @@
         string
         (if (find #\Newline string)
             expansion
-            (trim-ends "<p>" expansion "</p>")))))
+            (spinneret::trim-ends "<p>" expansion "</p>")))))
