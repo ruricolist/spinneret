@@ -95,7 +95,8 @@
     :track :u :ul :var :video :wbr))
 
 (defun valid? (element)
-  (memq element *html5-elements*))
+  (or (memq element *html5-elements*)
+      (valid-custom-element-name? element)))
 
 (defun invalid? (element)
   (not (valid? element)))
@@ -225,6 +226,8 @@ attributes, beyond the global attributes.")
 (defun valid-attribute? (tag name)
   (or (null tag)                        ;A dynamic tag.
       (unvalidated-attribute? name)
+      ;; Don't try to validate attributes on custom elements.
+      (valid-custom-element-name? tag)
       (eql name :attrs)
       (global-attribute? name)
       (aria-attribute? name)
@@ -240,3 +243,56 @@ attributes, beyond the global attributes.")
 
 (defun aria-attribute? (name)
   (memq name *aria-attributes*))
+
+(define-global-parameter *invalid-custom-element-names*
+    '(:annotation-xml
+      :color-profile
+      :font-face
+      :font-face-src
+      :font-face-uri
+      :font-face-format
+      :font-face-name
+      :missing-glyph)
+  "Names that are not allowed for custom elements.")
+
+(-> pcen-char? (character) boolean)
+(defun pcen-char? (char)
+  "Is CHAR a valid character for a Potential Custom Element Name?"
+  (declare (character char)
+           (optimize speed))
+  (let ((code (char-code char)))
+    (or (= code (char-code #\-))
+        (= code (char-code #\.))
+        (<= (char-code #\0) code (char-code #\9))
+        (= code (char-code #\_))
+        (<= (char-code #\a) code (char-code #\z))
+        (= code #xB7)
+        (<= #xC0 code #xD6)
+        (<= #xD8 code #xF6)
+        (<= #xF8 code #x37D)
+        (<= #x37F code #x1FFF)
+        (<= #x200C code #x200D)
+        (<= #x203F code #x2040)
+        (<= #x2070 code #x218F)
+        (<= #x2C00 code #x2FEF)
+        (<= #x3001 code #xD7FF)
+        (<= #xF900 code #xFDCF)
+        (<= #xFDF0 code #xFFFD)
+        (<= #x10000 code #xEFFFF))))
+
+(-> valid-custom-element-name? (keyword) boolean)
+(defun valid-custom-element-name? (tag)
+  "Does TAG satisfy the requirements for a custom element name?"
+  (declare (keyword tag)
+           (optimize speed))
+  (flet ((valid-string? (s)
+           (and
+            ;; Case-insensitive tests.
+            (>= (length s) 2)
+            (find #\- s :start 1)
+            ;; Case-sensitive tests.
+            (let ((s (serapeum:string-invert-case s)))
+              (char<= #\a (aref s 0) #\z)
+              (every #'pcen-char? s)))))
+    (and (not (memq tag *invalid-custom-element-names*))
+         (valid-string? (symbol-name tag)))))
