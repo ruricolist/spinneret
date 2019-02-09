@@ -169,7 +169,7 @@
 Note that TAG must be a known tag."
       (let* ((tag (or (and-let* ((kw (find-keyword (string-upcase tag)))
                                  (tag (valid? kw))))
-                      (error "No such tag as ~a" tag)))
+                      (error 'no-such-tag :name tag)))
              (open (tag-open tag))
              ;; Note that dynamic tags always print the closing tag --
              ;; not worth the effort to check.

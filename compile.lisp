@@ -119,7 +119,7 @@ are all the following key-value pairs, and the body is what remains."
 (defmacro with-tag ((name &rest attributes) &body body)
   (let* ((empty? (not body))
          (pre? (not (null (preformatted? name))))
-         (tag-fn (or (tag-fn name) (error "No such tag: ~a" name)))
+         (tag-fn (or (tag-fn name) (error 'no-such-tag :name name)))
          (id (getf attributes :id))
          (thunk (gensym (fmt "<~a~@[#~a~]>" name id))))
     `(prog1 nil

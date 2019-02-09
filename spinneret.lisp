@@ -2,6 +2,15 @@
 
 (in-package #:spinneret)
 
+(define-condition spinneret-error (error)
+  ())
+
+(define-condition no-such-tag (spinneret-error)
+  ((name :initarg :name))
+  (:report (lambda (c s)
+             (with-slots (name) c
+               (format s "No such HTML tag: ~a" name)))))
+
 ;;;; The exported macros.
 
 (defun get-html-path ()

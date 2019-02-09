@@ -13,7 +13,9 @@
            #:*fill-column*
            #:html-length
            #:dynamic-tag
-           #:*html-style*)
+           #:*html-style*
+           #:spinneret-error
+           #:no-such-tag)
   (:shadowing-import-from :alexandria :switch)
   (:import-from :serapeum
     :fmt :eif :econd
