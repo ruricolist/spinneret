@@ -260,7 +260,7 @@ attributes, beyond the global attributes.")
   "Is CHAR a valid character for a Potential Custom Element Name?"
   (declare (character char)
            (optimize speed))
-  (let ((code (char-code char)))
+  (let ((code (char-code (char-downcase char))))
     (or (= code (char-code #\-))
         (= code (char-code #\.))
         (<= (char-code #\0) code (char-code #\9))
@@ -280,20 +280,38 @@ attributes, beyond the global attributes.")
         (<= #xFDF0 code #xFFFD)
         (<= #x10000 code #xEFFFF))))
 
+;; <https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name>
 (-> valid-custom-element-name? (keyword) (or keyword null))
 (defun valid-custom-element-name? (tag)
   "Does TAG satisfy the requirements for a custom element name?"
   (declare (keyword tag)
            (optimize speed))
-  (flet ((valid-string? (s)
-           (and
-            ;; Case-insensitive tests.
-            (>= (length s) 2)
-            (find #\- s :start 1)
-            ;; Case-sensitive tests.
-            (let ((s (serapeum:string-invert-case s)))
-              (char<= #\a (aref s 0) #\z)
-              (every #'pcen-char? s)))))
+  (labels ((ascii-alpha? (char)
+             (or (char<= #\A char #\Z)
+                 (char<= #\a char #\z)))
+           (valid-string? (s)
+             ;; "These requirements ensure a number of goals for valid
+             ;; custom element names:"
+             (and
+              (>= (length s) 2)
+              ;; "They contain a hyphen, used for namespacing and to
+              ;; ensure forward compatibility (since no elements will be
+              ;; added to HTML, SVG, or MathML with hyphen-containing
+              ;; local names in the future)."
+              (find #\- s :start 1)
+              ;; "They start with an ASCII lower alpha, ensuring that
+              ;; the HTML parser will treat them as tags instead of as
+              ;; text."
+              (ascii-alpha? (aref s 0))
+              ;; "They do not contain any ASCII upper alphas, ensuring
+              ;; that the user agent can always treat HTML elements
+              ;; ASCII-case-insensitively." But Spinneret is not
+              ;; case-sensitive...
+              t
+              ;; "They can always be created with createElement() and
+              ;; createElementNS(), which have restrictions that go
+              ;; beyond the parser's."
+              (every #'pcen-char? s))))
     (and (not (memq tag *invalid-custom-element-names*))
          (valid-string? (symbol-name tag))
          tag)))

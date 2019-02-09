@@ -164,7 +164,17 @@
     (close-block html close needs-close?))
 
   (progn
-    (defun dynamic-tag* (tag attrs body &optional empty?)
+    (defun custom-elt-fn (open close attrs body empty?)
+      (print-block-tag *html*
+                       *print-pretty*
+                       *html-style*
+                       open
+                       attrs
+                       empty?
+                       body
+                       close t))
+
+    (defun dynamic-tag* (tag attrs body empty?)
       "Dynamically select a tag at runtime.
 Note that TAG must be a known tag."
       (let* ((tag (or (and-let* ((kw (find-keyword (string-upcase tag)))

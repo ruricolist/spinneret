@@ -1,8 +1,9 @@
 (defpackage #:spinneret.tests
   (:use #:cl #:spinneret #:fiveam)
-  (:import-from #:alexandria #:ensure-list)
+  (:import-from #:alexandria #:ensure-list #:make-keyword)
   (:import-from #:serapeum
     #:~> #:op #:lines #:string-join #:concat)
+  (:import-from :spinneret :valid-custom-element-name?)
   (:shadow :test)
   (:export #:run-tests))
 
@@ -527,3 +528,31 @@
        "Very very very very very very very very very very very very very very very very very very very very very very very very long line"
        (with-html-string
          (:raw "Very very very very very very very very very very very very very very very very very very very very very very very very long line")))))
+
+(test valid-custom-element-names
+  (is (not (valid-custom-element-name? :x)))
+  (is (not (valid-custom-element-name? :-)))
+  (is (not (valid-custom-element-name? :-a)))
+  (is (valid-custom-element-name? :a-))
+  (is (not (valid-custom-element-name? (make-keyword "a")))))
+
+(test literal-custom-element-names
+  (signals error
+    (eval
+     '(with-html-string
+       (:xy "Hello"))))
+
+  (finishes
+    (eval
+     '(with-html-string
+       (:x-y "Hello")))))
+
+(test dynamic-custom-element-names
+  (signals error
+    (eval
+     '(with-html-string
+       (:tag :name "xy" "Hello"))))
+  (finishes
+    (eval
+     '(with-html-string
+       (:tag :name "x-y" "Hello")))))

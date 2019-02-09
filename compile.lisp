@@ -20,8 +20,12 @@
                       (multiple-value-bind (name attrs body)
                           (tag-parts form)
                         (if (valid? name)
-                            `(with-tag (,name ,@attrs)
-                               ,@(mapcar #'rec body))
+                            (let ((body (mapcar #'rec body)))
+                              (if (valid-custom-element-name? name)
+                                  `(with-custom-element (,name ,@attrs)
+                                     ,@body)
+                                  `(with-tag (,name ,@attrs)
+                                     ,@body)))
                             (cons (car form)
                                   (mapcar #'rec (cdr form))))))))
                ;; Compile as a format string (possibly using Markdown).
@@ -116,21 +120,43 @@ are all the following key-value pairs, and the body is what remains."
         (multiple-value-bind (attrs body) (tag-body-parts (append tag-attrs body))
           (values tag (simplify-tokenized-attributes attrs) body))))))
 
+(defun tag-thunk-name (name attrs)
+  "Produce a helpful name for a thunk from NAME and ATTRS."
+  (let ((id (getf attrs :id)))
+    (fmt "<~a~@[#~a~]>" name id)))
+
+(defun wrap-body-as-stack-thunk (thunk-name body form)
+  `(prog1 nil
+     (flet ((,thunk-name ()
+              ,@(loop for expr in body
+                      collect `(catch-output ,expr))))
+       (declare (dynamic-extent (function ,thunk-name)))
+       ,form)))
+
 (defmacro with-tag ((name &rest attributes) &body body)
   (let* ((empty? (not body))
          (pre? (not (null (preformatted? name))))
          (tag-fn (or (tag-fn name) (error 'no-such-tag :name name)))
-         (id (getf attributes :id))
-         (thunk (gensym (fmt "<~a~@[#~a~]>" name id))))
-    `(prog1 nil
-       (flet ((,thunk ()
-                ,@(loop for expr in body
-                        collect `(catch-output ,expr))))
-         (declare (dynamic-extent (function ,thunk)))
-         (,tag-fn (list ,@(escape-attrs name attributes))
-                  #',thunk
-                  ,pre?
-                  ,empty?)))))
+         (thunk (gensym (tag-thunk-name name attributes))))
+    (wrap-body-as-stack-thunk
+     thunk body
+     `(,tag-fn (list ,@(escape-attrs name attributes))
+               #',thunk
+               ,pre?
+               ,empty?))))
+
+(defmacro with-custom-element ((name &rest attrs) &body body)
+  (check-type name keyword)
+  (let* ((open (tag-open name))
+         (close (tag-close name))
+         (thunk (gensym (tag-thunk-name name attrs)))
+         (empty? (null body)))
+    (wrap-body-as-stack-thunk
+     thunk body
+     `(custom-elt-fn ,open ,close
+                     (list ,@(escape-attrs name attrs))
+                     #',thunk
+                     ,empty?))))
 
 (defun escape-attrs (tag attrs)
   (let ((attrs
