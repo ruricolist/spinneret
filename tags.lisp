@@ -121,8 +121,7 @@
   '(:accesskey :class :contenteditable :contextmenu :dir :draggable
     :dropzone :hidden :id :lang :spellcheck :style :tabindex :title))
 
-(define-global-parameter *unvalidated-attribute-prefixes*
-  '("data-" "aria-")
+(defvar *unvalidated-attribute-prefixes* '("data-" "aria-")
   "A list of prefixes for attributes that should not be validated.")
 
 (defun unvalidated-attribute? (attribute)
