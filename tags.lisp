@@ -121,7 +121,7 @@
 
 (define-global-parameter *core-attributes*
   '(:accesskey :class :contenteditable :contextmenu :dir :draggable
-    :dropzone :hidden :id :lang :spellcheck :style :tabindex :title))
+    :dropzone :hidden :id :is :lang :spellcheck :style :tabindex :title))
 
 (defvar *unvalidated-attribute-prefixes* '("data-" "aria-")
   "A list of prefixes for attributes that should not be validated.")
