@@ -94,8 +94,9 @@
     :sup :table :tbody :td :textarea :tfoot :th :thead :time :title :tr
     :track :u :ul :var :video :wbr))
 
+(-> valid? (keyword) (or keyword null))
 (defun valid? (element)
-  (or (memq element *html5-elements*)
+  (or (car (memq element *html5-elements*))
       (valid-custom-element-name? element)))
 
 (defun invalid? (element)
@@ -279,7 +280,7 @@ attributes, beyond the global attributes.")
         (<= #xFDF0 code #xFFFD)
         (<= #x10000 code #xEFFFF))))
 
-(-> valid-custom-element-name? (keyword) boolean)
+(-> valid-custom-element-name? (keyword) (or keyword null))
 (defun valid-custom-element-name? (tag)
   "Does TAG satisfy the requirements for a custom element name?"
   (declare (keyword tag)
@@ -294,4 +295,5 @@ attributes, beyond the global attributes.")
               (char<= #\a (aref s 0) #\z)
               (every #'pcen-char? s)))))
     (and (not (memq tag *invalid-custom-element-names*))
-         (valid-string? (symbol-name tag)))))
+         (valid-string? (symbol-name tag))
+         tag)))
