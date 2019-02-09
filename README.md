@@ -384,4 +384,10 @@ given prefix by adding it to `*unvalidated-attribute-prefixes*`.
 
     (pushnew "ng-" *unvalidated-attribute-prefixes* :test #’equal)
 
+You can disable attribute validation altogether by adding the empty
+string to the list:
+
+    ;; Disable attribute validation.
+    (setf *unvalidated-attribute-prefixes* '(""))
+
 [CL-MARKDOWN]: https://github.com/gwkkwg/cl-markdown
