@@ -162,7 +162,8 @@ The rules for WITH-HTML are these:
   :RAW :DOCTYPE :!DOCTYPE :CDATA :!-- :COMMENT :HTML :HEAD :H* :TAG
 
   - The pseudotag :RAW can be used to bypass Spinneret’s implicit
-    escaping for raw output. This allows inserting HTML literals.
+    escaping for raw output. This allows inserting HTML literals, and
+    bypasses pretty printing.
 
   - The pseudotags :!– and :COMMENT insert comments into the output.
 
