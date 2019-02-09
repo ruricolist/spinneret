@@ -123,6 +123,9 @@
   '(:accesskey :class :contenteditable :contextmenu :dir :draggable
     :dropzone :hidden :id :is :lang :spellcheck :style :tabindex :title))
 
+(define-global-parameter *microdata-attributes*
+    '(:itemid :itemprop :itemref :itemscope :itemtype))
+
 (defvar *unvalidated-attribute-prefixes* '("data-" "aria-")
   "A list of prefixes for attributes that should not be validated.")
 
@@ -147,7 +150,9 @@
     :ontimeupdate :onvolumechange :onwaiting))
 
 (define-global-parameter *global-attributes*
-  (append *core-attributes* *event-handler-attributes*))
+    (append *core-attributes*
+            *microdata-attributes*
+            *event-handler-attributes*))
 
 (define-global-parameter *space-separated-attributes*
   '(:accesskey :class :for :headers :rel :sandbox :sizes))
