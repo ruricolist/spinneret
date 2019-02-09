@@ -370,8 +370,10 @@ able to use directives like ~c, ~d, ~{~} &c."
     ,@args))
 
 (defun write-raw (&rest args)
-  `(prog1 nil ,@(loop for arg in args
-                      collect `(fill-text ,arg t))))
+  `(let ((*pre* t))
+     ,@(loop for arg in args
+             collect `(fill-text ,arg t))
+     nil))
 
 (-> heading-depth () (integer 1 6))
 (defun heading-depth ()
