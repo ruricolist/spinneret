@@ -520,3 +520,10 @@
                         (spinneret:with-html-string
                           (:p "hello")
                           (:span "world"))))))
+
+
+(test raw-shouldnt-pretty-print-its-content
+  (is (visually-equal
+       "Very very very very very very very very very very very very very very very very very very very very very very very very long line"
+       (with-html-string
+         (:raw "Very very very very very very very very very very very very very very very very very very very very very very very very long line")))))
