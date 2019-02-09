@@ -162,7 +162,8 @@ The rules for WITH-HTML are these:
   :RAW :DOCTYPE :!DOCTYPE :CDATA :!-- :COMMENT :HTML :HEAD :H* :TAG
 
   - The pseudotag :RAW can be used to bypass Spinneret’s implicit
-    escaping for raw output. This allows inserting HTML literals.
+    escaping for raw output. This allows inserting HTML literals, and
+    bypasses pretty printing.
 
   - The pseudotags :!– and :COMMENT insert comments into the output.
 
@@ -382,5 +383,11 @@ employ their own prefixes instead. You can disable validation for a
 given prefix by adding it to `*unvalidated-attribute-prefixes*`.
 
     (pushnew "ng-" *unvalidated-attribute-prefixes* :test #’equal)
+
+You can disable attribute validation altogether by adding the empty
+string to the list:
+
+    ;; Disable attribute validation.
+    (setf *unvalidated-attribute-prefixes* '(""))
 
 [CL-MARKDOWN]: https://github.com/gwkkwg/cl-markdown
