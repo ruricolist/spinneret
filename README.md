@@ -233,7 +233,7 @@ Similarly, the pseudo-tag :TAG allows you to select a tag at run time.
     ≡ (:div (:p (:span "Hello")))
 
 Note that :TAG only allows you to *select* a tag, not *create* one.
-The tag must still be one that is known to Spinneret to be valid.
+The tag must still be one that is known to Spinneret to be valid. (That is, either defined as part of HTML or matching the requirements for a custom element.)
 
 For maximum dynamicity, you can combine :TAG and :ATTRS:
 
@@ -374,8 +374,7 @@ Neither :ATTRS nor :TAG is available in Parenscript.
 
 ## Validation
 
-Spinneret does not do document validation, but it does warn, at
-compile time, about invalid tags and attributes.
+Spinneret does not do document validation, but it does warn about invalid tags and attributes.
 
 Although HTML5 does include a mechanism for application-specific
 attributes (the `data-` prefix), some client-side frameworks choose to
@@ -390,4 +389,7 @@ string to the list:
     ;; Disable attribute validation.
     (setf *unvalidated-attribute-prefixes* '(""))
 
+Tags are considered valid if they are defined as part of the HTML standard, or if they match the rules for the name of a [custom element][] – basically, start with an ASCII alphabetic character and include a hyphen.
+
 [CL-MARKDOWN]: https://github.com/gwkkwg/cl-markdown
+[custom element]:
