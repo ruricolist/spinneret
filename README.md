@@ -392,4 +392,4 @@ string to the list:
 Tags are considered valid if they are defined as part of the HTML standard, or if they match the rules for the name of a [custom element][] – basically, start with an ASCII alphabetic character and include a hyphen. For custom elements, attributes are not validated.
 
 [CL-MARKDOWN]: https://github.com/gwkkwg/cl-markdown
-[custom element]:
+[custom element]: https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
