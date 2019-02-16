@@ -3,7 +3,7 @@
 
 (asdf:defsystem #:spinneret
   :description "Common Lisp HTML5 generator."
-  :version "2.0"
+  :version "3.0"
   :author "Paul M. Rodriguez <pmr@ruricolist.com>"
   :license "MIT"
   :in-order-to ((asdf:test-op (asdf:test-op #:spinneret/tests)))
@@ -29,7 +29,7 @@
 
 (asdf:defsystem #:spinneret/cl-markdown
   :description "Integration with cl-markdown"
-  :version "2.0"
+  :version "3.0"
   :author "Paul M. Rodriguez <pmr@ruricolist.com>"
   :license "MIT"
   :serial t
