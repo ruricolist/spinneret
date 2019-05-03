@@ -18,7 +18,7 @@ occupies the following coordinates:
   the trade-off between 90% convenience and 10% correctness Spinneret
   is on the side of convenience.
 
-- Bilingual. Spinneret (after load `spinneret/ps`) has the same semantics in Lisp and Parenscript.
+- Bilingual. Spinneret (after loading `spinneret/ps`) has the same semantics in Lisp and Parenscript.
 
 HTML generation with Spinneret looks like this:
 
