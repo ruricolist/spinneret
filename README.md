@@ -18,7 +18,7 @@ occupies the following coordinates:
   the trade-off between 90% convenience and 10% correctness Spinneret
   is on the side of convenience.
 
-- Bilingual. Spinneret has the same semantics in Lisp and Parenscript.
+- Bilingual. Spinneret (after load `spinneret/ps`) has the same semantics in Lisp and Parenscript.
 
 HTML generation with Spinneret looks like this:
 
@@ -359,6 +359,8 @@ over HTML.
 abstractions, `deftemplate`, but `deftag` is simpler and more useful.)
 
 ## Parenscript
+
+To use Spinneret with Parenscript, load the system `spinneret/ps`.
 
 The semantics of Spinneret in Parenscript are almost the same. There
 is no `with-html-string`, and `with-html` returns a

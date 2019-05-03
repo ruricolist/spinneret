@@ -34,6 +34,14 @@
                "spinneret")
   :components ((:file "cl-markdown")))
 
+(defsystem "spinneret/ps"
+  :description "Integration with Parenscript."
+  :author "Paul M. Rodriguez <pmr@ruricolist.com>"
+  :license "MIT"
+  :serial t
+  :depends-on ("spinneret" "parenscript")
+  :components ((:file "ps")))
+
 (defsystem "spinneret/tests"
   :description "Test suite for Spinneret"
   :author "Paul M. Rodriguez <pmr@ruricolist.com>"
