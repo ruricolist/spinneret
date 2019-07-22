@@ -556,3 +556,25 @@
     (eval
      '(with-html-string
        (:tag :name "x-y" "Hello")))))
+
+(test function-space-discrepancy
+  (let ((*html-style* :human)
+        (*print-pretty* t))
+    (is (equal
+         (with-html-string
+           (:p "foo"
+             "bar"
+             (values "baz")))
+         (with-html-string
+           (:p (values "foo")
+             "bar"
+             "baz"))))
+    (is (visually-equal
+         (with-html-string
+           (:p "foo"
+             "bar"
+             "baz"))
+         (with-html-string
+           (:p (values "foo")
+             (values "bar")
+             (values "baz")))))))
