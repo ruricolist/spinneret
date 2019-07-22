@@ -26,7 +26,7 @@
      ,@body
      (buffer-space)))
 
-(declaim (inline buffer-space flush-space))
+(declaim (inline buffer-space flush-space cancel-space))
 
 (defun buffer-space ()
   (setf *pending-space* t))
@@ -36,15 +36,20 @@
     (setf *pending-space* nil)
     (write-char #\Space *html*)))
 
+(defun cancel-space ()
+  (when *pending-space*
+    (setf *pending-space* nil)))
+
 (defmacro catch-output (arg &environment env)
   (labels ((print-escaped (x)
-             `(fill-text ,(escape-string x) t))
+             `(html ,(escaped-string (escape-string x))))
            (punt (&optional (x arg))
              `(html ,x))
            (rec (arg)
              (typecase arg
                (null nil)
                (string (print-escaped arg))
+               (escaped-string (punt))
                ((or character number
                     ;; not symbol, because not evaluated.
                     keyword (member t nil))
@@ -70,11 +75,16 @@
     (values))
   (:documentation "Handle writing OBJECT as HTML (for side-effects only)."))
 
+(serapeum:defconstructor escaped-string
+  (value string))
+
 (define-compiler-macro html (object)
-  (with-unique-names (temp)
-    `(let ((,temp ,object))
-       (declare (notinline html))
-       (and ,temp (html ,temp)))))
+  `(locally (declare (notinline html))
+     ,(if (typep object '(or string character number null keyword escaped-string))
+          `(html ,object)
+          (with-unique-names (temp)
+            `(let ((,temp ,object))
+               (and ,temp (html ,temp)))))))
 
 (defmethod html :around (object)
   (declare (ignore object))
@@ -82,10 +92,29 @@
     (call-next-method))
   (values))
 
+(defmethod html :around ((string string))
+  (when (serapeum:string^= " " string)
+    (cancel-space))
+  (call-next-method)
+  (values))
+
 (defmethod html ((string string))
   (if *print-pretty*
       (fill-text (escape-string string) t)
       (escape-to-stream string #'escape-string-char *html*)))
+
+(defmethod html :around ((string escaped-string))
+  (let ((string (escaped-string-value string)))
+    (when (serapeum:string^= " " string)
+      (cancel-space)))
+  (call-next-method)
+  (values))
+
+(defmethod html ((string escaped-string))
+  (let ((string (escaped-string-value string)))
+    (if *print-pretty*
+        (fill-text string t)
+        (write-string string *html*))))
 
 (defmethod html ((char character))
   (if-let (escape (escape-string-char char))
