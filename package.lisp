@@ -15,7 +15,8 @@
            #:dynamic-tag
            #:*html-style*
            #:spinneret-error
-           #:no-such-tag)
+           #:no-such-tag
+           #:*suppress-inserted-spaces*)
   (:shadowing-import-from :alexandria :switch)
   (:import-from :serapeum
     :fmt :eif :econd

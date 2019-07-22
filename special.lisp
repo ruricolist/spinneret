@@ -28,9 +28,12 @@
   "Column at which to wrap text.
 This is always measured from the start of the tag.")
 
-(declaim (boolean *pending-space*))
+(declaim (boolean *pending-space* *suppress-inserted-spaces*))
 
 (defvar *pending-space* nil)
+
+(defvar *suppress-inserted-spaces* nil
+  "When set to non-nil, spaces will never be inserted automatically.")
 
 (defvar *html-path* nil
   "List (in ascending order) of parent nodes.")
