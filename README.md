@@ -132,6 +132,10 @@ nil, output is verbose but predictable:
           (:p "Text " (:a "link text") " more text"))))
     => "<div><p>Text <a>link text</a>  more text</p></div>"
 
+### Inserted spaces
+
+By default, when objects are output to HTML, spaces are inserted betweeen them. This is nearly always the right thing to do, but in some special cases, the spaces may be a problem. They can be turned out by setting the flag `*suppress-inserted-spaces*` to `t`.
+
 ### Line wrapping
 
 When pretty-printing, Spinneret makes the best decisions about line
