@@ -57,7 +57,8 @@
                 (print-escaped (princ-to-string arg)))
                (t (multiple-value-bind (val constant?)
                       (serapeum:eval-if-constant arg env)
-                    (if constant?
+                    (if (and constant?
+                             (not (equal val arg)))
                         (rec val)
                         (punt)))))))
     (rec arg)))

@@ -578,3 +578,10 @@
            (:p (values "foo")
              (values "bar")
              (values "baz")))))))
+
+(test literal-pathnames
+  (finishes
+    (with-html-string
+      (:html
+        (:head
+          (:link #p"styles.css" :type "text/css"))))))
