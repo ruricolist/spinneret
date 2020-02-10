@@ -503,8 +503,7 @@
       (is (visually-equal (test1)
                           (format nil "~
 <div>
- <textarea>123
- </textarea>
+ <textarea>123</textarea>
 </div>")))
       (is (visually-equal (test2)
                           "<div><textarea>123</textarea></div>")))
@@ -585,3 +584,18 @@
       (:html
         (:head
           (:link #p"styles.css" :type "text/css"))))))
+
+(test pre-closing-tag
+  (is
+   (visually-equal
+    "<div class=some-class>
+ <pre>verbatim line one
+verbatim line two</pre>
+ <p>Some following stuff
+</div>"
+    (with-html-string
+      (:div.some-class
+       (:pre "verbatim line one
+verbatim line two")
+       (:p "Some following stuff")))))
+  )

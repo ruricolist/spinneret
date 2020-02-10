@@ -61,7 +61,8 @@
 
   (:method fire-elastic-newline (s (char character))
     (when (nix elastic-newline)
-      (write-char #\Newline s)))
+      (unless *pre*
+        (write-char #\Newline s))))
 
   (:method stream-write-char (s (char (eql #\Newline)))
     (nix elastic-newline)

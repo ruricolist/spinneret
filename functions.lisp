@@ -109,7 +109,7 @@
     (let ((*indent* (1+ *depth*)))
       (without-trailing-space
         (funcall body)))
-    (when pretty
+    (when (and pretty (not *pre*))
       (terpri html)))
 
   (defun inline-body (body)
