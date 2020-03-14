@@ -34,7 +34,7 @@
 (defun flush-space ()
   (when *pending-space*
     (setf *pending-space* nil)
-    (unless *suppress-inserted-spaces*
+    (unless (or *pre* *suppress-inserted-spaces*)
       (write-char #\Space *html*))))
 
 (defun cancel-space ()

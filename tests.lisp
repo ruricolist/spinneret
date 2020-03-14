@@ -599,3 +599,10 @@ verbatim line two</pre>
 verbatim line two")
        (:p "Some following stuff")))))
   )
+
+(test pre-no-spaces
+  (is
+   (visually-equal
+    "<pre>foo
+bar</pre>"
+    (with-html-string (:pre "foo" #\Newline "b" "a" "r")))))
