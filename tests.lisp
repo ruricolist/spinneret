@@ -606,3 +606,15 @@ verbatim line two")
     "<pre>foo
 bar</pre>"
     (with-html-string (:pre "foo" #\Newline "b" "a" "r")))))
+
+(test pre-code
+  (let ((*print-pretty* t))
+    (is
+     (visually-equal
+      #.(format nil "~
+<pre><code>(defun blah ()
+    (+ 1 2))</code></pre>")
+      (spinneret:with-html-string
+        (:pre
+          (:code "(defun blah ()
+    (+ 1 2))")))))))

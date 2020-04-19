@@ -40,7 +40,7 @@
          (let* ((html *html*)
                 (pretty *print-pretty*)
                 (style *html-style*)
-                (*pre* pre?)
+                (*pre* (or *pre* pre?))
                 (*depth* (1+ *depth*))
                 (*html-path* (cons ,(make-keyword tag) *html-path*)))
            (declare (dynamic-extent *html-path*))
@@ -184,7 +184,7 @@ Note that TAG must be a known tag."
              ;; Note that dynamic tags always print the closing tag --
              ;; not worth the effort to check.
              (close (tag-close tag))
-             (*pre* (and (preformatted? tag) t))
+             (*pre* (or *pre* (and (preformatted? tag) t)))
              (*depth* (1+ *depth*))
              (*html-path* (cons tag *html-path*))
              (pretty *print-pretty*)
