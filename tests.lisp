@@ -618,3 +618,8 @@ bar</pre>"
         (:pre
           (:code "(defun blah ()
     (+ 1 2))")))))))
+
+(test heading-depth
+  (let ((*print-pretty* nil))
+    (is (search "h1" (spinneret:with-html-string (:h*))))
+    (is (search "h2" (spinneret:with-html-string (:section (:h*)))))))

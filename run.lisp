@@ -411,7 +411,7 @@ able to use directives like ~c, ~d, ~{~} &c."
   "Return the current dynamic heading depth.
 This follows the convention for the XHTML <h/> element, where the top
 level is level 1, inside the first section is level 2, and so forth."
-  (clamp (count :section *html-path*) 1 6))
+  (clamp (1+ (count :section *html-path*)) 1 6))
 
 (defun heading-depth-heading ()
   (ecase (heading-depth)
