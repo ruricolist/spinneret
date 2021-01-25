@@ -120,10 +120,10 @@
 
 (defpsmacro join-tokens (&rest classes)
   `(stringify
-    ,(ps::concat-constant-strings
-      (intersperse " "
-                   (remove-duplicates (remove nil classes)
-                                      :test #'equal)))))
+    ,@(ps::concat-constant-strings
+       (intersperse " "
+                    (remove-duplicates (remove nil classes)
+                                       :test #'equal)))))
 
 (defun intersperse (new-elt list)
   (cons (car list)
