@@ -46,6 +46,6 @@
   :description "Test suite for Spinneret"
   :author "Paul M. Rodriguez <pmr@ruricolist.com>"
   :license "MIT"
-  :depends-on ("spinneret" "spinneret/cl-markdown" "fiveam" "serapeum")
+  :depends-on ("spinneret" "spinneret/cl-markdown" "fiveam" "serapeum" "spinneret/ps")
   :perform (test-op (o c) (symbol-call :spinneret.tests :run-tests))
   :components ((:file "tests")))

@@ -623,3 +623,11 @@ bar</pre>"
   (let ((*print-pretty* nil))
     (is (search "h1" (spinneret:with-html-string (:h*))))
     (is (search "h2" (spinneret:with-html-string (:section (:h*)))))))
+
+(test ps-attributes
+  (is (not (search "classvar()"
+                   (ps:ps
+                     (let ((classvar "myclass"))
+                       (spinneret:with-html
+                         (:div#myid :class classvar
+                                    (:p "lorem ipsum")))))))))
