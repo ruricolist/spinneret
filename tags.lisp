@@ -91,7 +91,7 @@
     :link :main :map :mark :menu :meta :meter :nav :noscript :object :ol
     :optgroup :option :output :p :param :picture :pre :progress :q :rp :rt :ruby :s :samp
     :script :section :select :small :source :span :strong :style :sub :summary
-    :sup :table :tbody :td :textarea :tfoot :th :thead :time :title :tr
+    :sup :table :tbody :td :template :textarea :tfoot :th :thead :time :title :tr
     :track :u :ul :var :video :wbr))
 
 (-> valid? (keyword) (or keyword null))
