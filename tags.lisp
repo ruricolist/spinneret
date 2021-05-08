@@ -187,9 +187,9 @@
     (:iframe :src :srcdoc :name :width :height :sandbox :seamless)
     (:img :src :alt :height :width :usemap :ismap :border :crossorigin
      :srcset :sizes :crossorigin)
-    (:input :name :disabled :form :type :maxlength :readonly :size :value
+    (:input :name :disabled :form :type :minlength :maxlength :readonly :size :value
      :autocomplete :autofocus :list :pattern :required :placeholder
-     :dirname :checked :multiple :src :height :width
+     :checked :accept :capture :multiple :src :height :width :alt
      :inputmode
      :min :max :step :dirname
      :formaction :formenctype :formmethod :formtarget
