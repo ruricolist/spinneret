@@ -631,3 +631,24 @@ bar</pre>"
                        (spinneret:with-html
                          (:div#myid :class classvar
                                     (:p "lorem ipsum")))))))))
+
+(test double-cdata-close
+  (is (equal (with-html-string
+               (:html
+                 (:head
+                   (:script
+                     (:CDATA "foo")))))
+             "<html lang=en>
+ <head>
+  <meta charset=UTF-8>
+  <script><![CDATA[foo]]></script>
+ </head>
+</html>")))
+
+(test double-comment-close
+  (is (equal
+       (let (*print-pretty*)
+         (with-html-string
+           (:html
+             (:!-- "something"))))
+       "<html lang=en><!-- something --></html>")))

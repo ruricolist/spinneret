@@ -375,7 +375,8 @@ able to use directives like ~c, ~d, ~{~} &c."
              text
              (escape-comment text))
          html)
-        (write-string " -->" html))))
+        (write-string " -->" html)))
+  (values))
 
 (defun make-cdata (text)
   `(cdata ,(if (stringp text)
@@ -389,7 +390,8 @@ able to use directives like ~c, ~d, ~{~} &c."
                     text
                     (escape-cdata text))
                 html)
-  (write-string cdata-end html))
+  (write-string cdata-end html)
+  (values))
 
 (defun make-html (&rest args)
   `(:html :lang *html-lang*
