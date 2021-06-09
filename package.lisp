@@ -10,6 +10,7 @@
            #:do-elements
            #:deftag
            #:*unvalidated-attribute-prefixes*
+           #:*boolean-attributes*
            #:*fill-column*
            #:html-length
            #:dynamic-tag
