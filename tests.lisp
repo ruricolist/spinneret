@@ -2,7 +2,7 @@
   (:use #:cl #:spinneret #:fiveam)
   (:import-from #:alexandria #:ensure-list #:make-keyword)
   (:import-from #:serapeum
-    #:~> #:op #:lines #:string-join #:concat)
+                #:~> #:op #:lines #:string-join #:concat #:fmt)
   (:import-from :spinneret :valid-custom-element-name?)
   (:shadow :test)
   (:export #:run-tests))
@@ -652,3 +652,18 @@ bar</pre>"
            (:html
              (:!-- "something"))))
        "<html lang=en><!-- something --></html>")))
+
+(test interpret-tree
+  (is (equal
+       (interpret-html-tree
+        `(:ul :class "shuffle" (:li "Item1") (:li "Item2")))
+       (fmt
+        "~
+<ul class=shuffle>
+ <li>
+  Item1
+ </li>
+ <li>
+  Item2
+ </li>
+</ul>"))))
