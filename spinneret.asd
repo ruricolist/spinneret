@@ -22,6 +22,7 @@
                (:file "compile")
                (:file "deftag")
                (:file "dynamic")
+               (:file "interpret")
                (:file "ps")))
 
 (defsystem "spinneret/cl-markdown"

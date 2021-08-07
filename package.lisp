@@ -2,7 +2,7 @@
 
 (defpackage #:spinneret
   (:use #:cl #:parenscript #:alexandria
-    #:trivial-gray-streams)
+        #:trivial-gray-streams)
   (:export #:with-html #:with-html-string #:html
            #:*html*
            #:*html-lang* #:*html-charset*
@@ -17,16 +17,20 @@
            #:*html-style*
            #:spinneret-error
            #:no-such-tag
-           #:*suppress-inserted-spaces*)
+           #:*suppress-inserted-spaces*
+           #:interpret-html-tree)
   (:shadowing-import-from :alexandria :switch)
-  (:import-from :serapeum
-    :fmt :eif :econd
-    :define-do-macro :defconst
-    :nlet :nix :assure
-    :find-keyword
-    :-> :with-thunk
-    :and-let* :op :string-prefix-p
-    :memq)
+  (:import-from
+   :serapeum
+   :fmt :eif :econd
+   :define-do-macro :defconst
+   :nlet :nix :assure
+   :find-keyword
+   :-> :with-thunk
+   :and-let* :op :string-prefix-p
+   :memq
+   :parse-leading-keywords)
+  (:import-from :trivia :match)
   (:import-from :global-vars :define-global-parameter))
 
 (defpackage #:spinneret-user

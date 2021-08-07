@@ -134,7 +134,7 @@ nil, output is verbose but predictable:
 
 ### Inserted spaces
 
-By default, when objects are output to HTML, spaces are inserted betweeen them. This is nearly always the right thing to do, but in some special cases, the spaces may be a problem. They can be turned out by setting the flag `*suppress-inserted-spaces*` to `t`.
+By default, when objects are output to HTML, spaces are inserted betweeen them. This is nearly always the right thing to do, but in some special cases, the spaces may be a problem. They can be turned off by setting the flag `*suppress-inserted-spaces*` to `t`.
 
 ### Line wrapping
 
@@ -242,6 +242,13 @@ The tag must still be one that is known to Spinneret to be valid. (That is, eith
 For maximum dynamicity, you can combine :TAG and :ATTRS:
 
     (:tag :name "div" :attrs (list :id "dynamic!"))
+    => <div id=dynamic!></div>
+
+### Interpreting trees
+
+For the *ne plus ultra* of flexibility, you can interpret trees at runtime using a subset of Spinneret syntax:
+
+    (interpret-html-tree `(:div :id "dynamic!"))
     => <div id=dynamic!></div>
 
 ### Markdown
