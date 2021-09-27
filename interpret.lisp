@@ -15,5 +15,3 @@ The syntax used is roughly that of Spinneret.
          nil)))
     (otherwise
      (html tree))))
-
-(interpret-html-tree `(:div :id "dynamic!"))
