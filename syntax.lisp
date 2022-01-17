@@ -43,7 +43,9 @@
     (#\& "&amp;")
     (#.no-break-space "&nbsp;")
     (#\< "&lt;")
-    (#\> "&gt")))
+    (#\> "&gt")
+    (#\" "&quot")
+    (#\' "&#39")))
 
 (defun escape-string (string)
   (escape-with-table string #'escape-string-char))
