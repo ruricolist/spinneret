@@ -143,7 +143,7 @@
    <ol>
     <li>10 Atmospheric ponds
     <li>6 Electric gumption socks
-    <li>4 Mrs. Leland's embyronic television combustion
+    <li>4 Mrs. Leland&#39;s embyronic television combustion
     <li>9 Savage gymnatic aggressors
     <li>6 Pharmaceutical pianos
     <li>9 Intravenous retribution champions
@@ -668,3 +668,8 @@ bar</pre>"
   Item2
  </li>
 </ul>"))))
+
+(test escape-quotes
+  (is (equal (with-html-string
+               (:p "She said, \"'Hello', she said.\""))
+             "<p>She said, &quot;&#39;Hello&#39;, she said.&quot;")))
