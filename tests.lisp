@@ -673,3 +673,11 @@ bar</pre>"
   (is (equal (with-html-string
                (:p "She said, \"'Hello', she said.\""))
              "<p>She said, &quot;&#39;Hello&#39;, she said.&quot;")))
+
+(test escape-single-quotes-in-attributes
+  (is (equal
+       (let (*print-pretty*)
+         (with-html-string
+           (:button :onclick "window.alert('Hello, world.')"  "My button")))
+       ;; Interestingly this still works.
+       "<button onclick=\"window.alert(&#39;Hello, world.&#39;)\">My button</button>")))

@@ -61,7 +61,8 @@
                        (case c
                          (#\& "&amp;")
                          (#.no-break-space "&nbsp;")
-                         (#\" "&quot;")))))
+                         (#\" "&quot;")
+                         (#\' "&#39;")))))
 
 (defun escape-to-stream (string table stream)
   (serapeum:escape string table :stream stream))
