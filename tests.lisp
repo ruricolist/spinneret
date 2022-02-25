@@ -23,8 +23,8 @@
   (run! 'spinneret))
 
 (defun visually-equal (string1 string2)
-  (let* ((lines1 (serapeum:lines string1))
-         (lines2 (serapeum:lines string2)))
+  (let ((lines1 (serapeum:lines string1))
+        (lines2 (serapeum:lines string2)))
     (and (= (length lines1)
             (length lines2))
          (every (lambda (line1 line2)
