@@ -61,7 +61,7 @@
   (not (or (void? element)
            (unmatched? element))))
 
-(define-global-parameter *pseudotags*
+(define-global-parameter *pseudotag-expanders*
     '((:doctype . make-doctype)
       (:!doctype . make-doctype)
       (:cdata . make-cdata)
@@ -74,7 +74,7 @@
       (:tag . expand-dynamic-tag)))
 
 (defun pseudotag-expander (element)
-  (cdr (assoc element *pseudotags*)))
+  (cdr (assoc element *pseudotag-expanders*)))
 
 (defun pseudotag-expand (element args)
   (let ((expander (pseudotag-expander element)))
