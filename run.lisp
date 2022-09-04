@@ -347,17 +347,21 @@ able to use directives like ~c, ~d, ~{~} &c."
 
 (defun make-doctype (&rest args)
   (declare (ignore args))
-  `(doctype))
+  (if *interpret*
+      (doctype)
+      `(doctype)))
 
 (defun doctype (&rest args)
   (declare (ignore args))
   (format *html* "<!DOCTYPE html>~%"))
 
 (defun make-comment (text)
-  `(comment ,(if (stringp text)
-                 (escape-comment text)
-                 text)
-     ,(stringp text)))
+  (if *interpret*
+      (comment text nil)
+      `(comment ,(if (stringp text)
+                     (escape-comment text)
+                     text)
+         ,(stringp text))))
 
 (defun comment (text safe? &aux (html *html*))
   (if *print-pretty*
@@ -379,10 +383,12 @@ able to use directives like ~c, ~d, ~{~} &c."
   (values))
 
 (defun make-cdata (text)
-  `(cdata ,(if (stringp text)
-               (escape-cdata text)
-               text)
-          ,(stringp text)))
+  (if *interpret*
+      (cdata text nil)
+      `(cdata ,(if (stringp text)
+                   (escape-cdata text)
+                   text)
+              ,(stringp text))))
 
 (defun cdata (text safe? &aux (html *html*))
   (write-string cdata-start html)
@@ -394,19 +400,25 @@ able to use directives like ~c, ~d, ~{~} &c."
   (values))
 
 (defun make-html (&rest args)
-  `(:html :lang *html-lang*
-     ,@args))
+  (let ((lang (if *interpret* *html-lang* '*html-lang*)))
+    `(:html :lang ,lang ,@args)))
 
 (defun make-head (&rest args)
-  `(:head
-    (:meta :charset *html-charset*)
-    ,@args))
+  (let ((charset (if *interpret* *html-charset* '*html-charset*)))
+    `(:head
+       (:meta :charset ,charset)
+       ,@args)))
 
 (defun write-raw (&rest args)
-  `(let ((*pre* t))
-     ,@(loop for arg in args
-             collect `(fill-text ,arg t))
-     nil))
+  (if *interpret*
+      (let ((*pre* t))
+        (dolist (arg args)
+          (fill-text arg t))
+        nil)
+      `(let ((*pre* t))
+         ,@(loop for arg in args
+                 collect `(fill-text ,arg t))
+         nil)))
 
 (-> heading-depth () (integer 1 6))
 (defun heading-depth ()

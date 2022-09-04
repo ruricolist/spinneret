@@ -20,7 +20,10 @@
                        ,empty?)))))
 
 (defun expand-h* (&rest args)
-  `(h* ,@args))
+  (if *interpret*
+      (cons (heading-depth-heading)
+            args)
+      `(h* ,@args)))
 
 (deftag h* (body attrs &key)
   `(dynamic-tag

@@ -681,3 +681,30 @@ bar</pre>"
            (:button :onclick "window.alert('Hello, world.')"  "My button")))
        ;; Interestingly this still works.
        "<button onclick=\"window.alert(&#39;Hello, world.&#39;)\">My button</button>")))
+
+(test raw-metatag
+  (is (equal "ahahaha"
+             (with-output-to-string (*html*)
+               (interpret-html-tree '(:raw "ahahaha")))))
+  (is (search "lang=en"
+              (with-output-to-string (*html*)
+                (interpret-html-tree '(:html (:p "Hello"))))))
+  (is (search "!DOCTYPE"
+              (with-output-to-string (*html*)
+                (interpret-html-tree '(:html (:doctype))))))
+  (is (search "ahahaha -->"
+              (with-output-to-string (*html*)
+                (interpret-html-tree '(:comment "ahahaha")))))
+  (is (search "charset=UTF-8"
+              (with-output-to-string (*html*)
+                (interpret-html-tree '(:html (:head))))))
+  (is (equal "<dangerous & forbidden>"
+             (with-output-to-string (*html*)
+               (interpret-html-tree '(:raw "<dangerous & forbidden>")))))
+  (is (search "h3"
+              (with-output-to-string (*html*)
+                (interpret-html-tree '(:h* (:section (:h* (:section (:h*)))))))
+              ))
+  (is (search "<p>"
+              (with-output-to-string (*html*)
+                (interpret-html-tree '(:tag :name :p))))))
