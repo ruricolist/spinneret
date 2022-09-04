@@ -74,7 +74,7 @@
       (:tag . expand-dynamic-tag)))
 
 (defun pseudotag-expander (element)
-  (cdr (assoc element *pseudotag-expanders*)))
+  (cdr (assoc element *pseudotag-expanders* :test #'eq)))
 
 (defun pseudotag-expand (element args)
   (let ((expander (pseudotag-expander element)))
@@ -241,7 +241,7 @@ attributes, beyond the global attributes.")
             (memq '* permitted)))))
 
 (defun permitted-attributes (tag)
-  (cdr (assoc tag *permitted-attributes*)))
+  (cdr (assoc tag *permitted-attributes* :test #'eq)))
 
 (defun global-attribute? (name)
   (memq name *global-attributes*))
