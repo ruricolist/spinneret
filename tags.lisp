@@ -96,7 +96,7 @@
       :sup :table :tbody :td :template :textarea :tfoot :th :thead :time :title :tr
       :track :u :ul :var :video :wbr))
 
-(-> valid? (keyword) (or keyword null))
+(-> valid? (keyword) (values (or keyword null) &optional))
 (defun valid? (element)
   (or (car (memq element *html5-elements*))
       (valid-custom-element-name? element)))
