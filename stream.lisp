@@ -4,6 +4,10 @@
   (:method ((stream stream))
     stream))
 
+(defgeneric html-stream-column (stream)
+  (:method ((x stream))
+    0))
+
 (defclass html-stream (fundamental-character-output-stream)
   ((col :type (integer 0 *) :initform 0
         :reader html-stream-column
@@ -36,10 +40,6 @@
 (defgeneric elastic-newline (stream)
   (:method ((x t))
     (values)))
-
-(defgeneric html-stream-column (stream)
-  (:method ((x stream))
-    0))
 
 (defun newline (&optional s)
   (when *print-pretty*
