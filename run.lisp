@@ -41,6 +41,9 @@
   (when *pending-space*
     (setf *pending-space* nil)))
 
+(serapeum:defconstructor escaped-string
+  (value string))
+
 (defmacro catch-output (arg &environment env)
   (labels ((print-escaped (x)
              `(html ,(escaped-string (escape-string x))))
@@ -76,9 +79,6 @@
   (:method :around ((nada null))
     (values))
   (:documentation "Handle writing OBJECT as HTML (for side-effects only)."))
-
-(serapeum:defconstructor escaped-string
-  (value string))
 
 (define-compiler-macro html (object)
   `(locally (declare (notinline html))
