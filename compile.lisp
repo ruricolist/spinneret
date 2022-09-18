@@ -57,7 +57,7 @@
   "Dissect a tag like `:div.class#id' into the tag itself and a plist
 of attributes."
   (destructuring-bind (tag . parts)
-      (ppcre:split "([.#])" (string-downcase tag) :with-registers-p t)
+      (split "([.#])" (string-downcase tag) :with-registers-p t)
     (values (make-keyword (string-upcase tag))
             (sublis '(("." . :class)
                       ("#" . :id))

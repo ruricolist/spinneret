@@ -54,7 +54,21 @@
                 #:-> #:with-thunk
                 #:and-let* #:op #:string-prefix-p
                 #:memq
+                #:string$=
+                #:string^=
+                #:escape
+                #:defconst
+                #:defconstructor
+                #:string-replace-all
+                #:local*
+                #:fbind
+                #:fbind*
+                #:bound-value
+                #:defmethods
+                #:eval-if-constant
                 #:parse-leading-keywords)
+  (:import-from #:cl-ppcre
+                #:split)
   (:import-from #:trivia
                 #:match)
   (:import-from #:global-vars

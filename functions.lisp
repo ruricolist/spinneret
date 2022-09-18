@@ -73,7 +73,7 @@
 
 ;;; The auxiliary functions are block-compiled for speed.
 
-(serapeum:local*
+(local*
   (declaim (optimize (speed 3) (safety 0) (debug 0)
                      (compilation-speed 0)))
 
