@@ -31,7 +31,7 @@
 (defun needs-quotes? (string)
   (declare (string string))
   (or (some #'must-quote? string)
-      (serapeum:string$= "/" string)))
+      (string$= "/" string)))
 
 ;; See 8.3.
 ;; http://www.w3.org/TR/html5/the-end.html#serializing-html-fragments
@@ -65,17 +65,17 @@
                          (#\' "&#39;")))))
 
 (defun escape-to-stream (string table stream)
-  (serapeum:escape string table :stream stream))
+  (escape string table :stream stream))
 
 (defun escape-with-table (string table)
-  (serapeum:escape string table))
+  (escape string table))
 
 ;; See 8.1.5
 ;; http://www.w3.org/TR/html5/syntax.html#cdata-sections
 
-(serapeum:defconst cdata-start "<![CDATA[")
+(defconst cdata-start "<![CDATA[")
 
-(serapeum:defconst cdata-end "]]>")
+(defconst cdata-end "]]>")
 
 (defun escape-cdata (text)
   (remove-substring text cdata-end))
@@ -87,4 +87,4 @@
   (remove-substring (string-trim ">-" text) "--"))
 
 (defun remove-substring (string substring)
-  (serapeum:string-replace-all substring string ""))
+  (string-replace-all substring string ""))

@@ -41,7 +41,7 @@
   (when *pending-space*
     (setf *pending-space* nil)))
 
-(serapeum:defconstructor escaped-string
+(defconstructor escaped-string
   (value string))
 
 (defmacro catch-output (arg &environment env)
@@ -59,7 +59,7 @@
                     keyword (member t nil))
                 (print-escaped (princ-to-string arg)))
                (t (multiple-value-bind (val constant?)
-                      (serapeum:eval-if-constant arg env)
+                      (eval-if-constant arg env)
                     (if (and constant?
                              (not (equal val arg)))
                         (rec val)
@@ -95,7 +95,7 @@
   (values))
 
 (defmethod html :around ((string string))
-  (when (serapeum:string^= " " string)
+  (when (string^= " " string)
     (cancel-space))
   (call-next-method)
   (values))
@@ -107,7 +107,7 @@
 
 (defmethod html :around ((string escaped-string))
   (let ((string (escaped-string-value string)))
-    (when (serapeum:string^= " " string)
+    (when (string^= " " string)
       (cancel-space)))
   (call-next-method)
   (values))
@@ -131,7 +131,7 @@
 
 (defun call/words (thunk string)
   "Function that implements `do-words'."
-  (serapeum:fbind (thunk)
+  (fbind (thunk)
     (let ((window (make-array 0
                               :element-type (array-element-type string)
                               :adjustable t
@@ -152,7 +152,7 @@
             until (= right len)))))
 
 (define-do-macro do-words ((var at-end? string &optional return) &body body)
-  (serapeum:with-thunk (body var at-end?)
+  (with-thunk (body var at-end?)
     `(call/words ,body ,string)))
 
 (defun maybe-wrap (&optional (offset 0) (stream *html*))
@@ -214,7 +214,7 @@
   "Format ATTRS, uses the unary function PRINT-BOOLEAN to print
 Boolean attributes, and the binary function PRINT-VALUE to print
 ordinary attributes."
-  (serapeum:fbind (print-boolean print-value)
+  (fbind (print-boolean print-value)
     (let ((seen '()))
       ;; Ensure that the leftmost keyword has priority,
       ;; as in function lambda lists.
@@ -275,38 +275,38 @@ make reasonable decisions about line wrapping.")
   (let* ((start-col (get-indent))
          (fill *fill-column*)
          (goal (+ start-col fill)))
-    (serapeum:fbind* ((too-long?
-                       (if *print-pretty*
-                           (lambda (len)
-                             (> (+ len (html-stream-column stream))
-                                goal))
-                           (constantly nil)))
-                      (print-prefix
-                       (lambda (len attr)
-                         (let ((prefix (if (too-long? len) #\Newline #\Space)))
-                           (write-char prefix stream)
-                           ;; XXX Work around
-                           ;; <https://abcl.org/trac/ticket/166>
-                           #+abcl (write-string (string-downcase attr) stream)
-                           #-abcl (format stream "~(~a~)" attr))))
-                      (print-boolean
-                       (lambda (attr)
-                         (let ((len (length (symbol-name attr))))
-                           ;; No valid attribute is longer than 80. (I
-                           ;; suppose a data attribute could be.)
-                           (print-prefix len attr))))
-                      (print-attr
-                       (lambda (attr value)
-                         (let ((len (+ (length (symbol-name attr))
-                                       1 ;for the equals sign
-                                       (html-length* value))))
-                           (print-prefix len attr))
-                         (write-char #\= stream)
-                         (format stream "~a" value))))
-      (declare (dynamic-extent #'print-prefix #'print-boolean #'print-attr))
-      (format-attributes-with attrs
-                              #'print-boolean
-                              #'print-attr))))
+    (fbind* ((too-long?
+              (if *print-pretty*
+                  (lambda (len)
+                    (> (+ len (html-stream-column stream))
+                       goal))
+                  (constantly nil)))
+             (print-prefix
+              (lambda (len attr)
+                (let ((prefix (if (too-long? len) #\Newline #\Space)))
+                  (write-char prefix stream)
+                  ;; XXX Work around
+                  ;; <https://abcl.org/trac/ticket/166>
+                  #+abcl (write-string (string-downcase attr) stream)
+                  #-abcl (format stream "~(~a~)" attr))))
+             (print-boolean
+              (lambda (attr)
+                (let ((len (length (symbol-name attr))))
+                  ;; No valid attribute is longer than 80. (I
+                  ;; suppose a data attribute could be.)
+                  (print-prefix len attr))))
+             (print-attr
+              (lambda (attr value)
+                (let ((len (+ (length (symbol-name attr))
+                              1 ;for the equals sign
+                              (html-length* value))))
+                  (print-prefix len attr))
+                (write-char #\= stream)
+                (format stream "~a" value))))
+            (declare (dynamic-extent #'print-prefix #'print-boolean #'print-attr))
+            (format-attributes-with attrs
+                                    #'print-boolean
+                                    #'print-attr))))
 
 (defun format-attributes-pretty/block (attrs &optional (stream *html*))
   (declare (html-stream stream))

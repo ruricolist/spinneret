@@ -97,13 +97,13 @@
 (defpsmacro comment (text safe?)
   (declare (ignore safe?))
   `(stringify
-    ,(ps::concat-constant-strings
+    ,(concat-constant-strings
       (list "<!-- " text " -->"))))
 
 (defpsmacro cdata (text safe?)
   (declare (ignore safe?))
   `(stringify
-    ,(ps::concat-constant-strings
+    ,(concat-constant-strings
       (list cdata-start text cdata-end))))
 
 (defpsmacro format-text (formatter &rest args)
@@ -120,7 +120,7 @@
 
 (defpsmacro join-tokens (&rest classes)
   `(stringify
-    ,@(ps::concat-constant-strings
+    ,@(concat-constant-strings
        (intersperse " "
                     (remove-duplicates (remove nil classes)
                                        :test #'equal)))))

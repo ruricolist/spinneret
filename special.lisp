@@ -19,7 +19,7 @@
 (defvar *indent*)
 
 (defun get-indent ()
-  (or (serapeum:bound-value '*indent*)
+  (or (bound-value '*indent*)
       *depth*))
 
 (defvar *pre* nil)
