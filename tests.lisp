@@ -708,3 +708,12 @@ bar</pre>"
   (is (search "<p>"
               (with-output-to-string (*html*)
                 (interpret-html-tree '(:tag :name :p))))))
+
+(test dissect-interpreted-tag
+  (let ((spinneret:*html-style* :tree))
+    (is (equal
+         (with-html-string
+           (:div.my-class))
+         (remove #\Newline
+                 (with-output-to-string (*html*)
+                   (interpret-html-tree '(:div.my-class))))))))

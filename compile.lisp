@@ -64,14 +64,6 @@ of attributes."
                     parts
                     :test #'equal))))
 
-(defun tag-body-parts (form)
-  "Pull the attributes off the front of BODY and return the attributes
-and the body."
-  (let ((body (loop for rest on form by #'cddr
-                    unless (keywordp (car rest))
-                      return rest)))
-    (values (ldiff form body) body)))
-
 (defun simplify-tokenized-attributes (attrs)
   "Return an alist of the tokenized attributes (like :class) and a
 plist of the regular attributes."
@@ -111,14 +103,15 @@ plist of the regular attributes."
         (t call)))
 
 (defun tag-parts (form)
-  "Divide a form into an element, attributes, and a body. Provided
+  "Parse a form into an element, attributes, and a body. Provided
 the form qualifies as a tag, the element is the car, the attributes
 are all the following key-value pairs, and the body is what remains."
   (when (keywordp (car form))
-    (destructuring-bind (tag-name . body) form
-      (multiple-value-bind (tag tag-attrs) (dissect-tag tag-name)
-        (multiple-value-bind (attrs body) (tag-body-parts (append tag-attrs body))
-          (values tag (simplify-tokenized-attributes attrs) body))))))
+    (mvlet* ((tag-name body (car+cdr form))
+             (tag tag-attrs (dissect-tag tag-name))
+             (attrs body
+              (parse-leading-keywords (append tag-attrs body))))
+      (values tag (simplify-tokenized-attributes attrs) body))))
 
 (defun tag-thunk-name (name attrs)
   "Produce a helpful name for a thunk from NAME and ATTRS."

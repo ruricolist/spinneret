@@ -66,7 +66,10 @@
                 #:bound-value
                 #:defmethods
                 #:eval-if-constant
-                #:parse-leading-keywords)
+                #:parse-leading-keywords
+                #:car+cdr
+                #:mvlet*
+                #:receive)
   (:import-from #:cl-ppcre
                 #:split)
   (:import-from #:trivia

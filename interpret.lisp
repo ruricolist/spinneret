@@ -8,6 +8,7 @@
 The syntax used is roughly that of Spinneret.
 "
   (match tree
+    ;; Handle the (:tag :name "mytag") syntax for dynamic tags.
     ((list* (and _ (eql :tag)) attrs-and-body)
      (multiple-value-bind (attrs body)
          (parse-leading-keywords attrs-and-body)
@@ -21,12 +22,13 @@ The syntax used is roughly that of Spinneret.
      (if-let (expander
               (and (not expanded)
                    (pseudotag-expander tag)))
+       ;; Handle interpreting a pseudotag.
        (interpret-html-tree
         (let ((*interpret* t))
           (apply expander attrs-and-body))
         'expanded t)
-       (multiple-value-bind (attrs body)
-           (parse-leading-keywords attrs-and-body)
+       (receive (tag attrs body)
+           (tag-parts tree)
          (dynamic-tag :name tag :attrs attrs
            (mapc #'interpret-html-tree body)
            nil))))
