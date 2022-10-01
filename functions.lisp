@@ -177,18 +177,20 @@
     (defun dynamic-tag* (tag attrs body empty?)
       "Dynamically select a tag at runtime.
 Note that TAG must be a known tag."
-      (let* ((tag (or (and-let* ((kw (find-keyword (string-upcase tag)))
-                                 (tag (valid? kw))))
-                      (error 'no-such-tag :name tag)))
-             (open (tag-open tag))
-             ;; Note that dynamic tags always print the closing tag --
-             ;; not worth the effort to check.
-             (close (tag-close tag))
-             (*pre* (or *pre* (and (preformatted? tag) t)))
-             (*depth* (1+ *depth*))
-             (*html-path* (cons tag *html-path*))
-             (pretty *print-pretty*)
-             (style *html-style*))
+      (mvlet* ((tag tag-attrs (dissect-tag tag))
+               (tag (or (and-let* ((kw (find-keyword (string-upcase tag)))
+                                   (tag (valid? kw))))
+                        (error 'no-such-tag :name tag)))
+               (attrs (append tag-attrs attrs))
+               (open (tag-open tag))
+               ;; Note that dynamic tags always print the closing tag --
+               ;; not worth the effort to check.
+               (close (tag-close tag))
+               (*pre* (or *pre* (and (preformatted? tag) t)))
+               (*depth* (1+ *depth*))
+               (*html-path* (cons tag *html-path*))
+               (pretty *print-pretty*)
+               (style *html-style*))
         (declare (dynamic-extent *html-path*))
         (cond ((inline? tag)
                (print-inline-tag

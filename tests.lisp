@@ -717,3 +717,12 @@ bar</pre>"
          (remove #\Newline
                  (with-output-to-string (*html*)
                    (interpret-html-tree '(:div.my-class))))))))
+
+(test dissect-dynamic-tag
+  (let ((spinneret:*html-style* :tree))
+    (is (equal
+         (with-html-string
+           (:tag :name :div.my-class))
+         (remove #\Newline
+                 (with-output-to-string (*html*)
+                   (interpret-html-tree '(:div.my-class))))))))

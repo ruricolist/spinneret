@@ -56,13 +56,17 @@
 (defun dissect-tag (tag)
   "Dissect a tag like `:div.class#id' into the tag itself and a plist
 of attributes."
-  (destructuring-bind (tag . parts)
-      (split "([.#])" (string-downcase tag) :with-registers-p t)
-    (values (make-keyword (string-upcase tag))
-            (sublis '(("." . :class)
-                      ("#" . :id))
-                    parts
-                    :test #'equal))))
+  (if (notany (lambda (c)
+                (member c '(#\# #\.)))
+              (string tag))
+      (values tag nil)
+      (destructuring-bind (tag . parts)
+          (split "([.#])" (string-downcase tag) :with-registers-p t)
+        (values (make-keyword (string-upcase tag))
+                (sublis '(("." . :class)
+                          ("#" . :id))
+                        parts
+                        :test #'equal)))))
 
 (defun simplify-tokenized-attributes (attrs)
   "Return an alist of the tokenized attributes (like :class) and a
