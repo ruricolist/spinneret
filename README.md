@@ -251,6 +251,8 @@ For the *ne plus ultra* of flexibility, you can interpret trees at runtime using
     (interpret-html-tree `(:div :id "dynamic!"))
     => <div id=dynamic!></div>
 
+The interpreter is still under development; it supports most but not yet all Spinneret syntax.
+
 ### Markdown
 
 If the additional system `spinneret/cl-markdown` is loaded, then a
