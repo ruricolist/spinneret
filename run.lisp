@@ -401,13 +401,31 @@ able to use directives like ~c, ~d, ~{~} &c."
 
 (defun make-html (&rest args)
   (let ((lang (if *interpret* *html-lang* '*html-lang*)))
-    `(:html :lang ,lang ,@args)))
+    (multiple-value-bind (attrs body)
+        (parse-leading-keywords args)
+      (if (getf attrs :lang)
+          `(:html ,@args)
+          `(:html
+             :lang ,lang
+             ,@attrs
+             ,@body)))))
 
 (defun make-head (&rest args)
   (let ((charset (if *interpret* *html-charset* '*html-charset*)))
-    `(:head
-       (:meta :charset ,charset)
-       ,@args)))
+    (multiple-value-bind (attrs body)
+        (parse-leading-keywords args)
+      (declare (ignore attrs))
+      (let ((meta-charset
+              (some (lambda (elt)
+                      (trivia:match elt
+                        ((list :meta :charset _)
+                         elt)))
+                    body)))
+        (if meta-charset
+            `(:head ,@args)
+            `(:head
+               (:meta :charset ,charset)
+               ,@args))))))
 
 (defun write-raw (&rest args)
   (if *interpret*

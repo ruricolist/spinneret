@@ -181,7 +181,8 @@ The rules for WITH-HTML are these:
 
   The value of the LANG attribute of HTML is controlled by
   `*html-lang*`; the value of the meta charset attribute is controlled
-  by `*html-charset*`.
+  by `*html-charset*`. These are defaults; passing an explicit
+  attribute takes precedence.
 
   Constant classes and ids can be specified with a selector-like
   syntax. E.g.:

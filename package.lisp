@@ -31,7 +31,8 @@
                 #:stream-finish-output
                 #:stream-force-output
                 #:stream-advance-to-column
-                #:stream-start-line-p)
+                #:stream-start-line-p
+                #:stream-line-column)
   (:import-from #:alexandria
                 #:array-index
                 #:clamp

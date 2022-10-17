@@ -10,6 +10,7 @@
                "cl-ppcre"
                "global-vars"
                "serapeum"
+               "trivia"
                "trivial-gray-streams")
   :components ((:file "package")
                (:file "special")

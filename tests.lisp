@@ -726,3 +726,20 @@ bar</pre>"
          (remove #\Newline
                  (with-output-to-string (*html*)
                    (interpret-html-tree '(:div.my-class))))))))
+
+(test override-lang-defaults
+  (let ((string
+          (with-html-string
+            (:html
+              (:head)
+              (:p)))))
+    (is (search "lang=en" string))
+    (is (search "charset=UTF-8" string)))
+  (let ((string
+          (with-html-string
+            (:html :lang "foo"
+              (:head
+                (:meta :charset "some-other"))
+              (:p)))))
+    (is (search "lang=foo" string))
+    (is (search "charset=some-other" string))))
