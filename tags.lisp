@@ -10,12 +10,14 @@
           preformatted?))
 
 (define-global-parameter *void-elements*
-    '(:!doctype :area :base :br :col :command :embed :hr :img
-      :input :keygen :link :meta :param :source :track :wbr))
+    (set-hash-table
+     '(:!doctype :area :base :br :col :command :embed :hr :img
+       :input :keygen :link :meta :param :source :track :wbr)
+     :test 'eq))
 
 (defun void? (element)
   (declare (inline memq))
-  (memq element *void-elements*))
+  (gethash element *void-elements*))
 
 (define-global-parameter *literal-elements*
   '(:pre :script :style))
@@ -24,34 +26,40 @@
   (memq element *literal-elements*))
 
 (define-global-parameter *inline-elements*
-  '(:a :abbr :address :bdo :small :code :samp :kbd
-    :cite :strong :dfn :br :em :q :data :time :var
-    :sub :sup :i :b :s :u :mark :ruby :rt :rp :bdi :span :wbr
-    :ins :del :col :meter :output))
+    (set-hash-table
+     '(:a :abbr :address :bdo :small :code :samp :kbd
+       :cite :strong :dfn :br :em :q :data :time :var
+       :sub :sup :i :b :s :u :mark :ruby :rt :rp :bdi :span :wbr
+       :ins :del :col :meter :output)
+     :test 'eq))
 
 (defun inline? (element)
   (declare (inline memq))
-  (memq element *inline-elements*))
+  (gethash element *inline-elements*))
 
 (define-global-parameter *paragraph-elements*
-  '(:meta :title :button :label :li :h1 :h2 :h3 :h4 :h5 :h6 :p :legend :option
-    :dt :dd :figcaption :iframe :colgroup :td :th :output :summary :command))
+    (set-hash-table
+     '(:meta :title :button :label :li :h1 :h2 :h3 :h4 :h5 :h6 :p :legend :option
+       :dt :dd :figcaption :iframe :colgroup :td :th :output :summary :command)
+     :test 'eq))
 
 (defun paragraph? (element)
   (declare (inline memq))
-  (memq element *paragraph-elements*))
+  (gethash element *paragraph-elements*))
 
 (define-global-parameter *end-tag-optional*
-  ;; html head body
-  '(:li :dt :dd :p :rt :rp :optgroup
-    :option :colgroup :thead :tbody :tfoot :tr :td :th
-    :meta))
+    ;; html head body
+    (set-hash-table
+     '(:li :dt :dd :p :rt :rp :optgroup
+       :option :colgroup :thead :tbody :tfoot :tr :td :th
+       :meta)
+     :test 'eq))
 
 (defun unmatched? (element)
-  (memq element *end-tag-optional*))
+  (gethash element *end-tag-optional*))
 
 (define-global-parameter *preformatted*
-  '(:pre :textarea :script :style))
+    '(:pre :textarea :script :style))
 
 (defun preformatted? (element)
   (declare (inline memq))
@@ -64,19 +72,21 @@
 (defparameter *interpret* nil)
 
 (define-global-parameter *pseudotag-expanders*
-    '((:doctype . make-doctype)
-      (:!doctype . make-doctype)
-      (:cdata . make-cdata)
-      (:!-- . make-comment)
-      (:comment . make-comment)
-      (:html . make-html)
-      (:head . make-head)
-      (:raw . write-raw)
-      (:h* . expand-h*)
-      (:tag . expand-dynamic-tag)))
+    (alist-hash-table
+     '((:doctype . make-doctype)
+       (:!doctype . make-doctype)
+       (:cdata . make-cdata)
+       (:!-- . make-comment)
+       (:comment . make-comment)
+       (:html . make-html)
+       (:head . make-head)
+       (:raw . write-raw)
+       (:h* . expand-h*)
+       (:tag . expand-dynamic-tag))
+     :test 'eq))
 
 (defun pseudotag-expander (element)
-  (cdr (assoc element *pseudotag-expanders* :test #'eq)))
+  (gethash element *pseudotag-expanders*))
 
 (defun pseudotag-expand (element args)
   (let ((expander (pseudotag-expander element)))
@@ -85,20 +95,22 @@
         (cons element args))))
 
 (define-global-parameter *html5-elements*
-    '(:a :abbr :address :area :article :aside :audio :b :base :bdi :bdo :blockquote
-      :body :br :button :canvas :caption :cite :code :col :colgroup :command :data
-      :datalist :dd :del :details :dfn :div :dl :dt :em :embed :fieldset
-      :figcaption :figure :footer :form :head :h1 :h2 :h3 :h4 :h5 :h6 :header
-      :hgroup :hr :html :i :iframe :img :input :ins :kbd :keygen :label :legend :li
-      :link :main :map :mark :math :menu :meta :meter :nav :noscript :object :ol
-      :optgroup :option :output :p :param :picture :pre :progress :q :rp :rt :ruby :s :samp
-      :script :section :select :small :source :span :strong :style :sub :svg :summary
-      :sup :table :tbody :td :template :textarea :tfoot :th :thead :time :title :tr
-      :track :u :ul :var :video :wbr))
+    (set-hash-table
+     '(:a :abbr :address :area :article :aside :audio :b :base :bdi :bdo :blockquote
+       :body :br :button :canvas :caption :cite :code :col :colgroup :command :data
+       :datalist :dd :del :details :dfn :div :dl :dt :em :embed :fieldset
+       :figcaption :figure :footer :form :head :h1 :h2 :h3 :h4 :h5 :h6 :header
+       :hgroup :hr :html :i :iframe :img :input :ins :kbd :keygen :label :legend :li
+       :link :main :map :mark :math :menu :meta :meter :nav :noscript :object :ol
+       :optgroup :option :output :p :param :picture :pre :progress :q :rp :rt :ruby :s :samp
+       :script :section :select :small :source :span :strong :style :sub :svg :summary
+       :sup :table :tbody :td :template :textarea :tfoot :th :thead :time :title :tr
+       :track :u :ul :var :video :wbr)
+     :test 'eq))
 
 (-> valid? (keyword) (values (or keyword null) &optional))
 (defun valid? (element)
-  (or (car (memq element *html5-elements*))
+  (or (gethash element *html5-elements*)
       (valid-custom-element-name? element)))
 
 (defun invalid? (element)
@@ -111,19 +123,21 @@
   (memq element *embedded-content*))
 
 (define-global-parameter *boolean-attributes*
-  '(:async :autofocus :autoplay :checked :controls
-    :default :defer :disabled :download :formnovalidate :hidden
-    :ismap :itemscope :loop :multiple :muted :novalidate
-    :open :readonly :required :reversed :scoped
-    :seamless :selected :typemustmatch))
+    (set-hash-table
+     '(:async :autofocus :autoplay :checked :controls
+       :default :defer :disabled :download :formnovalidate :hidden
+       :ismap :itemscope :loop :multiple :muted :novalidate
+       :open :readonly :required :reversed :scoped
+       :seamless :selected :typemustmatch)
+     :test 'eq))
 
 (defun boolean? (attr)
   (declare (inline memq))
-  (memq attr *boolean-attributes*))
+  (gethash attr *boolean-attributes*))
 
 (define-global-parameter *core-attributes*
-  '(:accesskey :class :contenteditable :contextmenu :dir :draggable
-    :dropzone :hidden :id :is :lang :spellcheck :style :tabindex :title))
+    '(:accesskey :class :contenteditable :contextmenu :dir :draggable
+      :dropzone :hidden :id :is :lang :spellcheck :style :tabindex :title))
 
 (define-global-parameter *microdata-attributes*
     '(:itemid :itemprop :itemref :itemscope :itemtype))
@@ -152,9 +166,11 @@
     :ontimeupdate :onvolumechange :onwaiting))
 
 (define-global-parameter *global-attributes*
-    (append *core-attributes*
-            *microdata-attributes*
-            *event-handler-attributes*))
+    (set-hash-table
+     (append *core-attributes*
+             *microdata-attributes*
+             *event-handler-attributes*)
+     :test 'eq))
 
 (define-global-parameter *space-separated-attributes*
   '(:accesskey :class :for :headers :rel :sandbox :sizes))
@@ -162,71 +178,79 @@
 (defun tokenized-attribute? (attr)
   (memq attr *space-separated-attributes*))
 
+(eval-always
+  (defun parse-permitted-attributes-alist (alist)
+    (lret ((table (alist-hash-table alist :test 'eq)))
+      (serapeum:do-hash-table (k v table)
+        (setf (gethash k table)
+              (set-hash-table v :key #'string :test #'equal))))))
+
 (define-global-parameter *permitted-attributes*
-  '((:a :href :target :rel :hreflang :media :type :download :ping)
-    (:area :alt :href :target :rel :media :hreflang :type :shape :coords)
-    (:audio :autoplay :preload :controls :loop :mediagroup :muted :src)
-    (:base :href :target)
-    (:blockquote :cite)
-    (:body :onafterprint :onbeforeprint :onbeforeunload :onblur :onerror
-     :onfocus :onhashchange :onload :onmessage :onoffline :ononline
-     :onpopstate :onresize :onstorage :onunload)
-    (:button :name :disabled :form :type :value
-     :autofocus :formaction :formenctype :formmethod :formtarget
-     :formnovalidate)
-    (:canvas :height :width)
-    (:col :span)
-    (:colgroup :span)
-    (:command :type :label :icon :disabled
-     :radiogroup :checked)
-    (:del :cite :datetime)
-    (:details :open)
-    (:embed :src :type :height :width *)
-    (:fieldset :name :disabled :form)
-    (:form :action :method :enctype :name :accept-charset
-     :novalidate :target :autocomplete)
-    (:html :manifest)
-    (:iframe :src :srcdoc :name :width :height :sandbox :seamless)
-    (:img :src :alt :height :width :usemap :ismap :border :crossorigin
-     :srcset :sizes :crossorigin)
-    (:input :name :disabled :form :type :minlength :maxlength :readonly :size :value
-     :autocomplete :autofocus :list :pattern :required :placeholder
-     :checked :accept :capture :multiple :src :height :width :alt
-     :inputmode
-     :min :max :step :dirname
-     :formaction :formenctype :formmethod :formtarget
-     :formnovalidate)
-    (:ins :cite :datetime)
-    (:keygen :challenge :keytype :autofocus :name :disabled :form)
-    (:label :for :form)
-    (:link :href :rel :hreflang :media :type :sizes :integrity :crossorigin)
-    (:map :name)
-    (:menu :type :label)
-    (:meta :name :content :http-equiv :charset :property)
-    (:meter :value :min :low :high :max :optimum)
-    (:object :data :type :height :width :usemap :name :form)
-    (:ol :start :reversed :type)
-    (:optgroup :label :disabled)
-    (:option :disabled :selected :label :value)
-    (:output :name :form :for)
-    (:param :name :value)
-    (:progress :value :max)
-    (:q :cite)
-    (:script :type :language :src :defer :async :charset :language :integrity
-     :crossorigin)
-    (:select :name :disabled :form :size :multiple :autofocus :required)
-    (:source :src :srcset :sizes :type :media)
-    (:style :type :media :scoped)
-    (:table :border)
-    (:td :colspan :rowspan
-     :headers)
-    (:textarea :name :disabled :form :readonly :maxlength :autofocus :required
-     :placeholder :dirname :rows :wrap :cols)
-    (:th :scope :colspan :rowspan :headers)
-    (:time :datetime)
-    (:track :kind :src :srclang :label :default)
-    (:video :autoplay :preload :controls :loop :poster :height :width
-     :mediagroup :muted :src :crossorigin))
+    (parse-permitted-attributes-alist
+     '((:a :href :target :rel :hreflang :media :type :download :ping)
+       (:area :alt :href :target :rel :media :hreflang :type :shape :coords)
+       (:audio :autoplay :preload :controls :loop :mediagroup :muted :src)
+       (:base :href :target)
+       (:blockquote :cite)
+       (:body :onafterprint :onbeforeprint :onbeforeunload :onblur :onerror
+         :onfocus :onhashchange :onload :onmessage :onoffline :ononline
+         :onpopstate :onresize :onstorage :onunload)
+       (:button :name :disabled :form :type :value
+         :autofocus :formaction :formenctype :formmethod :formtarget
+         :formnovalidate)
+       (:canvas :height :width)
+       (:col :span)
+       (:colgroup :span)
+       (:command :type :label :icon :disabled
+         :radiogroup :checked)
+       (:del :cite :datetime)
+       (:details :open)
+       (:embed :src :type :height :width *)
+       (:fieldset :name :disabled :form)
+       (:form :action :method :enctype :name :accept-charset
+         :novalidate :target :autocomplete)
+       (:html :manifest)
+       (:iframe :src :srcdoc :name :width :height :sandbox :seamless)
+       (:img :src :alt :height :width :usemap :ismap :border :crossorigin
+         :srcset :sizes)
+       (:input :name :disabled :form :type :minlength :maxlength :readonly :size :value
+         :autocomplete :autofocus :list :pattern :required :placeholder
+         :checked :accept :capture :multiple :src :height :width :alt
+         :inputmode
+         :min :max :step :dirname
+         :formaction :formenctype :formmethod :formtarget
+         :formnovalidate)
+       (:ins :cite :datetime)
+       (:keygen :challenge :keytype :autofocus :name :disabled :form)
+       (:label :for :form)
+       (:link :href :rel :hreflang :media :type :sizes :integrity :crossorigin)
+       (:map :name)
+       (:menu :type :label)
+       (:meta :name :content :http-equiv :charset :property)
+       (:meter :value :min :low :high :max :optimum)
+       (:object :data :type :height :width :usemap :name :form)
+       (:ol :start :reversed :type)
+       (:optgroup :label :disabled)
+       (:option :disabled :selected :label :value)
+       (:output :name :form :for)
+       (:param :name :value)
+       (:progress :value :max)
+       (:q :cite)
+       (:script :type :language :src :defer :async :charset :integrity
+         :crossorigin)
+       (:select :name :disabled :form :size :multiple :autofocus :required)
+       (:source :src :srcset :sizes :type :media)
+       (:style :type :media :scoped)
+       (:table :border)
+       (:td :colspan :rowspan
+         :headers)
+       (:textarea :name :disabled :form :readonly :maxlength :autofocus :required
+         :placeholder :dirname :rows :wrap :cols)
+       (:th :scope :colspan :rowspan :headers)
+       (:time :datetime)
+       (:track :kind :src :srclang :label :default)
+       (:video :autoplay :preload :controls :loop :poster :height :width
+         :mediagroup :muted :src :crossorigin)))
   "Alist of (tag . attributes). These are the element-specific
 attributes, beyond the global attributes.")
 
@@ -238,28 +262,30 @@ attributes, beyond the global attributes.")
       (eql name :attrs)
       (global-attribute? name)
       (aria-attribute? name)
-      (let ((permitted (permitted-attributes tag)))
-        (or (find name permitted :test #'string=)
-            (memq '* permitted)))))
+      (when-let ((permitted (permitted-attributes tag)))
+        (or (gethash (string name) permitted)
+            (gethash "*" permitted)))))
 
 (defun permitted-attributes (tag)
-  (cdr (assoc tag *permitted-attributes* :test #'eq)))
+  (gethash tag *permitted-attributes*))
 
 (defun global-attribute? (name)
-  (memq name *global-attributes*))
+  (gethash name *global-attributes*))
 
 (defun aria-attribute? (name)
   (memq name *aria-attributes*))
 
 (define-global-parameter *invalid-custom-element-names*
-    '(:annotation-xml
-      :color-profile
-      :font-face
-      :font-face-src
-      :font-face-uri
-      :font-face-format
-      :font-face-name
-      :missing-glyph)
+    (set-hash-table
+     '(:annotation-xml
+       :color-profile
+       :font-face
+       :font-face-src
+       :font-face-uri
+       :font-face-format
+       :font-face-name
+       :missing-glyph)
+     :test 'eq)
   "Names that are not allowed for custom elements.")
 
 (-> pcen-char? (character) boolean)
@@ -319,6 +345,6 @@ attributes, beyond the global attributes.")
               ;; createElementNS(), which have restrictions that go
               ;; beyond the parser's."
               (every #'pcen-char? s))))
-    (and (not (memq tag *invalid-custom-element-names*))
+    (and (not (gethash tag *invalid-custom-element-names*))
          (valid-string? (symbol-name tag))
          tag)))

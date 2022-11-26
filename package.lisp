@@ -70,7 +70,14 @@
                 #:parse-leading-keywords
                 #:car+cdr
                 #:mvlet*
-                #:receive)
+                #:receive
+                #:set-hash-table
+                #:hash-table-keys
+                #:alist-hash-table
+                #:do-hash-table
+                #:eval-always
+                #:lret
+                #:do-hash-table)
   (:import-from #:cl-ppcre
                 #:split)
   (:import-from #:trivia

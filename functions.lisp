@@ -68,7 +68,7 @@
 
 (defmacro define-all-tags ()
   `(progn
-     ,@(loop for tag in *html5-elements*
+     ,@(loop for tag in (hash-table-keys *html5-elements*)
              collect `(define-tag ,tag))))
 
 ;;; The auxiliary functions are block-compiled for speed.
