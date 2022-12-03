@@ -169,6 +169,18 @@ The rules for WITH-HTML are these:
     escaping for raw output. This allows inserting HTML literals, and
     bypasses pretty printing.
 
+    Note that you need :RAW for inline stylesheets and scripts,
+    otherwise angle brackets will be escaped as if they were HTML:
+
+    ```lisp
+    (with-html-string (:style "a > p{color: white;}"))
+    => "<style>a &gt; p{color: white;}</style>"
+
+    (with-html-string (:style (:raw "a > p{color: white;}")))
+    => "<style>a > p{color: white;}</style>"
+
+    ```
+
   - The pseudotags :!– and :COMMENT insert comments into the output.
 
   - The pseudotag :H* renders as one of :H1 through :H6 depending on
