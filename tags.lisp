@@ -9,11 +9,15 @@
           paragraph?
           preformatted?))
 
+(defmacro keyword-set (&body body)
+  (assert (every #'keywordp body))
+  ;; Return a literal hash table.
+  (set-hash-table body :test 'eq))
+
 (define-global-parameter *void-elements*
-    (set-hash-table
-     '(:!doctype :area :base :br :col :command :embed :hr :img
-       :input :keygen :link :meta :param :source :track :wbr)
-     :test 'eq))
+    (keyword-set
+     :!doctype :area :base :br :col :command :embed :hr :img
+     :input :keygen :link :meta :param :source :track :wbr))
 
 (defun void? (element)
   (declare (inline memq))
@@ -26,22 +30,20 @@
   (memq element *literal-elements*))
 
 (define-global-parameter *inline-elements*
-    (set-hash-table
-     '(:a :abbr :address :bdo :small :code :samp :kbd
-       :cite :strong :dfn :br :em :q :data :time :var
-       :sub :sup :i :b :s :u :mark :ruby :rt :rp :bdi :span :wbr
-       :ins :del :col :meter :output)
-     :test 'eq))
+    (keyword-set
+     :a :abbr :address :bdo :small :code :samp :kbd
+     :cite :strong :dfn :br :em :q :data :time :var
+     :sub :sup :i :b :s :u :mark :ruby :rt :rp :bdi :span :wbr
+     :ins :del :col :meter :output))
 
 (defun inline? (element)
   (declare (inline memq))
   (gethash element *inline-elements*))
 
 (define-global-parameter *paragraph-elements*
-    (set-hash-table
-     '(:meta :title :button :label :li :h1 :h2 :h3 :h4 :h5 :h6 :p :legend :option
-       :dt :dd :figcaption :iframe :colgroup :td :th :output :summary :command)
-     :test 'eq))
+    (keyword-set
+      :meta :title :button :label :li :h1 :h2 :h3 :h4 :h5 :h6 :p :legend :option
+      :dt :dd :figcaption :iframe :colgroup :td :th :output :summary :command))
 
 (defun paragraph? (element)
   (declare (inline memq))
@@ -49,11 +51,10 @@
 
 (define-global-parameter *end-tag-optional*
     ;; html head body
-    (set-hash-table
-     '(:li :dt :dd :p :rt :rp :optgroup
-       :option :colgroup :thead :tbody :tfoot :tr :td :th
-       :meta)
-     :test 'eq))
+    (keyword-set
+      :li :dt :dd :p :rt :rp :optgroup
+      :option :colgroup :thead :tbody :tfoot :tr :td :th
+      :meta))
 
 (defun unmatched? (element)
   (gethash element *end-tag-optional*))
@@ -95,18 +96,17 @@
         (cons element args))))
 
 (define-global-parameter *html5-elements*
-    (set-hash-table
-     '(:a :abbr :address :area :article :aside :audio :b :base :bdi :bdo :blockquote
-       :body :br :button :canvas :caption :cite :code :col :colgroup :command :data
-       :datalist :dd :del :details :dfn :div :dl :dt :em :embed :fieldset
-       :figcaption :figure :footer :form :head :h1 :h2 :h3 :h4 :h5 :h6 :header
-       :hgroup :hr :html :i :iframe :img :input :ins :kbd :keygen :label :legend :li
-       :link :main :map :mark :math :menu :meta :meter :nav :noscript :object :ol
-       :optgroup :option :output :p :param :picture :pre :progress :q :rp :rt :ruby :s :samp
-       :script :section :select :small :source :span :strong :style :sub :svg :summary
-       :sup :table :tbody :td :template :textarea :tfoot :th :thead :time :title :tr
-       :track :u :ul :var :video :wbr)
-     :test 'eq))
+    (keyword-set
+      :a :abbr :address :area :article :aside :audio :b :base :bdi :bdo :blockquote
+      :body :br :button :canvas :caption :cite :code :col :colgroup :command :data
+      :datalist :dd :del :details :dfn :div :dl :dt :em :embed :fieldset
+      :figcaption :figure :footer :form :head :h1 :h2 :h3 :h4 :h5 :h6 :header
+      :hgroup :hr :html :i :iframe :img :input :ins :kbd :keygen :label :legend :li
+      :link :main :map :mark :math :menu :meta :meter :nav :noscript :object :ol
+      :optgroup :option :output :p :param :picture :pre :progress :q :rp :rt :ruby :s :samp
+      :script :section :select :small :source :span :strong :style :sub :svg :summary
+      :sup :table :tbody :td :template :textarea :tfoot :th :thead :time :title :tr
+      :track :u :ul :var :video :wbr))
 
 (-> valid? (keyword) (values (or keyword null) &optional))
 (defun valid? (element)
@@ -123,24 +123,16 @@
   (memq element *embedded-content*))
 
 (define-global-parameter *boolean-attributes*
-    (set-hash-table
-     '(:async :autofocus :autoplay :checked :controls
-       :default :defer :disabled :download :formnovalidate :hidden
-       :ismap :itemscope :loop :multiple :muted :novalidate
-       :open :readonly :required :reversed :scoped
-       :seamless :selected :typemustmatch)
-     :test 'eq))
+    (keyword-set
+      :async :autofocus :autoplay :checked :controls
+      :default :defer :disabled :download :formnovalidate :hidden
+      :ismap :itemscope :loop :multiple :muted :novalidate
+      :open :readonly :required :reversed :scoped
+      :seamless :selected :typemustmatch))
 
 (defun boolean? (attr)
   (declare (inline memq))
   (gethash attr *boolean-attributes*))
-
-(define-global-parameter *core-attributes*
-    '(:accesskey :class :contenteditable :contextmenu :dir :draggable
-      :dropzone :hidden :id :is :lang :spellcheck :style :tabindex :title))
-
-(define-global-parameter *microdata-attributes*
-    '(:itemid :itemprop :itemref :itemscope :itemtype))
 
 (defvar *unvalidated-attribute-prefixes* '("data-" "aria-")
   "A list of prefixes for attributes that should not be validated.")
@@ -151,22 +143,30 @@
 
 ;; http://www.w3.org/TR/wai-aria/states_and_properties
 (define-global-parameter *aria-attributes*
-  '(:role))
+    '(:role))
 
-(define-global-parameter *event-handler-attributes*
-  '(:onabort :onblur :oncanplay :oncanplaythrough :onchange :onclick
-    :oncontextmenu :ondblclick :ondrag :ondragend :ondragenter
-    :ondragleave :ondragover :ondragstart :ondrop :ondurationchange
-    :onemptied :onended :onerror :onfocus :oninput :oninvalid :onkeydown
-    :onkeypress :onkeyup :onload :onloadeddata :onloadedmetadata
-    :onloadstart :onmousedown :onmousemove :onmouseout :onmouseover
-    :onmouseup :onmousewheel :onpause :onplay :onplaying :onprogress
-    :onratechange :onreadystatechange :onreset :onscroll :onseeked
-    :onseeking :onselect :onshow :onstalled :onsubmit :onsuspend
-    :ontimeupdate :onvolumechange :onwaiting))
+(eval-always
+  (define-global-parameter *core-attributes*
+      '(:accesskey :class :contenteditable :contextmenu :dir :draggable
+        :dropzone :hidden :id :is :lang :spellcheck :style :tabindex :title))
+
+  (define-global-parameter *microdata-attributes*
+      '(:itemid :itemprop :itemref :itemscope :itemtype))
+
+  (define-global-parameter *event-handler-attributes*
+      '(:onabort :onblur :oncanplay :oncanplaythrough :onchange :onclick
+        :oncontextmenu :ondblclick :ondrag :ondragend :ondragenter
+        :ondragleave :ondragover :ondragstart :ondrop :ondurationchange
+        :onemptied :onended :onerror :onfocus :oninput :oninvalid :onkeydown
+        :onkeypress :onkeyup :onload :onloadeddata :onloadedmetadata
+        :onloadstart :onmousedown :onmousemove :onmouseout :onmouseover
+        :onmouseup :onmousewheel :onpause :onplay :onplaying :onprogress
+        :onratechange :onreadystatechange :onreset :onscroll :onseeked
+        :onseeking :onselect :onshow :onstalled :onsubmit :onsuspend
+        :ontimeupdate :onvolumechange :onwaiting)))
 
 (define-global-parameter *global-attributes*
-    (set-hash-table
+  #.(set-hash-table
      (append *core-attributes*
              *microdata-attributes*
              *event-handler-attributes*)
@@ -186,7 +186,7 @@
               (set-hash-table v :key #'string :test #'equal))))))
 
 (define-global-parameter *permitted-attributes*
-    (parse-permitted-attributes-alist
+  #.(parse-permitted-attributes-alist
      '((:a :href :target :rel :hreflang :media :type :download :ping)
        (:area :alt :href :target :rel :media :hreflang :type :shape :coords)
        (:audio :autoplay :preload :controls :loop :mediagroup :muted :src)
@@ -276,16 +276,15 @@ attributes, beyond the global attributes.")
   (memq name *aria-attributes*))
 
 (define-global-parameter *invalid-custom-element-names*
-    (set-hash-table
-     '(:annotation-xml
-       :color-profile
-       :font-face
-       :font-face-src
-       :font-face-uri
-       :font-face-format
-       :font-face-name
-       :missing-glyph)
-     :test 'eq)
+    (keyword-set
+      :annotation-xml
+      :color-profile
+      :font-face
+      :font-face-src
+      :font-face-uri
+      :font-face-format
+      :font-face-name
+      :missing-glyph)
   "Names that are not allowed for custom elements.")
 
 (-> pcen-char? (character) boolean)
