@@ -655,9 +655,10 @@ bar</pre>"
 
 (test interpret-tree
   (is (visually-equal
-       (with-html-string
+       (with-output-to-string (*html*)
          (interpret-html-tree
-          `(:ul :class "shuffle" (:li "Item1") (:li "Item2"))))
+          `(:ul :class "shuffle" (:li "Item1") (:li "Item2"))
+          :stream *html*))
        (fmt
         "~
 <ul class=shuffle>
