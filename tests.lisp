@@ -744,3 +744,8 @@ bar</pre>"
               (:p)))))
     (is (search "lang=foo" string))
     (is (search "charset=some-other" string))))
+
+(test allow-allowfullscreen
+  (finishes
+    (let ((*html* (make-broadcast-stream)))
+      (with-html (:iframe :width 560 :height 315 :src "example.com" :title "YouTube video player" :frameborder 0 :allow "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" :allowfullscreen t)))))

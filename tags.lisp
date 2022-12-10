@@ -128,7 +128,8 @@
       :default :defer :disabled :download :formnovalidate :hidden
       :ismap :itemscope :loop :multiple :muted :novalidate
       :open :readonly :required :reversed :scoped
-      :seamless :selected :typemustmatch))
+      :seamless :selected :typemustmatch
+      :allowfullscreen :allowpaymentrequest))
 
 (defun boolean? (attr)
   (declare (inline memq))
@@ -210,7 +211,9 @@
        (:form :action :method :enctype :name :accept-charset
          :novalidate :target :autocomplete)
        (:html :manifest)
-       (:iframe :src :srcdoc :name :width :height :sandbox :seamless)
+       (:iframe :src :srcdoc :name :width :height :sandbox :seamless :allowfullscreen
+         :allowpaymentrequest :allow :frameborder :csp :fetchpriority :loading
+         :referrerpolicy)
        (:img :src :alt :height :width :usemap :ismap :border :crossorigin
          :srcset :sizes)
        (:input :name :disabled :form :type :minlength :maxlength :readonly :size :value
