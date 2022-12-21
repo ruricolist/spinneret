@@ -48,6 +48,7 @@
     (#\' "&#39;")))
 
 (defun escape-string (string)
+  "Escape STRING as HTML."
   (escape-with-table string #'escape-string-char))
 
 (defun escape-to-string (object)
