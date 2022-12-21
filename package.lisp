@@ -17,7 +17,8 @@
            #:spinneret-error
            #:no-such-tag
            #:*suppress-inserted-spaces*
-           #:interpret-html-tree)
+           #:interpret-html-tree
+           #:escape-string)
   (:import-from #:parenscript
                 #:concat-constant-strings ;; unexported function
                 #:define-ps-symbol-macro
