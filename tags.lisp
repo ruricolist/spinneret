@@ -9,10 +9,11 @@
           paragraph?
           preformatted?))
 
-(defmacro keyword-set (&body body)
-  (assert (every #'keywordp body))
-  ;; Return a literal hash table.
-  (set-hash-table body :test 'eq))
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro keyword-set (&body body)
+    (assert (every #'keywordp body))
+    ;; Return a literal hash table.
+    (set-hash-table body :test 'eq)))
 
 (define-global-parameter *void-elements*
     (keyword-set
