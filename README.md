@@ -121,7 +121,7 @@ element, and every run of text on a new line.
         </p>
        </div>
 
-With `*html-style*` bounds to `:tree`, and `*print-pretty*` bounds to
+With `*html-style*` bound to `:tree`, and `*print-pretty*` bound to
 nil, output is verbose but predictable:
 
 
