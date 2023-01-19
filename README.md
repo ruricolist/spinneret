@@ -132,6 +132,9 @@ nil, output is verbose but predictable:
           (:p "Text " (:a "link text") " more text"))))
     => "<div><p>Text <a>link text</a>  more text</p></div>"
 
+Notice that binding `*html-style*` to `:tree` ensures that all tags are
+closed.
+
 ### Inserted spaces
 
 By default, when objects are output to HTML, spaces are inserted betweeen them. This is nearly always the right thing to do, but in some special cases, the spaces may be a problem. They can be turned off by setting the flag `*suppress-inserted-spaces*` to `t`.
