@@ -100,7 +100,7 @@
     (keyword-set
       :a :abbr :address :area :article :aside :audio :b :base :bdi :bdo :blockquote
       :body :br :button :canvas :caption :cite :code :col :colgroup :command :data
-      :datalist :dd :del :details :dfn :div :dl :dt :em :embed :fieldset
+      :datalist :dd :del :details :dfn :dialog :div :dl :dt :em :embed :fieldset
       :figcaption :figure :footer :form :head :h1 :h2 :h3 :h4 :h5 :h6 :header
       :hgroup :hr :html :i :iframe :img :input :ins :kbd :keygen :label :legend :li
       :link :main :map :mark :math :menu :meta :meter :nav :noscript :object :ol
@@ -207,6 +207,7 @@
          :radiogroup :checked)
        (:del :cite :datetime)
        (:details :open)
+       (:dialog :open)
        (:embed :src :type :height :width *)
        (:fieldset :name :disabled :form)
        (:form :action :method :enctype :name :accept-charset
