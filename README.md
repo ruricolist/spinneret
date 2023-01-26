@@ -121,7 +121,7 @@ element, and every run of text on a new line.
         </p>
        </div>
 
-With `*html-style*` bounds to `:tree`, and `*print-pretty*` bounds to
+With `*html-style*` bound to `:tree`, and `*print-pretty*` bound to
 nil, output is verbose but predictable:
 
 
@@ -131,6 +131,9 @@ nil, output is verbose but predictable:
         (:div
           (:p "Text " (:a "link text") " more text"))))
     => "<div><p>Text <a>link text</a>  more text</p></div>"
+
+Notice that binding `*html-style*` to `:tree` ensures that all tags are
+closed.
 
 ### Inserted spaces
 
