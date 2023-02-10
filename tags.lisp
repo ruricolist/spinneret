@@ -216,7 +216,7 @@
        (:iframe :src :srcdoc :name :width :height :sandbox :seamless :allowfullscreen
          :allowpaymentrequest :allow :frameborder :csp :fetchpriority :loading
          :referrerpolicy)
-       (:img :src :alt :height :width :usemap :ismap :border :crossorigin
+       (:img :src :alt :height :width :loading :usemap :ismap :border :crossorigin
          :srcset :sizes)
        (:input :name :disabled :form :type :minlength :maxlength :readonly :size :value
          :autocomplete :autofocus :list :pattern :required :placeholder
