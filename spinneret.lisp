@@ -18,6 +18,12 @@
 This is necessary because *HTML-PATH* itself is stack-allocated."
   (copy-list *html-path*))
 
+(defmacro with-html-path (value &body body)
+  "Modify *HTML-PATH* to VALUE in the scope of BODY.
+Useful to override the behavior of tags (like :H*) dependent on *HTML-PATH*."
+  `(let ((*html-path* ,value))
+     ,@body))
+
 (defmacro with-html (&body body &environment env)
   "Interpret BODY as HTML. Consult README.txt for the syntax."
   `(let ((*html* (ensure-html-stream *html*)))

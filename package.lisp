@@ -6,6 +6,7 @@
            #:*html*
            #:*html-lang* #:*html-charset*
            #:get-html-path
+           #:with-html-path
            #:do-elements
            #:deftag
            #:*unvalidated-attribute-prefixes*
