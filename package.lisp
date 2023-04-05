@@ -5,6 +5,7 @@
   (:export #:with-html #:with-html-string #:html
            #:*html*
            #:*html-lang* #:*html-charset*
+           #:*html-path*
            #:get-html-path
            #:do-elements
            #:deftag
