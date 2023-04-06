@@ -462,6 +462,23 @@
                  (:h* "This is a third-level heading")
                  (:p "...")))))))))
 
+(test html-path
+  (is (visually-equal
+       (format nil "~
+<body>
+ <h1>This is a top level heading</h1>
+ <p>...
+ <h2>This is a second-level tricked by *HTML-PATH*</h2>
+ <p>...
+</body>")
+       (with-html-string
+         (:body
+          (:h* "This is a top level heading")
+          (:p "...")
+          (let ((*html-path* (append *html-path* '(:section))))
+            (:h* "This is a second-level tricked by *HTML-PATH*")
+            (:p "...")))))))
+
 
 (test print-tree
   (with-pretty-printing
