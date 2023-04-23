@@ -30,7 +30,8 @@
 
 (defun needs-quotes? (string)
   (declare (string string))
-  (or (some #'must-quote? string)
+  (or *always-quote*
+      (some #'must-quote? string)
       (string$= "/" string)))
 
 ;; See 8.3.
