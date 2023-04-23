@@ -766,3 +766,12 @@ bar</pre>"
   (finishes
     (let ((*html* (make-broadcast-stream)))
       (with-html (:iframe :width 560 :height 315 :src "example.com" :title "YouTube video player" :frameborder 0 :allow "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" :allowfullscreen t)))))
+
+(test always-quote-attributes
+  (let ((spinneret:*html-style* :tree)
+	(spinneret:*always-quote* t))
+    (is (equal
+         (with-html-string
+           (:img :attrs (list :alt "some alt text" :src "https://test.com/image.png")))
+         "<img alt=\"some alt text\"
+     src=\"https://test.com/image.png\">"))))

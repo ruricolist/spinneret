@@ -42,3 +42,7 @@ This is always measured from the start of the tag.")
 (defvar *html-style* :human
   "How should we pretty-print HTML?")
 (declaim (type (member :human :tree) *html-style*))
+
+(defvar *always-quote* nil
+  "Add quotes to all attributes.")
+(declaim (type boolean *always-quote*))

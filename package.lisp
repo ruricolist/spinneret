@@ -19,7 +19,8 @@
            #:no-such-tag
            #:*suppress-inserted-spaces*
            #:interpret-html-tree
-           #:escape-string)
+           #:escape-string
+	   #:*always-quote*)
   (:import-from #:parenscript
                 #:concat-constant-strings ;; unexported function
                 #:define-ps-symbol-macro
