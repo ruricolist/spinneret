@@ -1,3 +1,21 @@
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+**Table of Contents**
+
+- [Spinneret](#spinneret)
+    - [Printing style](#printing-style)
+    - [Inserted spaces](#inserted-spaces)
+    - [Line wrapping](#line-wrapping)
+    - [Syntax](#syntax)
+        - [Dynamic output](#dynamic-output)
+        - [Interpreting trees](#interpreting-trees)
+        - [Markdown](#markdown)
+    - [`get-html-path`](#get-html-path)
+        - [`*html-path*`](#html-path)
+    - [`deftag`](#deftag)
+    - [Parenscript](#parenscript)
+    - [Validation](#validation)
+
+<!-- markdown-toc end -->
 # Spinneret
 
 In the crowded space of Common Lisp HTML generators, Spinneret
