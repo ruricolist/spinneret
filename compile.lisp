@@ -137,10 +137,13 @@ are all the following key-value pairs, and the body is what remains."
          (thunk (gensym (tag-thunk-name name attributes))))
     (wrap-body-as-stack-thunk
      thunk body
-     `(,tag-fn (list ,@(escape-attrs name attributes))
-               #',thunk
-               ,pre?
-               ,empty?))))
+     `(,tag-fn
+       (macrolet ((:raw (s)
+                    `(escaped-string ,s)))
+         (list ,@(escape-attrs name attributes)))
+       #',thunk
+       ,pre?
+       ,empty?))))
 
 (defmacro with-custom-element ((name &rest attrs) &body body)
   (check-type name keyword)

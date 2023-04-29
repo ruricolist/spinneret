@@ -775,3 +775,13 @@ bar</pre>"
            (:img :attrs (list :alt "some alt text" :src "https://test.com/image.png")))
          "<img alt=\"some alt text\"
      src=\"https://test.com/image.png\">"))))
+
+(test raw-attributes
+  (is (equal
+       "<div onclick=\"alert('Hello');\"></div>"
+       (with-html-string
+         (:div :onclick (:raw (ps:ps (alert "Hello")))))))
+  (is (equal
+       (with-html-string
+         (:div :onclick (ps:ps (alert "Hello"))))
+       "<div onclick=alert(&#39;Hello&#39;);></div>")))

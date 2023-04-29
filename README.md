@@ -465,14 +465,20 @@ Neither :ATTRS nor :TAG is available in Parenscript.
 To use Parenscript in Spinneret, remember to wrap the `ps` macro with `:raw`, otherwise the generated JavaScript will be escaped.
 
 ``` lisp
-(with-html
+(with-html-string
   (:script
     (:raw (ps
             (defun greeting ()
               (alert "Hello"))))))
-<script>function greeting() {
+=>
+"<script>function greeting() {
+    __PS_MV_REG = [];
     return alert('Hello');
-};</script>
+};</script>"
+
+(with-html-string
+  (:div :onclick (:raw (ps (alert "Hello")))))
+"<div onclick=\"alert('Hello');\"></div>"
 ```
 
 ## Validation

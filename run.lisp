@@ -320,8 +320,11 @@ make reasonable decisions about line wrapping.")
           (eq value nil)
           (keywordp value))
       value
-      (let ((string (escape-attribute-value
-                     (princ-to-string value))))
+      (let ((string
+              (if (typep value 'escaped-string)
+                  (escaped-string-value value)
+                  (escape-attribute-value
+                   (princ-to-string value)))))
         (if (needs-quotes? string)
             (concatenate 'string "\"" string "\"")
             string))))
