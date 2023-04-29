@@ -462,7 +462,7 @@ Neither :ATTRS nor :TAG is available in Parenscript.
 
 ## Validation
 
-Spinneret does not do document validation, but it does warn about invalid tags and attributes.
+Spinneret does not do document validation, but it does warn, at compile time, about invalid tags and attributes.
 
 Although HTML5 does include a mechanism for application-specific
 attributes (the `data-` prefix), some client-side frameworks choose to
