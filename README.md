@@ -36,7 +36,7 @@ occupies the following coordinates:
   the trade-off between 90% convenience and 10% correctness Spinneret
   is on the side of convenience.
 
-- Bilingual. Spinneret (after loading `spinneret/ps`) has the same semantics in Lisp and Parenscript.
+- Bilingual. Spinneret (after loading `spinneret/ps`) has the same semantics in Lisp and [Parenscript][].
 
 HTML generation with Spinneret looks like this:
 
@@ -444,7 +444,7 @@ over HTML.
 (Spinneret used to provide a more elaborate way of building HTML
 abstractions, `deftemplate`, but `deftag` is simpler and more useful.)
 
-## Parenscript
+## Spinneret in Parenscript
 
 To use Spinneret with Parenscript, load the system `spinneret/ps`.
 
@@ -459,6 +459,21 @@ Parenscript does not have `format`).
 `get-html-path` is not implemented for Parenscript.
 
 Neither :ATTRS nor :TAG is available in Parenscript.
+
+## Parenscript in Spinneret
+
+To use Parenscript in Spinneret, remember to wrap the `ps` macro with `:raw`, otherwise the generated JavaScript will be escaped.
+
+``` lisp
+(with-html
+  (:script
+    (:raw (ps
+            (defun greeting ()
+              (alert "Hello"))))))
+<script>function greeting() {
+    return alert('Hello');
+};</script>
+```
 
 ## Validation
 
@@ -481,3 +496,4 @@ Tags are considered valid if they are defined as part of the HTML standard, or i
 
 [CL-MARKDOWN]: https://github.com/gwkkwg/cl-markdown
 [custom element]: https://html.spec.whatwg.org/multipage/custom-elements.html#valid-custom-element-name
+[Parenscript]: https://parenscript.common-lisp.dev/
