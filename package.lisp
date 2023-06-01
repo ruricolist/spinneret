@@ -6,6 +6,7 @@
            #:*html*
            #:*html-lang* #:*html-charset*
            #:*html-path*
+           #:html-stream
            #:get-html-path
            #:do-elements
            #:deftag
