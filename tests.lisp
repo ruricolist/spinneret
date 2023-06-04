@@ -624,6 +624,13 @@ verbatim line two")
 bar</pre>"
     (with-html-string (:pre "foo" #\Newline "b" "a" "r")))))
 
+(test pre-no-spaces-format
+  (is
+   (visually-equal
+    "<pre>foo
+bar</pre>"
+    (with-html-string (:pre ("foo ~A~A~A~A" #\Newline "b" "a" "r"))))))
+
 (test pre-code
   (let ((*print-pretty* t))
     (is
