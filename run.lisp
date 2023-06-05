@@ -330,7 +330,7 @@ make reasonable decisions about line wrapping.")
             string))))
 
 (defun format-text (control-string &rest args)
-  (when *print-pretty*
+  (when (and *print-pretty* (not *pre*))
     (terpri *html*))
   (fill-text (format nil "~?" control-string args) t)
   (values))
