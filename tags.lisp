@@ -231,7 +231,7 @@
        (:link :href :rel :hreflang :media :type :sizes :integrity :crossorigin :referrerpolicy)
        (:map :name)
        (:menu :type :label)
-       (:meta :name :content :http-equiv :charset :property)
+       (:meta :name :content :http-equiv :charset :property :media)
        (:meter :value :min :low :high :max :optimum)
        (:object :data :type :height :width :usemap :name :form)
        (:ol :start :reversed :type)
