@@ -212,7 +212,8 @@
        (:fieldset :name :disabled :form)
        (:form :action :method :enctype :name :accept-charset
          :novalidate :target :autocomplete)
-       (:html :manifest)
+       (:html :manifest :version :xmlns :prefix)
+       (:head :prefix :profile)
        (:iframe :src :srcdoc :name :width :height :sandbox :seamless :allowfullscreen
          :allowpaymentrequest :allow :frameborder :csp :fetchpriority :loading
          :referrerpolicy)
