@@ -473,11 +473,11 @@
 </body>")
        (with-html-string
          (:body
-          (:h* "This is a top level heading")
-          (:p "...")
-          (let ((*html-path* (append *html-path* '(:section))))
-            (:h* "This is a second-level tricked by *HTML-PATH*")
-            (:p "...")))))))
+           (:h* "This is a top level heading")
+           (:p "...")
+           (let ((*html-path* (append *html-path* '(:section))))
+             (:h* "This is a second-level tricked by *HTML-PATH*")
+             (:p "...")))))))
 
 
 (test print-tree
@@ -792,3 +792,29 @@ bar</pre>"
        (with-html-string
          (:div :onclick (ps:ps (alert "Hello"))))
        "<div onclick=alert(&#39;Hello&#39;);></div>")))
+
+(deftag ul* (body attrs &key &allow-other-keys)
+  "<ul> with every form (except <li>) in BODY auto-wrapped into a <li>."
+  `(:ul ,@attrs ,@(loop for form in body
+                        when (and (listp form)
+                                  (eq :li (first form)))
+                          collect form
+                        else
+                          collect `(:li ,form))))
+
+(test with-html-over-deftag
+  (is (equal
+       (with-html-string
+         (ul*
+           "Item 1"
+           "Item 2"
+           (:b "Bold item 3")
+           (:li "Proper <li> item 4")
+           "Item 5"))
+       "<ul>
+ <li>Item 1
+ <li>Item 2
+ <li><b>Bold item 3</b>
+ <li>Proper &lt;li&gt; item 4
+ <li>Item 5
+</ul>")))

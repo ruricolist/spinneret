@@ -13,6 +13,15 @@
                ((ignore-errors (constantp form env)) form)
                ;; Don't descend into nested with-tag forms.
                ((eql (car form) 'with-tag) form)
+               ;; Don't descend into deftags.
+               ((and (symbolp (car form))
+                     (get (car form) 'deftag)
+                     ;; It could be a deftag, but it might have been
+                     ;; redefined.
+                     (macro-function (car form))
+                     (let ((exp (macroexpand-1 form env)))
+                       (and (eql (car exp) 'with-html)
+                            form))))
                ;; Compile as a tag.
                ((keywordp (car form))
                 (let ((form (pseudotag-expand (car form) (cdr form))))

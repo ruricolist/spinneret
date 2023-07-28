@@ -49,16 +49,19 @@
   (multiple-value-bind (tag decls docstring)
       (parse-body tag :documentation t)
     (with-gensyms (tmp-body)
-      `(defmacro ,name (&body ,tmp-body)
-         ,@(and docstring (list docstring))
-         (multiple-value-bind  (,tmp-body ,attrs-var)
-             (parse-deftag-body ,tmp-body)
-           (destructuring-bind ,(if (symbolp body) `(&rest ,body) body)
-               ,tmp-body
-             ,@decls
-             ;; Bind the keywords to the provided arguments.
-             (destructuring-bind ,(allow-other-keys ll)
-                 ,attrs-var
-               ;; Remove the keywords from the attributes.
-               (let ((,attrs-var (remove-from-plist ,attrs-var ,@(extract-lambda-list-keywords ll))))
-                 (list 'with-html ,@tag)))))))))
+      `(progn
+         (eval-always
+           (setf (get ',name 'deftag) t))
+         (defmacro ,name (&body ,tmp-body)
+           ,@(and docstring (list docstring))
+           (multiple-value-bind  (,tmp-body ,attrs-var)
+               (parse-deftag-body ,tmp-body)
+             (destructuring-bind ,(if (symbolp body) `(&rest ,body) body)
+                 ,tmp-body
+               ,@decls
+               ;; Bind the keywords to the provided arguments.
+               (destructuring-bind ,(allow-other-keys ll)
+                   ,attrs-var
+                 ;; Remove the keywords from the attributes.
+                 (let ((,attrs-var (remove-from-plist ,attrs-var ,@(extract-lambda-list-keywords ll))))
+                   (list 'with-html ,@tag))))))))))
