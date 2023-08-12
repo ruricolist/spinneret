@@ -154,7 +154,7 @@
         :dir :draggable :dropzone
         :enterkeyhint :exportparts
         :hidden :id :inert :inputmode :is
-        :lang :nonce :part
+        :lang :nonce :part :popover
         :slot :spellcheck :style
         :tabindex :title :translate :virtualkeyboardpolicy))
 
@@ -205,7 +205,8 @@
          :onpopstate :onresize :onstorage :onunload)
        (:button :name :disabled :form :type :value
          :formaction :formenctype :formmethod :formtarget
-         :formnovalidate)
+         :formnovalidate
+         :popovertarget :popovertargetaction)
        (:canvas :height :width)
        (:col :span)
        (:colgroup :span)
@@ -230,7 +231,8 @@
          :checked :accept :capture :multiple :src :height :width :alt
          :min :max :step :dirname
          :formaction :formenctype :formmethod :formtarget
-         :formnovalidate)
+         :formnovalidate
+         :popovertarget :popovertargetaction)
        (:ins :cite :datetime)
        (:keygen :challenge :keytype :autofocus :name :disabled :form)
        (:label :for :form)
