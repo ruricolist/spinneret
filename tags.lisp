@@ -149,8 +149,14 @@
 
 (eval-always
   (define-global-parameter *core-attributes*
-      '(:accesskey :class :contenteditable :contextmenu :dir :draggable
-        :dropzone :hidden :id :is :lang :spellcheck :style :tabindex :title))
+      '(:accesskey :autocapitalize :autofocus
+        :class :contenteditable :contextmenu
+        :dir :draggable :dropzone
+        :enterkeyhint :exportparts
+        :hidden :id :inert :inputmode :is
+        :lang :nonce :part
+        :slot :spellcheck :style
+        :tabindex :title :translate :virtualkeyboardpolicy))
 
   (define-global-parameter *microdata-attributes*
       '(:itemid :itemprop :itemref :itemscope :itemtype))
@@ -198,7 +204,7 @@
          :onfocus :onhashchange :onload :onmessage :onoffline :ononline
          :onpopstate :onresize :onstorage :onunload)
        (:button :name :disabled :form :type :value
-         :autofocus :formaction :formenctype :formmethod :formtarget
+         :formaction :formenctype :formmethod :formtarget
          :formnovalidate)
        (:canvas :height :width)
        (:col :span)
@@ -222,7 +228,6 @@
        (:input :name :disabled :form :type :minlength :maxlength :readonly :size :value
          :autocomplete :autofocus :list :pattern :required :placeholder
          :checked :accept :capture :multiple :src :height :width :alt
-         :inputmode
          :min :max :step :dirname
          :formaction :formenctype :formmethod :formtarget
          :formnovalidate)
