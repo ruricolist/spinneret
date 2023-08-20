@@ -12,8 +12,7 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro keyword-set (&body body)
     (assert (every #'keywordp body))
-    ;; Return a literal hash table.
-    (set-hash-table body :test 'eq)))
+    `(load-time-value (set-hash-table ',body :test 'eq) t)))
 
 (define-global-parameter *void-elements*
     (keyword-set
@@ -74,18 +73,20 @@
 (defparameter *interpret* nil)
 
 (define-global-parameter *pseudotag-expanders*
-    (alist-hash-table
-     '((:doctype . make-doctype)
-       (:!doctype . make-doctype)
-       (:cdata . make-cdata)
-       (:!-- . make-comment)
-       (:comment . make-comment)
-       (:html . make-html)
-       (:head . make-head)
-       (:raw . write-raw)
-       (:h* . expand-h*)
-       (:tag . expand-dynamic-tag))
-     :test 'eq))
+  (load-time-value
+   (alist-hash-table
+    '((:doctype . make-doctype)
+      (:!doctype . make-doctype)
+      (:cdata . make-cdata)
+      (:!-- . make-comment)
+      (:comment . make-comment)
+      (:html . make-html)
+      (:head . make-head)
+      (:raw . write-raw)
+      (:h* . expand-h*)
+      (:tag . expand-dynamic-tag))
+    :test 'eq)
+   t))
 
 (defun pseudotag-expander (element)
   (gethash element *pseudotag-expanders*))
@@ -174,11 +175,13 @@
         :ontimeupdate :onvolumechange :onwaiting)))
 
 (define-global-parameter *global-attributes*
-  #.(set-hash-table
-     (append *core-attributes*
-             *microdata-attributes*
-             *event-handler-attributes*)
-     :test 'eq))
+  (load-time-value
+   (set-hash-table
+    (append *core-attributes*
+            *microdata-attributes*
+            *event-handler-attributes*)
+    :test 'eq)
+   t))
 
 (define-global-parameter *space-separated-attributes*
   '(:accesskey :class :for :headers :rel :sandbox :sizes))
@@ -194,76 +197,78 @@
               (set-hash-table v :key #'string :test #'equal))))))
 
 (define-global-parameter *permitted-attributes*
-  #.(parse-permitted-attributes-alist
-     '((:a :href :target :rel :hreflang :media :type :download :ping)
-       (:area :alt :href :target :rel :media :hreflang :type :shape :coords)
-       (:audio :autoplay :preload :controls :loop :mediagroup :muted :src)
-       (:base :href :target)
-       (:blockquote :cite)
-       (:body :onafterprint :onbeforeprint :onbeforeunload :onblur :onerror
-         :onfocus :onhashchange :onload :onmessage :onoffline :ononline
-         :onpopstate :onresize :onstorage :onunload)
-       (:button :name :disabled :form :type :value
-         :formaction :formenctype :formmethod :formtarget
-         :formnovalidate
-         :popovertarget :popovertargetaction)
-       (:canvas :height :width)
-       (:col :span)
-       (:colgroup :span)
-       (:command :type :label :icon :disabled
-         :radiogroup :checked)
-       (:del :cite :datetime)
-       (:details :open)
-       (:dialog :open)
-       (:embed :src :type :height :width *)
-       (:fieldset :name :disabled :form)
-       (:form :action :method :enctype :name :accept-charset
-         :novalidate :target :autocomplete)
-       (:html :manifest :version :xmlns :prefix)
-       (:head :prefix :profile)
-       (:iframe :src :srcdoc :name :width :height :sandbox :seamless :allowfullscreen
-         :allowpaymentrequest :allow :frameborder :csp :fetchpriority :loading
-         :referrerpolicy)
-       (:img :src :alt :height :width :loading :usemap :ismap :border :crossorigin
-         :srcset :sizes)
-       (:input :name :disabled :form :type :minlength :maxlength :readonly :size :value
-         :autocomplete :autofocus :list :pattern :required :placeholder
-         :checked :accept :capture :multiple :src :height :width :alt
-         :min :max :step :dirname
-         :formaction :formenctype :formmethod :formtarget
-         :formnovalidate
-         :popovertarget :popovertargetaction)
-       (:ins :cite :datetime)
-       (:keygen :challenge :keytype :autofocus :name :disabled :form)
-       (:label :for :form)
-       (:link :href :rel :hreflang :media :type :sizes :integrity :crossorigin :referrerpolicy)
-       (:map :name)
-       (:menu :type :label)
-       (:meta :name :content :http-equiv :charset :property :media)
-       (:meter :value :min :low :high :max :optimum)
-       (:object :data :type :height :width :usemap :name :form)
-       (:ol :start :reversed :type)
-       (:optgroup :label :disabled)
-       (:option :disabled :selected :label :value)
-       (:output :name :form :for)
-       (:param :name :value)
-       (:progress :value :max)
-       (:q :cite)
-       (:script :type :language :src :defer :async :charset :integrity
-         :crossorigin)
-       (:select :name :disabled :form :size :multiple :autofocus :required)
-       (:source :src :srcset :sizes :type :media)
-       (:style :type :media :scoped)
-       (:table :border)
-       (:td :colspan :rowspan
-         :headers)
-       (:textarea :name :disabled :form :readonly :maxlength :autofocus :required
-         :placeholder :dirname :rows :wrap :cols)
-       (:th :scope :colspan :rowspan :headers)
-       (:time :datetime)
-       (:track :kind :src :srclang :label :default)
-       (:video :autoplay :preload :controls :loop :poster :height :width
-         :mediagroup :muted :src :crossorigin)))
+  (load-time-value
+   (parse-permitted-attributes-alist
+    '((:a :href :target :rel :hreflang :media :type :download :ping)
+      (:area :alt :href :target :rel :media :hreflang :type :shape :coords)
+      (:audio :autoplay :preload :controls :loop :mediagroup :muted :src)
+      (:base :href :target)
+      (:blockquote :cite)
+      (:body :onafterprint :onbeforeprint :onbeforeunload :onblur :onerror
+             :onfocus :onhashchange :onload :onmessage :onoffline :ononline
+             :onpopstate :onresize :onstorage :onunload)
+      (:button :name :disabled :form :type :value
+               :formaction :formenctype :formmethod :formtarget
+               :formnovalidate
+               :popovertarget :popovertargetaction)
+      (:canvas :height :width)
+      (:col :span)
+      (:colgroup :span)
+      (:command :type :label :icon :disabled
+                :radiogroup :checked)
+      (:del :cite :datetime)
+      (:details :open)
+      (:dialog :open)
+      (:embed :src :type :height :width *)
+      (:fieldset :name :disabled :form)
+      (:form :action :method :enctype :name :accept-charset
+             :novalidate :target :autocomplete)
+      (:html :manifest :version :xmlns :prefix)
+      (:head :prefix :profile)
+      (:iframe :src :srcdoc :name :width :height :sandbox :seamless :allowfullscreen
+               :allowpaymentrequest :allow :frameborder :csp :fetchpriority :loading
+               :referrerpolicy)
+      (:img :src :alt :height :width :loading :usemap :ismap :border :crossorigin
+            :srcset :sizes)
+      (:input :name :disabled :form :type :minlength :maxlength :readonly :size :value
+              :autocomplete :autofocus :list :pattern :required :placeholder
+              :checked :accept :capture :multiple :src :height :width :alt
+              :min :max :step :dirname
+              :formaction :formenctype :formmethod :formtarget
+              :formnovalidate
+              :popovertarget :popovertargetaction)
+      (:ins :cite :datetime)
+      (:keygen :challenge :keytype :autofocus :name :disabled :form)
+      (:label :for :form)
+      (:link :href :rel :hreflang :media :type :sizes :integrity :crossorigin :referrerpolicy)
+      (:map :name)
+      (:menu :type :label)
+      (:meta :name :content :http-equiv :charset :property :media)
+      (:meter :value :min :low :high :max :optimum)
+      (:object :data :type :height :width :usemap :name :form)
+      (:ol :start :reversed :type)
+      (:optgroup :label :disabled)
+      (:option :disabled :selected :label :value)
+      (:output :name :form :for)
+      (:param :name :value)
+      (:progress :value :max)
+      (:q :cite)
+      (:script :type :language :src :defer :async :charset :integrity
+               :crossorigin)
+      (:select :name :disabled :form :size :multiple :autofocus :required)
+      (:source :src :srcset :sizes :type :media)
+      (:style :type :media :scoped)
+      (:table :border)
+      (:td :colspan :rowspan
+           :headers)
+      (:textarea :name :disabled :form :readonly :maxlength :autofocus :required
+                 :placeholder :dirname :rows :wrap :cols)
+      (:th :scope :colspan :rowspan :headers)
+      (:time :datetime)
+      (:track :kind :src :srclang :label :default)
+      (:video :autoplay :preload :controls :loop :poster :height :width
+              :mediagroup :muted :src :crossorigin)))
+   t)
   "Alist of (tag . attributes). These are the element-specific
 attributes, beyond the global attributes.")
 
