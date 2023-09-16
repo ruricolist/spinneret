@@ -2,6 +2,16 @@
 
 (in-package #:spinneret)
 
+(defun live-deftag-form? (form &optional env)
+  "If FORM starts with a deftag, return non-nil."
+  (and (symbolp (car form))
+       (get (car form) 'deftag)
+       ;; It could be a deftag, but it might have been
+       ;; redefined.
+       (macro-function (car form))
+       (let ((exp (macroexpand-1 form env)))
+         (eql (car exp) 'with-html))))
+
 (defun parse-html (form env)
   (labels ((rec (form)
              (cond
@@ -13,30 +23,26 @@
                ((ignore-errors (constantp form env)) form)
                ;; Don't descend into nested with-tag forms.
                ((eql (car form) 'with-tag) form)
-               ;; Don't descend into deftags.
-               ((and (symbolp (car form))
-                     (get (car form) 'deftag)
-                     ;; It could be a deftag, but it might have been
-                     ;; redefined.
-                     (macro-function (car form))
-                     (let ((exp (macroexpand-1 form env)))
-                       (and (eql (car exp) 'with-html)
-                            form))))
                ;; Compile as a tag.
                ((keywordp (car form))
-                (let ((form (pseudotag-expand (car form) (cdr form))))
+                (mvlet* ((name attrs body (tag-parts form))
+                         ;; Canonical form, without inline ids or tags.
+                         (form (append (list name) attrs body))
+                         (form (pseudotag-expand (car form) (cdr form))))
                   (if (not (keywordp (car form))) form
-                      (multiple-value-bind (name attrs body)
-                          (tag-parts form)
-                        (if (valid? name)
-                            (let ((body (mapcar #'rec body)))
-                              (if (valid-custom-element-name? name)
-                                  `(with-custom-element (,name ,@attrs)
-                                     ,@body)
-                                  `(with-tag (,name ,@attrs)
-                                     ,@body)))
-                            (cons (car form)
-                                  (mapcar #'rec (cdr form))))))))
+                      (mvlet* ((name attrs body (tag-parts form)))
+                        (if (live-deftag-form? form) form
+                            (if (valid? name)
+                                (let ((body (mapcar #'rec body)))
+                                  (if (valid-custom-element-name? name)
+                                      `(with-custom-element (,name ,@attrs)
+                                         ,@body)
+                                      `(with-tag (,name ,@attrs)
+                                         ,@body)))
+                                (cons (car form)
+                                      (mapcar #'rec (cdr form)))))))))
+               ;; Don't descend into non-keyword deftags.
+               ((live-deftag-form? form) form)
                ;; Compile as a format string (possibly using Markdown).
                ((stringp (car form))
                 (destructuring-bind (control-string . args)

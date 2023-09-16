@@ -818,3 +818,12 @@ bar</pre>"
  <li>Proper &lt;li&gt; item 4
  <li>Item 5
 </ul>")))
+
+(deftag :selfref (body attrs &key href &allow-other-keys)
+  `(:a.selfref :href ,href ,@attrs ,@body))
+
+(test deftag-selector-syntax
+  (is (equal
+       "<a class=selfref href=https://example.com id=id>Example website</a>"
+       (with-html-string
+         (:selfref#id :href "https://example.com" "Example website")))))
