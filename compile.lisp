@@ -2,15 +2,10 @@
 
 (in-package #:spinneret)
 
-(defun live-deftag-form? (form &optional env)
+(defun live-deftag-form? (form)
   "If FORM starts with a deftag, return non-nil."
   (and (symbolp (car form))
-       (get (car form) 'deftag)
-       ;; It could be a deftag, but it might have been
-       ;; redefined.
-       (macro-function (car form))
-       (let ((exp (macroexpand-1 form env)))
-         (eql (car exp) 'with-html))))
+       (get (car form) 'deftag)))
 
 (defun parse-html (form env)
   (labels ((rec (form)
@@ -28,7 +23,8 @@
                 (mvlet* ((name attrs body (tag-parts form))
                          ;; Canonical form, without inline ids or tags.
                          (form (append (list name) attrs body))
-                         (form (pseudotag-expand (car form) (cdr form))))
+                         (form (pseudotag-expand (car form) (cdr form)))
+                         (form (deftag-expand (car form) (cdr form))))
                   (if (not (keywordp (car form))) form
                       (mvlet* ((name attrs body (tag-parts form)))
                         (if (live-deftag-form? form) form

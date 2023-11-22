@@ -441,8 +441,8 @@ In effect, `input` *extends* the `:input` tag, almost like a subclass.
 This is a very idiomatic and expressive way of building abstractions
 over HTML.
 
-(Spinneret used to provide a more elaborate way of building HTML
-abstractions, `deftemplate`, but `deftag` is simpler and more useful.)
+(Note that when the name `deftag` is a keyword, then no macro is
+defined, and it can only be used within a `with-html` form.)
 
 ## Spinneret in Parenscript
 

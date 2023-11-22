@@ -803,6 +803,8 @@ bar</pre>"
                           collect `(:li ,form))))
 
 (test with-html-over-deftag
+  ;; The tag is bound as a macro.
+  (is (fboundp 'ul*))
   (is (equal
        (with-html-string
          (ul*
@@ -823,6 +825,9 @@ bar</pre>"
   `(:a.selfref :href ,href ,@attrs ,@body))
 
 (test deftag-selector-syntax
+  ;; The tag is not bound as a macro.
+  (is (not (fboundp :selfref)))
+  ;; The tag works.
   (is (equal
        "<a class=selfref href=https://example.com id=id>Example website</a>"
        (with-html-string

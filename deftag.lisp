@@ -43,25 +43,57 @@
                     (mapcar #'cadar key)
                     (mapcar #'car aux)))))
 
-(defmacro deftag (name (body attrs-var &rest ll) &body tag)
+(defmacro deftag/keyword (name (body attrs-var &rest ll) &body tag)
+  "Base case for a deftag that does not define a macro."
   (when (eql attrs-var '&key)
     (error "Missing attributes variable."))
-  (multiple-value-bind (tag decls docstring)
-      (parse-body tag :documentation t)
+  (mvlet* ((tag decls docstring
+            (parse-body tag :documentation t))
+           ;; Remove the keywords from the attributes.
+           (attrs
+            `(remove-from-plist ,attrs-var ,@(extract-lambda-list-keywords ll))))
     (with-gensyms (tmp-body)
       `(progn
          (eval-always
-           (setf (get ',name 'deftag) t))
-         (defmacro ,name (&body ,tmp-body)
-           ,@(and docstring (list docstring))
-           (multiple-value-bind  (,tmp-body ,attrs-var)
-               (parse-deftag-body ,tmp-body)
-             (destructuring-bind ,(if (symbolp body) `(&rest ,body) body)
-                 ,tmp-body
-               ,@decls
-               ;; Bind the keywords to the provided arguments.
-               (destructuring-bind ,(allow-other-keys ll)
-                   ,attrs-var
-                 ;; Remove the keywords from the attributes.
-                 (let ((,attrs-var (remove-from-plist ,attrs-var ,@(extract-lambda-list-keywords ll))))
-                   (list 'with-html ,@tag))))))))))
+           (setf (get ',name 'deftag)
+                 (lambda (,tmp-body)
+                   ,docstring
+                   (multiple-value-bind  (,tmp-body ,attrs-var)
+                       (parse-deftag-body ,tmp-body)
+                     (destructuring-bind ,(if (symbolp body) `(&rest ,body) body)
+                         ,tmp-body
+                       ,@decls
+                       ;; Bind the keywords to the provided arguments.
+                       (destructuring-bind ,(allow-other-keys ll)
+                           ,attrs-var
+                         (let ((,attrs-var ,attrs))
+                           (list 'with-html ,@tag))))))))
+         ',name))))
+
+(defmacro deftag/macro (name (body attrs-var &rest ll) &body tag)
+  "A deftag that also defined a macro."
+  (mvlet* ((tag decls docstring
+            (parse-body tag :documentation t)))
+    (declare (ignore decls))
+    `(progn
+       (deftag/keyword ,name (,body ,attrs-var ,@ll) ,@tag)
+       (defmacro ,name (&body ,body)
+         ,@(and docstring (list docstring))
+         (deftag-expand ',name ,body :error t)))))
+
+(defmacro deftag (name (body attrs-var &rest ll) &body tag)
+  "Define NAME as a tag.
+If NAME is not a keyword, it will also be defined as a macro with an
+implicit `with-html'."
+  (let ((definer
+          (if (keywordp name)
+              'deftag/keyword
+              'deftag/macro)))
+    `(,definer ,name (,body ,attrs-var ,@ll) ,@tag)))
+
+(defun deftag-expand (element args &key error)
+  (if-let (fn (get element 'deftag))
+    (funcall fn args)
+    (if error
+        (error "~s is not defined as a tag" element)
+        (cons element args))))
