@@ -5,7 +5,7 @@
 (defun live-deftag-form? (form)
   "If FORM starts with a deftag, return non-nil."
   (and (symbolp (car form))
-       (get (car form) 'deftag)))
+       (deftag-boundp (car form))))
 
 (defun parse-html (form env)
   (labels ((rec (form)

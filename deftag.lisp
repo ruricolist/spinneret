@@ -1,5 +1,9 @@
 (in-package #:spinneret)
 
+(in-nomine:define-namespace deftag
+  :name-type symbol
+  :value-type (function (list) list))
+
 (defun parse-deftag-body (body)
   (multiple-value-bind (name attrs body)
       (tag-parts (cons :tag body))
@@ -55,7 +59,7 @@
     (with-gensyms (tmp-body)
       `(progn
          (eval-always
-           (setf (get ',name 'deftag)
+           (setf (symbol-deftag ',name)
                  (lambda (,tmp-body)
                    ,docstring
                    (multiple-value-bind  (,tmp-body ,attrs-var)
@@ -92,8 +96,7 @@ implicit `with-html'."
     `(,definer ,name (,body ,attrs-var ,@ll) ,@tag)))
 
 (defun deftag-expand (element args &key error)
-  (if-let (fn (get element 'deftag))
-    (funcall fn args)
-    (if error
-        (error "~s is not defined as a tag" element)
-        (cons element args))))
+  (cond ((deftag-boundp element)
+         (funcall (symbol-deftag element) args))
+        (error (symbol-deftag element))
+        (t (cons element args))))

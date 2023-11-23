@@ -11,7 +11,8 @@
                "global-vars"
                "serapeum"
                "trivia"
-               "trivial-gray-streams")
+               "trivial-gray-streams"
+               "in-nomine")
   :components ((:file "package")
                (:file "special")
                (:file "stream")
