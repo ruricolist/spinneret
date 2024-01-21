@@ -26,7 +26,10 @@
                 #:concat-constant-strings ;; unexported function
                 #:define-ps-symbol-macro
                 #:defpsmacro
-                #:with-ps-gensyms)
+                #:with-ps-gensyms
+                #:stringify
+                #:chain
+                #:@)
   (:import-from #:trivial-gray-streams
                 #:fundamental-character-output-stream
                 #:stream-write-char #:stream-write-string
