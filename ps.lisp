@@ -83,7 +83,11 @@
                     (ch *html*
                         (set-attribute ,attr
                                        (stringify (@ ,attrs ,attr))))))))
-      (t `(ch *html* (set-attribute ,attr ,sval))))))
+      (t (with-ps-gensyms (actual-val)
+           `(let ((,actual-val ,val))
+              (if ,actual-val
+                  (ch *html* (set-attribute ,attr (stringify ,actual-val)))
+                  (ch *html* (remove-attribute ,attr)))))))))
 
 (defun event? (attr)
   (starts-with-subseq "on" (string attr)))
