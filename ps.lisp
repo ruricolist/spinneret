@@ -60,34 +60,34 @@
                    *props* :test #'string-equal)
                   attr))
         (sval `(stringify ,val)))
-    (cond
-      ((event? attr)
-       ;; Set events as properties, ensuring a href.
-       `(setf (@ *html* ,attr) ,sval
-              (@ *html* href)
-              (or (@ *html* href) "#")))
-      ;; Style requires special handling for IE.
-      ((string-equal attr "style")
-       `(if (@ *html* style set-attribute)
-            (ch *html* style (set-attribute 'css-text ,sval))
-            (ch *html* (set-attribute ,attr ,sval))))
-      ((rassoc attr *ie-attr-props* :test #'string-equal)
-       ;; Other special cases for IE.
-       `(setf (@ *html* ,attr) ,sval))
-      ((data-attr? attr)
-       `(setf (@ *html* dataset ,(data-attr-prop attr)) ,sval))
-      ((string-equal attr "attrs")
-       (with-ps-gensyms (attrs attr)
-         `(let ((,attrs ,val))
-            (for-in (,attr ,attrs)
-                    (ch *html*
-                        (set-attribute ,attr
-                                       (stringify (@ ,attrs ,attr))))))))
-      (t (with-ps-gensyms (actual-val)
-           `(let ((,actual-val ,val))
-              (if ,actual-val
-                  (ch *html* (set-attribute ,attr (stringify ,actual-val)))
-                  (ch *html* (remove-attribute ,attr)))))))))
+    (flet ((set-or-remove (object attr val)
+             (with-ps-gensyms (actual-val)
+               `(let ((,actual-val ,val))
+                  (if ,actual-val
+                      (ch ,object (set-attribute ,attr (stringify ,actual-val)))
+                      (ch ,object (remove-attribute ,attr)))))))
+      (cond
+        ((event? attr)
+         ;; Set events as properties, ensuring a href.
+         `(setf (@ *html* ,attr) ,sval
+                (@ *html* href)
+                (or (@ *html* href) "#")))
+        ;; Style requires special handling for IE.
+        ((string-equal attr "style")
+         `(if (@ *html* style set-attribute)
+              (ch *html* style (set-attribute 'css-text ,sval))
+              (ch *html* (set-attribute ,attr ,sval))))
+        ((rassoc attr *ie-attr-props* :test #'string-equal)
+         ;; Other special cases for IE.
+         `(setf (@ *html* ,attr) ,sval))
+        ((data-attr? attr)
+         `(setf (@ *html* dataset ,(data-attr-prop attr)) ,sval))
+        ((string-equal attr "attrs")
+         (with-ps-gensyms (attrs attr)
+           `(let ((,attrs ,val))
+              (for-in (,attr ,attrs)
+                ,(set-or-remove '*html* attr `(@ ,attrs ,attr))))))
+        (t (set-or-remove '*html* attr val))))))
 
 (defun event? (attr)
   (starts-with-subseq "on" (string attr)))
