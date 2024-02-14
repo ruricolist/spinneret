@@ -34,7 +34,7 @@
      :a :abbr :address :bdo :small :code :samp :kbd
      :cite :strong :dfn :br :em :q :data :time :var
      :sub :sup :i :b :s :u :mark :ruby :rt :rp :bdi :span :wbr
-     :ins :del :col :meter :output))
+     :ins :del :col :meter :output :tt :strike :font :big))
 
 (defun inline? (element)
   (declare (inline memq))
@@ -109,10 +109,14 @@
       :script :section :select :small :source :span :strong :style :sub :svg :summary
       :sup :table :tbody :td :template :textarea :tfoot :th :thead :time :title :tr
       :track :u :ul :var :video :wbr))
+(define-global-parameter *html3-elements*
+  (keyword-set
+    :plaintext :big :strike :tt :applet :font :basefont :isindex))
 
 (-> valid? (keyword) (values (or keyword null) &optional))
 (defun valid? (element)
   (or (gethash element *html5-elements*)
+      (gethash element *html3-elements*)
       (valid-custom-element-name? element)))
 
 (defun invalid? (element)
@@ -159,6 +163,10 @@
         :slot :spellcheck :style
         :tabindex :title :translate :virtualkeyboardpolicy))
 
+  (define-global-parameter *html3-attributes*
+      '(:background :bgcolor :text :link :vlink :alink ;; Decoration
+        :align :valign :compact :width :height :size)) ;; Layout
+
   (define-global-parameter *microdata-attributes*
       '(:itemid :itemprop :itemref :itemscope :itemtype))
 
@@ -178,6 +186,7 @@
   (load-time-value
    (set-hash-table
     (append *core-attributes*
+            *html3-attributes*
             *microdata-attributes*
             *event-handler-attributes*)
     :test 'eq)
@@ -200,18 +209,19 @@
   (load-time-value
    (parse-permitted-attributes-alist
     '((:a :href :target :rel :hreflang :media :type :download :ping)
-      (:area :alt :href :target :rel :media :hreflang :type :shape :coords)
+      (:applet :codebase :code :alt :name :hspace :vspace)
+      (:area :alt :href :target :rel :media :hreflang :type :shape :coords  :nohref)
       (:audio :autoplay :preload :controls :loop :mediagroup :muted :src)
       (:base :href :target)
       (:blockquote :cite)
       (:body :onafterprint :onbeforeprint :onbeforeunload :onblur :onerror
              :onfocus :onhashchange :onload :onmessage :onoffline :ononline
              :onpopstate :onresize :onstorage :onunload)
+      (:br :clear)
       (:button :name :disabled :form :type :value
                :formaction :formenctype :formmethod :formtarget
                :formnovalidate
-               :popovertarget :popovertargetaction)
-      (:canvas :height :width)
+               :popovertarget :popovertargetaction :autofocus)
       (:col :span)
       (:colgroup :span)
       (:command :type :label :icon :disabled
@@ -219,20 +229,24 @@
       (:del :cite :datetime)
       (:details :open)
       (:dialog :open)
-      (:embed :src :type :height :width *)
+      (:dl :compact)
+      (:embed :src :type *)
       (:fieldset :name :disabled :form)
+      (:font :color)
       (:form :action :method :enctype :name :accept-charset
              :novalidate :target :autocomplete)
       (:html :manifest :version :xmlns :prefix)
       (:head :prefix :profile)
-      (:iframe :src :srcdoc :name :width :height :sandbox :seamless :allowfullscreen
+      (:hr :noshade)
+      (:iframe :src :srcdoc :name :sandbox :seamless :allowfullscreen
                :allowpaymentrequest :allow :frameborder :csp :fetchpriority :loading
                :referrerpolicy)
-      (:img :src :alt :height :width :loading :usemap :ismap :border :crossorigin
-            :srcset :sizes)
-      (:input :name :disabled :form :type :minlength :maxlength :readonly :size :value
+      (:img :src :alt  :loading :usemap :ismap :border :crossorigin
+            :srcset :sizes :hspace :vspace)
+      (:isindex :prompt)
+      (:input :name :disabled :form :type :minlength :maxlength :readonly :value
               :autocomplete :autofocus :list :pattern :required :placeholder
-              :checked :accept :capture :multiple :src :height :width :alt
+              :checked :accept :capture :multiple :src  :alt :inputmode
               :min :max :step :dirname
               :formaction :formenctype :formmethod :formtarget
               :formnovalidate
@@ -240,6 +254,7 @@
       (:ins :cite :datetime)
       (:keygen :challenge :keytype :autofocus :name :disabled :form)
       (:label :for :form)
+      (:li :type :value)
       (:link :href :rel :hreflang :media :type :sizes :integrity :crossorigin :referrerpolicy)
       (:map :name)
       (:menu :type :label)
@@ -258,15 +273,16 @@
       (:select :name :disabled :form :size :multiple :autofocus :required)
       (:source :src :srcset :sizes :type :media)
       (:style :type :media :scoped)
-      (:table :border)
+      (:table :border :cellspacing :cellpadding)
       (:td :colspan :rowspan
-           :headers)
+           :headers :nowrap)
       (:textarea :name :disabled :form :readonly :maxlength :autofocus :required
                  :placeholder :dirname :rows :wrap :cols)
-      (:th :scope :colspan :rowspan :headers)
+      (:th :scope :colspan :rowspan :headers :nowrap)
       (:time :datetime)
       (:track :kind :src :srclang :label :default)
-      (:video :autoplay :preload :controls :loop :poster :height :width
+      (:ul :type)
+      (:video :autoplay :preload :controls :loop :poster
               :mediagroup :muted :src :crossorigin)))
    t)
   "Alist of (tag . attributes). These are the element-specific
