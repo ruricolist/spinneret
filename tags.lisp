@@ -108,10 +108,23 @@
       :optgroup :option :output :p :param :picture :pre :progress :q :rp :rt :ruby :s :samp
       :script :section :select :small :source :span :strong :style :sub :svg :summary
       :sup :table :tbody :td :template :textarea :tfoot :th :thead :time :title :tr
-      :track :u :ul :var :video :wbr))
+      :track :u :ul :var :video :wbr
+      ;; SVG elements
+      :animate :animatemotion :animatetransform :circle :clippath :cursor :defs
+      :desc :ellipse :feblend :fecolormatrix :fecomponenttransfer :fecomposite
+      :feconvolvematrix :fediffuselighting :fedisplacementmap :fedistantlight
+      :fedropshadow :feflood :fefunca :fefuncb :fefuncg :fefuncr :fegaussianblur
+      :feimage :femerge :femergenode :femorphology :feoffset :fepointlight
+      :fespecularlighting :fespotlight :fetile :feturbulence :filter :font
+      :font-face :font-face-format :font-face-name :font-face-src :font-face-uri
+      :foreignobject :g :glyph :glyphref :hkern :image :line :lineargradient :marker
+      :mask :metadata :missing-glyph :mpath :path :pattern :polygon :polyline
+      :radialgradient :rect :set :stop :switch :symbol :text :textpath :tref :tspan
+      :use :view :vkern))
+
 (define-global-parameter *html3-elements*
-  (keyword-set
-    :plaintext :big :strike :tt :applet :font :basefont :isindex))
+    (keyword-set
+      :plaintext :big :strike :tt :applet :font :basefont :isindex))
 
 (-> valid? (keyword) (values (or keyword null) &optional))
 (defun valid? (element)
