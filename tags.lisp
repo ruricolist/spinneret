@@ -123,8 +123,8 @@
       :use :view :vkern))
 
 (define-global-parameter *html3-elements*
-    (keyword-set
-      :plaintext :big :strike :tt :applet :font :basefont :isindex))
+  (keyword-set
+    :plaintext :big :strike :tt :applet :font :basefont :isindex))
 
 (-> valid? (keyword) (values (or keyword null) &optional))
 (defun valid? (element)
