@@ -110,17 +110,16 @@
       :sup :table :tbody :td :template :textarea :tfoot :th :thead :time :title :tr
       :track :u :ul :var :video :wbr
       ;; SVG elements
-      :animate :animatemotion :animatetransform :circle :clippath :cursor :defs
+      :animate :animatemotion :animatetransform :circle :clippath :defs
       :desc :ellipse :feblend :fecolormatrix :fecomponenttransfer :fecomposite
       :feconvolvematrix :fediffuselighting :fedisplacementmap :fedistantlight
       :fedropshadow :feflood :fefunca :fefuncb :fefuncg :fefuncr :fegaussianblur
       :feimage :femerge :femergenode :femorphology :feoffset :fepointlight
-      :fespecularlighting :fespotlight :fetile :feturbulence :filter :font
-      :font-face :font-face-format :font-face-name :font-face-src :font-face-uri
-      :foreignobject :g :glyph :glyphref :hkern :image :line :lineargradient :marker
-      :mask :metadata :missing-glyph :mpath :path :pattern :polygon :polyline
-      :radialgradient :rect :set :stop :switch :symbol :text :textpath :tref :tspan
-      :use :view :vkern))
+      :fespecularlighting :fespotlight :fetile :feturbulence :filter
+      :foreignobject :g :glyphref :image :line :lineargradient :marker
+      :mask :metadata :mpath :path :pattern :polygon :polyline
+      :radialgradient :rect :set :stop :switch :symbol :text :textpath :tspan
+      :use :view))
 
 (define-global-parameter *html3-elements*
   (keyword-set
