@@ -286,7 +286,6 @@
       (:select :name :disabled :form :size :multiple :autofocus :required)
       (:source :src :srcset :sizes :type :media)
       (:style :type :media :scoped)
-      (:svg :viewBox :width :height :fill :stroke :stroke-width :stroke-linecap :stroke-linejoin)
       (:table :border :cellspacing :cellpadding)
       (:td :colspan :rowspan
            :headers :nowrap)
