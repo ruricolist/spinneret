@@ -110,20 +110,21 @@
       :sup :table :tbody :td :template :textarea :tfoot :th :thead :time :title :tr
       :track :u :ul :var :video :wbr
       ;; SVG elements
-      :animate :animatemotion :animatetransform :circle :clippath :defs
+      :animate :animatemotion :animatetransform :circle :clippath :cursor :defs
       :desc :ellipse :feblend :fecolormatrix :fecomponenttransfer :fecomposite
       :feconvolvematrix :fediffuselighting :fedisplacementmap :fedistantlight
       :fedropshadow :feflood :fefunca :fefuncb :fefuncg :fefuncr :fegaussianblur
       :feimage :femerge :femergenode :femorphology :feoffset :fepointlight
-      :fespecularlighting :fespotlight :fetile :feturbulence :filter
-      :foreignobject :g :glyphref :image :line :lineargradient :marker
-      :mask :metadata :mpath :path :pattern :polygon :polyline
-      :radialgradient :rect :set :stop :switch :symbol :text :textpath :tspan
-      :use :view))
+      :fespecularlighting :fespotlight :fetile :feturbulence :filter :font
+      :font-face :font-face-format :font-face-name :font-face-src :font-face-uri
+      :foreignobject :g :glyph :glyphref :hkern :image :line :lineargradient :marker
+      :mask :metadata :missing-glyph :mpath :path :pattern :polygon :polyline
+      :radialgradient :rect :set :stop :switch :symbol :text :textpath :tref :tspan
+      :use :view :vkern))
 
 (define-global-parameter *html3-elements*
-  (keyword-set
-    :plaintext :big :strike :tt :applet :font :basefont :isindex))
+    (keyword-set
+      :plaintext :big :strike :tt :applet :font :basefont :isindex))
 
 (-> valid? (keyword) (values (or keyword null) &optional))
 (defun valid? (element)
@@ -153,7 +154,7 @@
   (declare (inline memq))
   (gethash attr *boolean-attributes*))
 
-(defvar *unvalidated-attribute-prefixes* '("data-" "aria-")
+(defvar *unvalidated-attribute-prefixes* '("data-" "aria-" "hx-")
   "A list of prefixes for attributes that should not be validated.")
 
 (defun unvalidated-attribute? (attribute)
@@ -285,6 +286,7 @@
       (:select :name :disabled :form :size :multiple :autofocus :required)
       (:source :src :srcset :sizes :type :media)
       (:style :type :media :scoped)
+      (:svg :viewBox :width :height :fill :stroke :stroke-width :stroke-linecap :stroke-linejoin)
       (:table :border :cellspacing :cellpadding)
       (:td :colspan :rowspan
            :headers :nowrap)
@@ -295,7 +297,27 @@
       (:track :kind :src :srclang :label :default)
       (:ul :type)
       (:video :autoplay :preload :controls :loop :poster
-              :mediagroup :muted :src :crossorigin)))
+              :mediagroup :muted :src :crossorigin)
+      ;; SVG attributes
+      (:circle :id :class :style :transform :cx :cy :r)
+      (:ellipse :id :class :style :transform :cx :cy :rx :ry)
+      (:line :id :class :style :transform :x1 :y1 :x2 :y2)
+      (:path :id :class :style :transform :d)
+      (:polygon :id :class :style :transform :points)
+      (:polyline :id :class :style :transform :points)
+      (:rect :id :class :style :transform :x :y :width :height :rx :ry)
+      (:mesh :id :class :style :transform)
+      (:text :id :class :style :transform :x :y :dx :dy :rotate :textLength :lengthAdjust)
+      (:tspan :id :class :style :transform :x :y :dx :dy :rotate)
+      (:textPath :id :class :style :transform :href :startOffset :method :spacing :side :path)
+      (:defs :id :class :style :transform)
+      (:g :id :class :style :transform)
+      (:image :id :class :style :transform :href :x :y :width :height :preserveAspectRatio :externalResourceRequired :corssorigin )
+      (:svg :id :class :style :transform :x :y :width :height :viewBox :preserveAspectRatio
+            :linecap :id :class :style :transform :fill :stroke :stroke-width :stroke-linecap :stroke-linejoin)
+      (:symbol :id :class :style :transform :x :y :width :height :viewBox :preserveAspectRatio :refX :refY)
+      (:use :id :class :style :transform :x :y :width :height)
+      (:view :id :class :style :transform :viewBox :preserveAspectRatio :viewTarget)))
    t)
   "Alist of (tag . attributes). These are the element-specific
 attributes, beyond the global attributes.")
