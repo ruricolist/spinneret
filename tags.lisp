@@ -313,7 +313,7 @@
       (:g :id :class :style :transform)
       (:image :id :class :style :transform :href :x :y :width :height :preserveAspectRatio :externalResourceRequired :corssorigin )
       (:svg :id :class :style :transform :x :y :width :height :viewBox :preserveAspectRatio
-            :linecap :id :class :style :transform :fill :stroke :stroke-width :stroke-linecap :stroke-linejoin)
+            :linecap :fill :stroke :stroke-width :stroke-linecap :stroke-linejoin)
       (:symbol :id :class :style :transform :x :y :width :height :viewBox :preserveAspectRatio :refX :refY)
       (:use :id :class :style :transform :x :y :width :height)
       (:view :id :class :style :transform :viewBox :preserveAspectRatio :viewTarget)))
