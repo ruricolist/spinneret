@@ -829,6 +829,6 @@ bar</pre>"
   (is (not (fboundp :selfref)))
   ;; The tag works.
   (is (equal
-       "<a class=selfref href=https://example.com id=id>Example website</a>"
+       "<a class=selfref href=\"https://example.com\" id=id>Example website</a>"
        (with-html-string
          (:selfref#id :href "https://example.com" "Example website")))))

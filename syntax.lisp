@@ -26,13 +26,17 @@
   (declare (character char))
   (or (whitespace char)
       (case char
-        ((#\" #\' #\` #\= #\< #\>) t))))
+        ;; NB The HTML spec only requires escaping trailing slashes,
+        ;; but not all parsers implement that.
+        ((#\" #\' #\` #\= #\< #\> #\/) t))))
 
 (defun needs-quotes? (string)
   (declare (string string))
   (or *always-quote*
       (some #'must-quote? string)
-      (string$= "/" string)))
+      ;; See docstring for must-quote.
+      ;; (string$= "/" string)
+      ))
 
 ;; See 8.3.
 ;; http://www.w3.org/TR/html5/the-end.html#serializing-html-fragments
