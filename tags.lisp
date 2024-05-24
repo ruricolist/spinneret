@@ -187,7 +187,7 @@
       '(:onabort :onblur :oncanplay :oncanplaythrough :onchange :onclick
         :oncontextmenu :ondblclick :ondrag :ondragend :ondragenter
         :ondragleave :ondragover :ondragstart :ondrop :ondurationchange
-        :onemptied :onended :onerror :onfocus :oninput :oninvalid :onkeydown
+        :onemptied :onended :onerror :onfocus :onfocusout :oninput :oninvalid :onkeydown
         :onkeypress :onkeyup :onload :onloadeddata :onloadedmetadata
         :onloadstart :onmousedown :onmousemove :onmouseout :onmouseover
         :onmouseup :onmousewheel :onpause :onplay :onplaying :onprogress
@@ -263,6 +263,7 @@
               :min :max :step :dirname
               :formaction :formenctype :formmethod :formtarget
               :formnovalidate
+              :onfocus :onfocusout
               :popovertarget :popovertargetaction)
       (:ins :cite :datetime)
       (:keygen :challenge :keytype :autofocus :name :disabled :form)
