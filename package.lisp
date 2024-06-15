@@ -54,6 +54,8 @@
                 #:assoc-value
                 #:disjoin
                 #:doplist
+		#:hash-table-keys
+                #:alist-hash-table
                 #:once-only)
   (:import-from #:serapeum
                 #:fmt #:eif #:econd
@@ -80,8 +82,6 @@
                 #:mvlet*
                 #:receive
                 #:set-hash-table
-                #:hash-table-keys
-                #:alist-hash-table
                 #:do-hash-table
                 #:eval-always
                 #:lret
