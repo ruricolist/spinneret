@@ -174,14 +174,18 @@
                        body
                        close t))
 
+    (defun resolve-tag-embedded-attributes (tag attrs)
+      (mvlet* ((tag tag-attrs (dissect-tag tag))
+               (tag (or (and-let* ((kw (find-keyword (string-upcase tag)))
+                                   ((valid? kw))))
+                        (error 'no-such-tag :name tag)))
+               (attrs (append tag-attrs attrs)))
+        (values tag attrs)))
+
     (defun dynamic-tag* (tag attrs body empty?)
       "Dynamically select a tag at runtime.
 Note that TAG must be a known tag."
-      (mvlet* ((tag tag-attrs (dissect-tag tag))
-               (tag (or (and-let* ((kw (find-keyword (string-upcase tag)))
-                                   (tag (valid? kw))))
-                        (error 'no-such-tag :name tag)))
-               (attrs (append tag-attrs attrs))
+      (mvlet* ((tag attrs (resolve-tag-embedded-attributes tag attrs))
                (open (tag-open tag))
                ;; Note that dynamic tags always print the closing tag --
                ;; not worth the effort to check.
