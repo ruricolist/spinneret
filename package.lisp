@@ -85,7 +85,8 @@
                 #:do-hash-table
                 #:eval-always
                 #:lret
-                #:do-hash-table)
+                #:do-hash-table
+                #:whitespacep)
   (:import-from #:cl-ppcre
                 #:split)
   (:import-from #:trivia

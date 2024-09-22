@@ -832,3 +832,15 @@ bar</pre>"
        "<a class=selfref href=\"https://example.com\" id=id>Example website</a>"
        (with-html-string
          (:selfref#id :href "https://example.com" "Example website")))))
+
+(test inline-tag-leading-spaces
+  (flet ((f (url)
+           (with-html
+             (:h4 (:raw "&nbsp;") (:a :href url "Some Text")))))
+    (is (equal
+         "<h4>&nbsp;<a href=\"http://short.com/\">Some Text</a></h4>"
+         (with-html-string
+           (f "http://short.com/"))))
+    (is (search ">Some"
+                (with-html-string
+                  (f "http://thisisreallyreallylonglonglonglongonwegoxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.com"))))))

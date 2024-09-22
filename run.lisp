@@ -157,11 +157,12 @@
                  ;; remainder of the string might just be whitespace.
                  ;; However, this is the behavior we want: the presence
                  ;; of trailing whitespace *should* be preserved.
-                 (thunk window (= right len))
+                 (thunk window (= right len) (= left 0))
             until (= right len)))))
 
-(define-do-macro do-words ((var at-end? string &optional return) &body body)
-  (with-thunk (body var at-end?)
+(define-do-macro do-words ((var at-end? first-iteration? string &optional return)
+                           &body body)
+  (with-thunk (body var at-end? first-iteration?)
     `(call/words ,body ,string)))
 
 (defun maybe-wrap (&optional (offset 0) (stream *html*))
@@ -175,8 +176,8 @@
 
 (defun fill-text (string &optional safe?
                   &aux (html *html*)
-                       (pretty? *print-pretty*)
-                       (pre? *pre*))
+                    (pretty? *print-pretty*)
+                    (pre? *pre*))
   (check-type string string)
   (cond
     ((= (length string) 0))
@@ -191,19 +192,29 @@
          (fresh-line html))
        (when (whitespace (aref string 0))
          (write-char #\Space html))
-       (flet ((wrap () (terpri html))) (declare (inline wrap))
-         (do-words (word at-end? string)
+       (flet ((wrap () (terpri html)))
+         (declare (inline wrap))
+         (do-words (word at-end? first-iteration? string)
            (let* ((word (if safe? word (escape-string word)))
                   (len (length word)))
-             (cond ((> len fill)
-                    (wrap)
-                    (write-string word html)
-                    (wrap))
-                   ((> (+ len (html-stream-column html))
-                       goal)
-                    (wrap)
-                    (write-string word html))
-                   (t (write-string word html))))
+             (cond
+               ;; Don't wrap after the opening of an inline element
+               ;; unless whitespace is already present.
+               ((and first-iteration?
+                     (inline? (car *html-path*)))
+                (when (and (> (length word) 0)
+                           (serapeum:whitespacep (aref word 0)))
+                  (wrap))
+                (write-string word html))
+               ((> len fill)
+                (wrap)
+                (write-string word html)
+                (wrap))
+               ((> (+ len (html-stream-column html))
+                   goal)
+                (wrap)
+                (write-string word html))
+               (t (write-string word html))))
            (unless at-end?
              (write-char #\Space html))))))
     (t
