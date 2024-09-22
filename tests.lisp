@@ -844,3 +844,9 @@ bar</pre>"
     (is (search ">Some"
                 (with-html-string
                   (f "http://thisisreallyreallylonglonglonglongonwegoxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx.com"))))))
+
+(test inline-tag-trailing-spaces
+  (is (equal
+       (spinneret:with-html-string
+         (:span "Click the " (:a :href "https://google.com" ) "."))
+       "<span>Click the <a href=\"https://google.com\"></a>.</span>")))

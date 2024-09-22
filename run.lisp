@@ -116,7 +116,9 @@
 
 (defmethod html :around ((string escaped-string))
   (let ((string (escaped-string-value string)))
-    (when (string^= " " string)
+    (when (or (string^= " " string)
+              ;; Don't insert spaces before punctuation.
+              (not (alpha-char-p (alexandria:first-elt string))))
       (cancel-space)))
   (call-next-method)
   (values))
@@ -203,7 +205,7 @@
                ((and first-iteration?
                      (inline? (car *html-path*)))
                 (when (and (> (length word) 0)
-                           (serapeum:whitespacep (aref word 0)))
+                           (whitespacep (aref word 0)))
                   (wrap))
                 (write-string word html))
                ((> len fill)

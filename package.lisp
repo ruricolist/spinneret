@@ -56,7 +56,8 @@
                 #:doplist
 		#:hash-table-keys
                 #:alist-hash-table
-                #:once-only)
+                #:once-only
+                #:first-elt)
   (:import-from #:serapeum
                 #:fmt #:eif #:econd
                 #:define-do-macro #:defconst
