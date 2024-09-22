@@ -303,10 +303,10 @@ make reasonable decisions about line wrapping.")
                   (print-prefix len attr))
                 (write-char #\= stream)
                 (format stream "~a" value))))
-            (declare (dynamic-extent #'print-prefix #'print-boolean #'print-attr))
-            (format-attributes-with attrs
-                                    #'print-boolean
-                                    #'print-attr))))
+      (declare (dynamic-extent #'print-prefix #'print-boolean #'print-attr))
+      (format-attributes-with attrs
+                              #'print-boolean
+                              #'print-attr))))
 
 (defun format-attributes-pretty/block (attrs &optional (stream *html*))
   (declare (html-stream stream))
