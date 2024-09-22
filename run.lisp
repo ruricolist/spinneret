@@ -16,15 +16,24 @@
           `(fast-format ,stream (formatter ,control-string) ,@args))
       call))
 
+(-> call-without-trailing-space (function) t)
+(defun call-without-trailing-space (fn)
+  (let ((*pending-space* nil))
+    (funcall fn)))
+
 (defmacro without-trailing-space (&body body)
-  `(let ((*pending-space* nil))
-     ,@body))
+  (with-thunk (body)
+    `(call-without-trailing-space ,body)))
+
+(-> call-with-space (function) t)
+(defun call-with-space (fn)
+  (flush-space)
+  (multiple-value-prog1 (funcall fn)
+    (buffer-space)))
 
 (defmacro with-space (&body body)
-  `(progn
-     (flush-space)
-     ,@body
-     (buffer-space)))
+  (with-thunk (body)
+    `(call-with-space ,body)))
 
 (declaim (inline buffer-space flush-space cancel-space))
 
