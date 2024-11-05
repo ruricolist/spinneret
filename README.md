@@ -40,6 +40,7 @@ occupies the following coordinates:
 
 HTML generation with Spinneret looks like this:
 
+```common-lisp
      (in-package #:spinneret)
 
      (defparameter *shopping-list*
@@ -71,9 +72,11 @@ HTML generation with Spinneret looks like this:
           (:ol (dolist (item *shopping-list*)
                  (:li (1+ (random 10)) item))))
          (:footer ("Last login: ~A" *last-login*))))
+```
 
 Which produces:
 
+```html
      <!DOCTYPE html>
      <html lang=en>
       <head>
@@ -101,6 +104,7 @@ Which produces:
       </body>
      </html>
 
+```
 (Pretty-printing is pretty fast, but Spinneret obeys `*print-pretty*`
 should you want to turn it off.)
 
@@ -117,6 +121,7 @@ to attempt to produce human-writable output. It can also be set to
 `:tree`, which simply prints every element as if it were a block
 element, and every run of text on a new line.
 
+```common-lisp
     (let ((*html-style* :human))
       (with-html
         (:div
@@ -138,17 +143,19 @@ element, and every run of text on a new line.
           more text
         </p>
        </div>
+```
 
 With `*html-style*` bound to `:tree`, and `*print-pretty*` bound to
 nil, output is verbose but predictable:
 
-
+```common-lisp
     (let ((*html-style* :tree)
           (*print-pretty* nil))
       (with-html-string
         (:div
           (:p "Text " (:a "link text") " more text"))))
     => "<div><p>Text <a>link text</a>  more text</p></div>"
+```
 
 Notice that binding `*html-style*` to `:tree` ensures that all tags are
 closed.
@@ -168,9 +175,11 @@ with your types, you can help it out by specializing `html-length`.
 For example, if you use PURI, you could help Spinneret pretty-print
 PURI URIs by teaching it how to get their length:
 
+```common-lisp
     (defmethod html-length ((uri puri:uri))
       ;; Doesn't cons.
       (length (puri:render-uri uri nil)))
+```
 
 ## Syntax
 
@@ -193,7 +202,7 @@ The rules for WITH-HTML are these:
     Note that you need :RAW for inline stylesheets and scripts,
     otherwise angle brackets will be escaped as if they were HTML:
 
-    ```lisp
+    ```common-lisp
     (with-html-string (:style "a > p{color: white;}"))
     => "<style>a &gt; p{color: white;}</style>"
 
@@ -220,8 +229,10 @@ The rules for WITH-HTML are these:
   Constant classes and ids can be specified with a selector-like
   syntax. E.g.:
 
+```common-lisp
         (:div#wrapper (:div.section ...))
         ≡ (:div :id "wrapper" (:div :class "section" ...))
+```
 
 - Keyword-value pairs following a tag are interpreted as attributes.
   HTML syntax may not be used in attribute values. Attributes with nil
@@ -235,10 +246,13 @@ The rules for WITH-HTML are these:
 
   The argument :DATASET introduces a list of :DATA-FOO arguments:
 
+```common-lisp
         (:p :dataset (:duck (dolomphious) :fish 'fizzgigious
                             :spoon "runcible"))
         ≡ (:p :data-duck (dolomphious) :data-fish 'fizzgigious
               :data-spoon "runcible")
+
+```
 
   For flexibility, even at the cost of efficiency, the argument :ATTRS
   introduces a form to evaluate at run time for a plist of extra
@@ -259,31 +273,39 @@ For flexibility, even at the cost of efficiency, the pseudo-attribute
 :ATTRS introduces a form to evaluate at run time for a plist of extra
 attributes and values.
 
+```common-lisp
     (:p :attrs (list :id "dynamic!"))
     => <p id="dynamic!">
+```
 
 Similarly, the pseudo-tag :TAG allows you to select a tag at run time.
 
+```common-lisp
     (:tag :name "div"
      (:tag :name "p"
       (:tag :name "span"
         "Hello.")))
     ≡ (:div (:p (:span "Hello")))
+```
 
 Note that :TAG only allows you to *select* a tag, not *create* one.
 The tag must still be one that is known to Spinneret to be valid. (That is, either defined as part of HTML or matching the requirements for a custom element.)
 
 For maximum dynamicity, you can combine :TAG and :ATTRS:
 
+```common-lisp
     (:tag :name "div" :attrs (list :id "dynamic!"))
     => <div id=dynamic!></div>
+```
 
 ### Interpreting trees
 
 For the *ne plus ultra* of flexibility, you can interpret trees at runtime using a subset of Spinneret syntax:
 
+```common-lisp
     (interpret-html-tree `(:div :id "dynamic!"))
     => <div id=dynamic!></div>
+```
 
 The interpreter is still under development; it supports most but not yet all Spinneret syntax.
 
@@ -297,12 +319,14 @@ applied to its arguments.
 This is useful for inline formatting, like links, where sexps would be
 clumsy:
 
+```common-lisp
     (with-html
      ("Here is some copy, with [a link](~a)" link))
 
     (with-html
       (:span "Here is some copy, with "
         (:a :href link "a link.")))
+```
 
 ## `get-html-path`
 
@@ -314,10 +338,13 @@ already within a table. The function `get-html-path` returns a list of
 open tags, from latest to earliest. Usually it will look something
 like
 
+```common-lisp
       (get-html-path) ;-> '(:table :section :body :html)
+```
 
 Thus `tabulate' could be written
 
+```common-lisp
      (defun tabulate (&rest rows)
        (with-html
          (flet ((tabulate ()
@@ -327,6 +354,7 @@ Thus `tabulate' could be written
            (if (find :table (get-html-path))
                (tabulate)
                (:table (:tbody (tabulate)))))))
+```
 
 Note that `get-html-path` returns a freshly-consed list each time it
 is called.
@@ -347,7 +375,7 @@ split into several functions. Binding `*html-path*` allows to preserve
 the structure of the document there.
 
 Example:
-``` lisp
+```common-lisp
 (defun inner-section ()
   "Binds *HTML-PATH* to replicate the depth the output is used in."
   (with-html-string
@@ -375,6 +403,7 @@ Example:
 The stumbling block for all sexp-based HTML generators is order of
 evaluation. It's tempting to write something like this:
 
+```common-lisp
      ;; Doesn't work
      (defun field (control)
        (with-html (:p control)))
@@ -383,6 +412,7 @@ evaluation. It's tempting to write something like this:
        (with-html
          (:label :for name label)
          (:input :name name :id name :type type :value default)))
+```
 
 But it won't work: in `(field (input "Default" :name "why" :label
 "Reason"))`, `(input)` gets evaluated before `(field)`, and the HTML
@@ -390,6 +420,7 @@ is printed inside-out.
 
 Macros do work:
 
+```common-lisp
      (defmacro field (control)
        `(with-html (:p ,control)))
 
@@ -397,10 +428,12 @@ Macros do work:
        `(with-html
           (:label :for ,name ,label)
           (:input :name ,name :id ,name :type ,type)))
+```
 
 But we can do better than this. Spinneret provides a macro-writing
 macro, `deftag`, which lets you *refactor* HTML without *hiding* it.
 
+```common-lisp
      (deftag field (control attrs)
       `(:p ,@attrs ,@control))
 
@@ -411,15 +444,20 @@ macro, `deftag`, which lets you *refactor* HTML without *hiding* it.
             (:input :name ,name :id ,name :type ,type
               ,@attrs
               :value (progn ,@default)))))
+```
 
 A macro defined using `deftag` takes its arguments just like an HTML
 element. Instead of
 
+```common-lisp
     (input "Default" :name "why" :label "Reason") ; defmacro
+```
 
 You write
 
+```common-lisp
     (input :name "why" :label "Reason" "Default") ; deftag
+```
 
 The macro re-arranges the arguments so they can be bound to an
 ordinary lambda list, like the one above: the body of the tag is bound
@@ -433,9 +471,11 @@ are *not* bound to keywords. In the definition of `input` using
 the call to `:input`. This means that any unhandled attributes pass
 through to the actual input element.
 
+```common-lisp
     (input :name "why" :label "Reason" :required t :class "special" "Default")
     => <label for=why>Reason</label>
        <input class=special name=why id=why type=text required value=Default>
+```
 
 In effect, `input` *extends* the `:input` tag, almost like a subclass.
 This is a very idiomatic and expressive way of building abstractions
@@ -464,7 +504,7 @@ Neither :ATTRS nor :TAG is available in Parenscript.
 
 To use Parenscript in Spinneret, remember to wrap the `ps` macro with `:raw`, otherwise the generated JavaScript will be escaped.
 
-``` lisp
+```common-lisp
 (with-html-string
   (:script
     (:raw (ps
@@ -490,13 +530,17 @@ attributes (the `data-` prefix), some client-side frameworks choose to
 employ their own prefixes instead. You can disable validation for a
 given prefix by adding it to `*unvalidated-attribute-prefixes*`.
 
+```common-lisp
     (pushnew "ng-" *unvalidated-attribute-prefixes* :test #’equal)
+```
 
 You can disable attribute validation altogether by adding the empty
 string to the list:
 
+```common-lisp
     ;; Disable attribute validation.
     (setf *unvalidated-attribute-prefixes* '(""))
+```
 
 Tags are considered valid if they are defined as part of the HTML standard, or if they match the rules for the name of a [custom element][] – basically, start with an ASCII alphabetic character and include a hyphen. For custom elements, attributes are not validated.
 
