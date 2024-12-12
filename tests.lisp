@@ -850,3 +850,7 @@ bar</pre>"
        (spinneret:with-html-string
          (:span "Click the " (:a :href "https://google.com" ) "."))
        "<span>Click the <a href=\"https://google.com\"></a>.</span>")))
+
+(test html-tag-empty-string
+  (finishes
+    (spinneret:with-html-string (:style ""))))

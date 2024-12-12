@@ -118,7 +118,8 @@
   (let ((string (escaped-string-value string)))
     (when (or (string^= " " string)
               ;; Don't insert spaces before punctuation.
-              (not (alpha-char-p (alexandria:first-elt string))))
+              (and (not (alexandria:emptyp string))
+                   (not (alpha-char-p (alexandria:first-elt string)))))
       (cancel-space)))
   (call-next-method)
   (values))
