@@ -81,7 +81,7 @@
          ;; Other special cases for IE.
          `(setf (@ *html* ,attr) ,sval))
         ((data-attr? attr)
-         `(setf (@ *html* dataset ,(data-attr-prop attr)) ,sval))
+         `(setf (@ *html* dataset ,(parenscript::encode-js-identifier (data-attr-prop attr))) ,sval))
         ((string-equal attr "attrs")
          (with-ps-gensyms (attrs attr)
            `(let ((,attrs ,val))
