@@ -11,14 +11,14 @@
   '(("for"   . "htmlfor")
     ("class" . "classname")))
 
-(define-ps-symbol-macro *html* (@ window spinneret))
+(define-ps-symbol-macro *html* (ps:@ window spinneret))
 
 (define-ps-symbol-macro *html-charset* (lisp *html-charset*))
 
 (define-ps-symbol-macro *html-lang* (lisp *html-lang*))
 
 (defpsmacro ch (&rest args)
-  `(chain ,@args))
+  `(ps:chain ,@args))
 
 (defpsmacro with-html (&rest html-forms)
   (with-ps-gensyms (node d)
@@ -29,7 +29,7 @@
                          (document ,d))
          ,@(with-standard-io-syntax
              (parse-html html-forms nil)))
-       (unless (@ ,node parent-node)
+       (unless (ps:@ ,node parent-node)
          (prog1 ,node
            (setf *html* nil))))))
 
@@ -48,8 +48,8 @@
                else collect `(ch *html* (append-child
                                          (ch document
                                              (create-text-node
-                                              (stringify ,form)))))))
-     (setf *html* (@ *html* parent-node))
+                                              (ps:stringify ,form)))))))
+     (setf *html* (ps:@ *html* parent-node))
      nil))
 
 (defun make-attr-setter (attr val)
@@ -59,34 +59,34 @@
                        attr)
                    *props* :test #'string-equal)
                   attr))
-        (sval `(stringify ,val)))
+        (sval `(ps:stringify ,val)))
     (flet ((set-or-remove (object attr val)
              (with-ps-gensyms (actual-val)
                `(let ((,actual-val ,val))
                   (if ,actual-val
-                      (ch ,object (set-attribute ,attr (stringify ,actual-val)))
+                      (ch ,object (set-attribute ,attr (ps:stringify ,actual-val)))
                       (ch ,object (remove-attribute ,attr)))))))
       (cond
         ((event? attr)
          ;; Set events as properties, ensuring a href.
-         `(setf (@ *html* ,attr) ,sval
-                (@ *html* href)
-                (or (@ *html* href) "#")))
+         `(setf (ps:@ *html* ,attr) ,sval
+                (ps:@ *html* href)
+                (or (ps:@ *html* href) "#")))
         ;; Style requires special handling for IE.
         ((string-equal attr "style")
-         `(if (@ *html* style set-attribute)
+         `(if (ps:@ *html* style set-attribute)
               (ch *html* style (set-attribute 'css-text ,sval))
               (ch *html* (set-attribute ,attr ,sval))))
         ((rassoc attr *ie-attr-props* :test #'string-equal)
          ;; Other special cases for IE.
-         `(setf (@ *html* ,attr) ,sval))
+         `(setf (ps:@ *html* ,attr) ,sval))
         ((data-attr? attr)
-         `(setf (@ *html* dataset ,(data-attr-prop attr)) ,sval))
+         `(setf (ps:@ *html* dataset ,(data-attr-prop attr)) ,sval))
         ((string-equal attr "attrs")
          (with-ps-gensyms (attrs attr)
            `(let ((,attrs ,val))
               (for-in (,attr ,attrs)
-                ,(set-or-remove '*html* attr `(@ ,attrs ,attr))))))
+                ,(set-or-remove '*html* attr `(ps:@ ,attrs ,attr))))))
         (t (set-or-remove '*html* attr val))))))
 
 (defun event? (attr)
@@ -100,13 +100,13 @@
 
 (defpsmacro comment (text safe?)
   (declare (ignore safe?))
-  `(stringify
+  `(ps:stringify
     ,(concat-constant-strings
       (list "<!-- " text " -->"))))
 
 (defpsmacro cdata (text safe?)
   (declare (ignore safe?))
-  `(stringify
+  `(ps:stringify
     ,(concat-constant-strings
       (list cdata-start text cdata-end))))
 
@@ -123,7 +123,7 @@
          control-string)))))
 
 (defpsmacro join-tokens (&rest classes)
-  `(stringify
+  `(ps:stringify
     ,@(concat-constant-strings
        (intersperse " "
                     (remove-duplicates (remove nil classes)
