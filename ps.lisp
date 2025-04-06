@@ -93,10 +93,12 @@
   (starts-with-subseq "on" (string attr)))
 
 (defun data-attr? (attr)
-  (starts-with-subseq "data-" (string attr)))
+  (starts-with-subseq "data-" (string attr) :test #'char-equal))
 
 (defun data-attr-prop (attr)
-  (subseq (string-downcase attr) 5))
+  (substitute #\_ #\-
+              (subseq (string-downcase attr)
+                      #.(length "data-"))))
 
 (defpsmacro comment (text safe?)
   (declare (ignore safe?))

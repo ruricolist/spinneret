@@ -854,3 +854,10 @@ bar</pre>"
 (test html-tag-empty-string
   (finishes
     (spinneret:with-html-string (:style ""))))
+
+(test test-dataset-property-within-hyphens
+  "Hyphenated data properties should be translated to bracketed strings
+with underscores."
+  (is (search
+       "dataset['x_y']"
+       (ps:ps (with-html (:div :data-x-y "z"))))))
