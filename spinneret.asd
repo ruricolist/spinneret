@@ -5,8 +5,7 @@
   :license "MIT"
   :in-order-to ((test-op (test-op "spinneret/tests")))
   :serial t
-  :depends-on ("parenscript"
-               "alexandria"
+  :depends-on ("alexandria"
                "cl-ppcre"
                "global-vars"
                "serapeum"
@@ -24,8 +23,7 @@
                (:file "compile")
                (:file "deftag")
                (:file "dynamic")
-               (:file "interpret")
-               (:file "ps")))
+               (:file "interpret")))
 
 (defsystem "spinneret/cl-markdown"
   :description "Integration with cl-markdown"
@@ -49,6 +47,9 @@
   :description "Test suite for Spinneret"
   :author "Paul M. Rodriguez <pmr@ruricolist.com>"
   :license "MIT"
-  :depends-on ("spinneret" "spinneret/cl-markdown" "fiveam" "serapeum" "spinneret/ps")
+  :depends-on ("fiveam"
+               "spinneret"
+               "spinneret/cl-markdown"
+               "spinneret/ps")
   :perform (test-op (o c) (symbol-call :spinneret.tests :run-tests))
   :components ((:file "tests")))
