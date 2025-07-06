@@ -22,15 +22,6 @@
            #:interpret-html-tree
            #:escape-string
 	   #:*always-quote*)
-  (:import-from #:parenscript
-                #:concat-constant-strings ;; unexported function
-                #:define-ps-symbol-macro
-                #:defpsmacro
-                #:with-ps-gensyms
-                #:stringify
-                #:chain
-                #:@
-                #:for-in)
   (:import-from #:trivial-gray-streams
                 #:fundamental-character-output-stream
                 #:stream-write-char #:stream-write-string
@@ -96,4 +87,4 @@
                 #:define-global-parameter))
 
 (defpackage #:spinneret-user
-  (:use #:cl #:parenscript #:spinneret))
+  (:use #:cl #:spinneret))
