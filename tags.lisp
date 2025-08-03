@@ -269,7 +269,7 @@
       (:keygen :challenge :keytype :autofocus :name :disabled :form)
       (:label :for :form)
       (:li :type :value)
-      (:link :href :rel :hreflang :media :type :sizes :integrity :crossorigin :referrerpolicy)
+      (:link :href :rel :hreflang :media :type :sizes :integrity :crossorigin :referrerpolicy :as)
       (:map :name)
       (:menu :type :label)
       (:meta :name :content :http-equiv :charset :property :media)
