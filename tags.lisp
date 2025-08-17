@@ -73,6 +73,7 @@
 (defparameter *interpret* nil)
 
 (define-global-parameter *pseudotag-expanders*
+  ;; NB `:disable-html' is handled by `parse-html' directly.
   (load-time-value
    (alist-hash-table
     '((:doctype . make-doctype)

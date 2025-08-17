@@ -861,3 +861,20 @@ with underscores."
   (is (search
        "dataset['x_y']"
        (ps:ps (with-html (:div :data-x-y "z"))))))
+
+(defmacro with-thing-printing ((&key p) &body body)
+  (declare (ignore body))
+  `(progn (princ ,p *html*)
+          nil))
+
+(test test-disable-html
+  (is (equal "<p>Hello"
+             (with-html-string
+               (:p
+                 (:disable-html
+                  (with-thing-printing (:p "Hello")))))))
+  (is (equal "<p>Hello"
+             (with-html-string
+               (:p
+                 (with-thing-printing
+                     (:disable-html (:p "Hello"))))))))

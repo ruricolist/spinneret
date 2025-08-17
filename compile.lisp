@@ -18,6 +18,10 @@
                ((ignore-errors (constantp form env)) form)
                ;; Don't descend into nested with-tag forms.
                ((eql (car form) 'with-tag) form)
+               ((eql (car form) :disable-html)
+                (if (null (cddr form))
+                    (cadr form)
+                    `(progn ,@(cdr form))))
                ;; Compile as a tag.
                ((keywordp (car form))
                 (mvlet* ((name attrs body (tag-parts form))
