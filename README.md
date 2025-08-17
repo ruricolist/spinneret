@@ -34,7 +34,7 @@ occupies the following coordinates:
 - Aggressive. If something can be interpreted as HTML, then it will
   be, meaning that some Lisp forms can't be mixed with HTML syntax. In
   the trade-off between 90% convenience and 10% correctness Spinneret
-  is on the side of convenience.
+  is on the side of convenience. (But see below on `:disable-html`.)
 
 - Bilingual. Spinneret (after loading `spinneret/ps`) has the same semantics in Lisp and [Parenscript][].
 
@@ -193,7 +193,7 @@ The rules for WITH-HTML are these:
   Certain keywords are recognized as pseudo-tags and given special
   treatment:
 
-  :RAW :DOCTYPE :!DOCTYPE :CDATA :!-- :COMMENT :HTML :HEAD :H* :TAG
+  :RAW :DOCTYPE :!DOCTYPE :CDATA :!-- :COMMENT :HTML :HEAD :H* :TAG :DISABLE-HTML
 
   - The pseudotag :RAW can be used to bypass Spinneret’s implicit
     escaping for raw output. This allows inserting HTML literals, and
@@ -220,6 +220,20 @@ The rules for WITH-HTML are these:
     tags, it is equivalent to :H3; and so forth up to :H6.
 
   - The pseudotag :TAG allows dynamic selection of a tag.
+
+  - The pseudotag :DISABLE-HTML stops HTML parsing. Code within a
+    `:disable-html` form is not descended into by the `with-html`
+    macro.
+
+    If there is only a single form inside `:disable-html`, it replaces
+    `:disable-html` (rather than expanding into a `progn`.) You can
+    use this to `escape` syntax that might otherwise be interpeted as
+    HTML:
+
+        ```common-lisp
+        (with-complicated-macro (:disable-html (:keyword-option-1 ...))
+          ...)
+        ```
 
   The value of the LANG attribute of HTML is controlled by
   `*html-lang*`; the value of the meta charset attribute is controlled
