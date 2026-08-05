@@ -13,6 +13,7 @@
         - [`*html-path*`](#html-path)
     - [`deftag`](#deftag)
     - [Parenscript](#parenscript)
+    - [Attribute quoting](#attribute-quoting)
     - [Validation](#validation)
 
 <!-- markdown-toc end -->
@@ -534,6 +535,55 @@ To use Parenscript in Spinneret, remember to wrap the `ps` macro with `:raw`, ot
   (:div :onclick (:raw (ps (alert "Hello")))))
 "<div onclick=\"alert('Hello');\"></div>"
 ```
+
+## Attribute quoting
+
+By default, Spinneret only quotes an attribute value when the string it's
+given requires it per the HTML5 spec — values containing whitespace or one
+of `" ' \` = < > /`. This keeps ordinary output compact:
+
+```common-lisp
+(with-html-string (:a :href "/about" "About"))
+;; => "<a href=/about>About</a>"
+```
+
+This becomes a problem if you're generating a template whose attribute
+values are placeholders for another system to fill in later — for example,
+HTML embedded in a SQL string that a database's own `format()`-style
+function will substitute into at request time. Spinneret only ever sees the
+placeholder text (e.g. `"%s"`), which typically contains no whitespace, so
+it omits the quotes. The output is valid HTML for the literal placeholder
+string, and silently broken HTML the moment the other system substitutes in
+a value that *does* contain whitespace — with no error anywhere in the
+pipeline to catch it, since Spinneret already finished and handed off a
+syntactically valid document as far as it knew.
+
+`*always-quote*` exists for exactly this case:
+
+```common-lisp
+(setf *always-quote* t)
+```
+
+quotes every attribute value regardless of content. Two things about it are
+easy to get wrong the first time:
+
+- **It has to be set with `setf`, before the code that uses it is
+  compiled — not `let` around the call site.** Spinneret decides whether to
+  quote a given attribute value at macroexpansion time, so a dynamic
+  binding in effect only at *runtime* has no effect on already-compiled
+  tag forms:
+  ```common-lisp
+  ;; Does NOT work if TEMPLATE was compiled with *always-quote* unbound:
+  (let ((*always-quote* t))
+    (template))
+
+  ;; Works, evaluated before TEMPLATE is compiled:
+  (setf *always-quote* t)
+  (defun template () (with-html-string ...))
+  ```
+- It's a global switch, not scoped to one template. If you only want it for
+  templates like the one above, keep those in their own file or component
+  and set it before loading just that part of your system.
 
 ## Validation
 
