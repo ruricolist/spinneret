@@ -51,6 +51,10 @@
     (setf *pending-space* nil)))
 
 (defconstructor escaped-string
+  "Wrapper for a string that was escaped at compile time.
+An escaped-string value should always be safe to emit as-is. \(For
+example, if it's an attribute value, it will have quotes if the
+attribute contains characters that require it to be quoted.)"
   (value string))
 
 (defmacro catch-output (arg &environment env)
@@ -227,11 +231,14 @@
            (escape-to-stream string #'escape-string-char *html*)))))
   (values))
 
+(-> format-attribute-value (t) (or string null))
 (defun format-attribute-value (value)
-  (cond ((equal value "") "\"\"")
-        ((keywordp value) (string-downcase value))
-        ((eql value t) "true")
-        (t value)))
+  (let ((value (escape-value value)))
+    (if (and value
+             (not (string^= "\"" value))
+             *always-quote*)
+        (concatenate 'string "\"" value "\"")
+        value)))
 
 (defun format-attributes-with (attrs print-boolean print-value)
   "Format ATTRS, uses the unary function PRINT-BOOLEAN to print
@@ -256,7 +263,7 @@ ordinary attributes."
                          (print-value attr value)))))
                (dynamic-attrs (attrs)
                  (doplist (a v attrs)
-                   (format-attr a (escape-value v)))))
+                   (format-attr a v))))
         (declare (inline seen?))
         (doplist (attr value attrs)
           (if (eql attr :attrs)
@@ -338,19 +345,29 @@ make reasonable decisions about line wrapping.")
         (*indent* (1+ (html-stream-column stream))))
     (format-attributes-pretty/inline attrs stream)))
 
+(-> escape-value (t) (or null string))
 (defun escape-value (value)
-  (if (or (eq value t)
-          (eq value nil)
-          (keywordp value))
-      value
-      (let ((string
-              (if (typep value 'escaped-string)
-                  (escaped-string-value value)
-                  (escape-attribute-value
-                   (princ-to-string value)))))
-        (if (needs-quotes? string)
-            (concatenate 'string "\"" string "\"")
-            string))))
+  "Escape an attribute value.
+Invoked at compile time for literals, and also at run time for all
+attributes."
+  (declare (optimize speed))
+  (flet ((escape-string (string)
+           (let ((string (escape-attribute-value string)))
+             (declare (string string))
+             (cond ((equal string "") "\"\"")
+                   ((some #'must-quote? string)
+                    (concatenate 'string  "\"" string "\""))
+                   (t string)))))
+    (typecase value
+      ((eql t) "true")
+      (null nil)
+      (keyword
+       ;; We treat keywords as safe.
+       (string-downcase value))
+      (escaped-string
+       (escaped-string-value value))
+      (string (escape-string value))
+      (t (escape-string (princ-to-string value))))))
 
 (defun format-text (control-string &rest args)
   (when (and *print-pretty* (not *pre*))

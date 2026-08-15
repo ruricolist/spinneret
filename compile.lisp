@@ -145,6 +145,12 @@ are all the following key-value pairs, and the body is what remains."
        (declare (dynamic-extent (function ,thunk-name)))
        ,form)))
 
+(defun raw-attribute (s)
+  "Skip escaping for attribute value S.
+The value will always be quoted."
+  (escaped-string
+   (concatenate 'string "\"" s "\"")))
+
 (defmacro with-tag ((name &rest attributes) &body body)
   (let* ((empty? (not body))
          (pre? (not (null (preformatted? name))))
@@ -154,7 +160,7 @@ are all the following key-value pairs, and the body is what remains."
      thunk body
      `(,tag-fn
        (macrolet ((:raw (s)
-                    `(escaped-string ,s)))
+                    `(raw-attribute ,s)))
          (list ,@(escape-attrs name attributes)))
        #',thunk
        ,pre?
@@ -174,6 +180,7 @@ are all the following key-value pairs, and the body is what remains."
                      ,empty?))))
 
 (defun escape-attrs (tag attrs)
+  "Compile-time attribute escaping."
   (let ((attrs
           (loop for (attr val . nil) on attrs by #'cddr
                 if (eql attr :dataset)
@@ -187,9 +194,13 @@ are all the following key-value pairs, and the body is what remains."
                 else if (or (stringp val)
                             (numberp val)
                             (characterp val))
-                       collect attr and collect (escape-value val)
+                       collect attr
+                       and collect (escaped-string (escape-value val))
+                else if (keywordp val)
+                       ;; We treat keywords as safe.
+                       collect attr and collect (escaped-string (string-downcase val))
                 else
-                  collect attr and collect `(escape-value ,val))))
+                  collect attr and collect val)))
     (loop for (attr nil . nil) on attrs by #'cddr
           unless (valid-attribute? tag attr)
             do (warn "~A is not a valid attribute for <~A>"
