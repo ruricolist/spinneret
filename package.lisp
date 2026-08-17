@@ -8,7 +8,6 @@
            #:*html-path*
            #:html-stream
            #:get-html-path
-           #:do-elements
            #:deftag
            #:*unvalidated-attribute-prefixes*
            #:*boolean-attributes*
